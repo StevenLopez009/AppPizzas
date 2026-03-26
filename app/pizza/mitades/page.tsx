@@ -1,12 +1,23 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Heart, ShoppingBag, Star } from "lucide-react";
-import { useState } from "react";
+import {
+  AlertCircle,
+  ChevronLeft,
+  Heart,
+  ShoppingBag,
+  Star,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import ImagePizza from "../../../assets/images/pizza2.jpg";
+import { useCart } from "@/context/CartContext";
 
 export default function PizzaMitadesPage() {
+  const { addToCart } = useCart();
+  const [selectedBorder, setSelectedBorder] = useState("");
   const [sabores, setSabores] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
   const sizes = [
     { label: "Mediana", price: 35000 },
     { label: "Personal", price: 19000 },
@@ -15,7 +26,14 @@ export default function PizzaMitadesPage() {
     label: string;
     price: number;
   } | null>(null);
+
   const router = useRouter();
+
+  useEffect(() => {
+    if (selectedSize && sabores.filter(Boolean).length === 2) {
+      setError(null);
+    }
+  }, [selectedSize, sabores]);
 
   const handleSelect = (value: string, index: number) => {
     const nuevos = [...sabores];
@@ -26,7 +44,36 @@ export default function PizzaMitadesPage() {
     }
   };
 
-  const disabled = sabores.filter(Boolean).length >= 2;
+  const saboresSeleccionados = sabores.filter(Boolean);
+  const disabled = saboresSeleccionados.length >= 2;
+
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      setError("Debes seleccionar un tamaño para tu pizza.");
+      return;
+    }
+    if (saboresSeleccionados.length < 2) {
+      setError("Por favor, elige los 2 sabores para las mitades.");
+      return;
+    }
+    if (!selectedBorder) {
+      setError("Por favor, elige un sabor para tu borde");
+      return;
+    }
+
+    const item = {
+      id: `mitades-${selectedSize.label}-${saboresSeleccionados.join("-")}`,
+      name: "Pizza por mitades",
+      price: selectedSize.price,
+      size: selectedSize.label,
+      image: ImagePizza.src,
+      extra: `Mitades: ${saboresSeleccionados.join(" / ")} | Borde: ${selectedBorder || "Tradicional"}`,
+      quantity: 1,
+    };
+
+    addToCart(item);
+    setError(null);
+  };
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-24 relative font-sans">
@@ -65,6 +112,12 @@ export default function PizzaMitadesPage() {
           <h1 className="text-2xl font-bold text-gray-800">
             Pizza por mitades
           </h1>
+          {error && (
+            <div className="mb-6 flex items-center gap-2 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl animate-in fade-in slide-in-from-top-1">
+              <AlertCircle size={18} className="text-red-500 shrink-0" />
+              <p className="text-red-700 text-sm font-medium">{error}</p>
+            </div>
+          )}
         </div>
 
         <div className="mb-8">
@@ -106,7 +159,7 @@ export default function PizzaMitadesPage() {
                 className="w-full border rounded-xl p-3 bg-white"
                 value={sabores[i] || ""}
                 onChange={(e) => handleSelect(e.target.value, i)}
-                disabled={disabled && !sabores[i]} // ⭐ CLAVE
+                disabled={disabled && !sabores[i]}
               >
                 <option value="">Selecciona sabor</option>
                 <option value="chocolate">Chocolate</option>
@@ -126,7 +179,7 @@ export default function PizzaMitadesPage() {
                 className="w-full border rounded-xl p-3 bg-white"
                 value={sabores[i] || ""}
                 onChange={(e) => handleSelect(e.target.value, i)}
-                disabled={disabled && !sabores[i]} // ⭐ CLAVE
+                disabled={disabled && !sabores[i]}
               >
                 <option value="">Selecciona sabor</option>
                 <option value="jamon_queso">Jamón y Queso</option>
@@ -141,7 +194,11 @@ export default function PizzaMitadesPage() {
 
           <h3 className="font-bold text-gray-800 mb-3">Bordes de la Pizza</h3>
 
-          <select className="w-full border rounded-xl p-3 bg-white">
+          <select
+            className="w-full border rounded-xl p-3 bg-white"
+            value={selectedBorder}
+            onChange={(e) => setSelectedBorder(e.target.value)}
+          >
             <option value="">Selecciona borde</option>
             <option value="tradicional">Tradicional</option>
             <option value="queso">Relleno de queso</option>
@@ -158,7 +215,10 @@ export default function PizzaMitadesPage() {
             ${selectedSize?.price?.toLocaleString("es-CO") || 0}
           </p>
         </div>
-        <button className="bg-[#7B3F00] text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform">
+        <button
+          onClick={handleAddToCart}
+          className="bg-orange-600 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
+        >
           <ShoppingBag size={20} />
           Add to Cart
         </button>

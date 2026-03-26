@@ -2,56 +2,25 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import FoodCard from "../foodCard/FoodCard";
-import pizza1 from "../../../assets/images/pizza1.png";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PizzaSection from "@/components/pizzaSection/PizzaSection";
+import { getProducts } from "@/lib/products";
 
 export default function FoodHeader() {
   const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [foods, setFoods] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const banners = [{}, {}, {}];
 
-  const foods = [
-    {
-      id: 1,
-      image: pizza1,
-      title: 'Pizza "Italian"',
-      size: "30 cm",
-      price: 7.5,
-      category: "Pizza",
-    },
-    {
-      id: 2,
-      image: pizza1,
-      title: "Pizza Especial",
-      size: "25 cm",
-      price: 6.0,
-      category: "Pizza",
-    },
-    {
-      id: 3,
-      image: pizza1,
-      title: "panzerotti ",
-      size: "400 gr",
-      price: 8.2,
-      category: "Panzerotti",
-    },
-    {
-      id: 4,
-      image: pizza1,
-      title: "postre Oreo",
-      size: "500 ml",
-      price: 4.5,
-      category: "Postre",
-    },
-    {
-      id: 5,
-      image: pizza1,
-      title: "postre leche",
-      size: "32 cm",
-      price: 9.0,
-      category: "Postre",
-    },
-  ];
+  useEffect(() => {
+    async function loadProducts() {
+      const data = await getProducts();
+      setFoods(data);
+      setLoading(false);
+    }
+
+    loadProducts();
+  }, []);
 
   const filteredFoods =
     selectedCategory === "Todos"
@@ -101,22 +70,23 @@ export default function FoodHeader() {
           ))}
         </div>
       </div>
-      <p></p>
       <div className="mt-6 grid grid-cols-2 gap-4">
-        {selectedCategory === "Pizza" ? (
+        {loading ? (
+          <p>Cargando productos...</p>
+        ) : selectedCategory === "Pizza" ? (
           <PizzaSection />
         ) : (
-          <>
-            {filteredFoods.map((food) => (
-              <FoodCard
-                key={food.id}
-                image={food.image}
-                title={food.title}
-                size={food.size}
-                price={food.price}
-              />
-            ))}
-          </>
+          filteredFoods.map((food) => (
+            <FoodCard
+              key={food.id}
+              id={food.id}
+              image={food.image_url}
+              title={food.name}
+              size={"--"}
+              price={food.price}
+              category={food.category}
+            />
+          ))
         )}
       </div>
     </div>

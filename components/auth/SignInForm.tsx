@@ -27,7 +27,6 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
   const router = useRouter();
   const [isLoading, setisLoading] = useState<boolean>(false);
 
-  // ============ Form ============
   const formSchema = z.object({
     email: z
       .email("Por favor ingresa un correo válido. Ejemplo: user@mail.com")
@@ -143,13 +142,6 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
                 )}
               />
 
-              <div
-                onClick={() => setTypeSelected("recover-password")}
-                className="underline text-white underline-offset-4 hover:text-primary mb-6 text-sm text-end cursor-pointer"
-              >
-                ¿Olvidaste tu contraseña?
-              </div>
-
               {/* ========== Submit ========= */}
               <Button type="submit" disabled={isLoading}>
                 {isLoading && (
@@ -162,7 +154,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
         </Form>
 
         {/* ========== Sign Up ========= */}
-        <p className="text-center text-sm text-white mt-4">
+        <p className="text-center text-sm  mt-4">
           {"¿No tienes cuenta?  "}
           <span
             onClick={() => setTypeSelected("sign-up")}

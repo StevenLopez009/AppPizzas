@@ -36,7 +36,15 @@ export default function BottomMenu() {
                 setActive(item.id);
 
                 if (item.id === "home") router.push("/");
-                if (item.id === "fav") router.push("/favorites");
+                if (item.id === "fav") {
+                  const lastOrderId = localStorage.getItem("last_order_id");
+
+                  if (lastOrderId) {
+                    router.push(`/pedido/${lastOrderId}`);
+                  } else {
+                    alert("No tienes pedidos activos");
+                  }
+                }
                 if (item.id === "orders") router.push("/orders");
                 if (item.id === "profile") router.push("/profile");
               }}

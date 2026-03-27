@@ -3,10 +3,13 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import "swiper/css";
 import { Swiper, SwiperSlide } from "swiper/react";
+import AdminDashboard from "./orders/page";
+import { useRouter } from "next/navigation";
 
-export default function AdminDashboard() {
+export default function Page() {
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const banners = [{}, {}, {}];
+  const router = useRouter();
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -47,7 +50,21 @@ export default function AdminDashboard() {
           ].map((item) => (
             <div
               key={item.name}
-              onClick={() => setSelectedCategory(item.name)}
+              onClick={() => {
+                if (item.name === "Pedidos") {
+                  router.push("/dashboardAdmin/orders");
+                }
+
+                if (item.name === "Crear Productos") {
+                  router.push("/products/create");
+                }
+
+                if (item.name === "Ventas") {
+                  router.push("/sales");
+                }
+
+                setSelectedCategory(item.name);
+              }}
               className={`min-w-[120px] rounded-2xl px-4 py-3 text-center shadow-sm flex-shrink-0 cursor-pointer active:scale-95 transition ${
                 selectedCategory === item.name
                   ? "bg-orange-500 text-white"

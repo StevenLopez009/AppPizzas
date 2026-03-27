@@ -68,10 +68,8 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
       console.log("ADMIN EMAIL:", ADMIN_EMAIL);
       // Lógica de redirección basada en el correo
       if (USER_EMAIL?.toLowerCase() === ADMIN_EMAIL?.toLowerCase()) {
-        console.log("ES ADMIN 🔥🔥🔥");
         router.replace("/dashboardAdmin");
       } else {
-        console.log("NO ES ADMIN ❌");
         router.replace("/dashboard");
       }
     } catch (error: any) {

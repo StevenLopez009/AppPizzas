@@ -81,7 +81,7 @@ export default function CheckoutUI() {
 
       clearCart();
 
-      router.push(`/orders/success?id=${order.id}`);
+      router.push(`/pedido/${order.id}`);
     } catch (err) {
       console.log(err);
       alert("Error creando la orden");

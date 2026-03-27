@@ -2,7 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import PizzaMitades from "../../assets/images/pizzamitades.png";
 
-export default function PizzaSection() {
+export default function PizzaSection({
+  onSelectCategory,
+}: {
+  onSelectCategory: (category: string) => void;
+}) {
   return (
     <div className="w-90 p-2">
       <div className="w-full max-w-4xl grid grid-cols-2 grid-rows-2 gap-4">
@@ -25,9 +29,23 @@ export default function PizzaSection() {
           </div>
         </Link>
 
-        <div className="bg-gray-300 h-40 rounded-xl"></div>
+        <div
+          onClick={() => onSelectCategory("Pizza Dulce")}
+          className="bg-[#FFEEDB] h-40 rounded-xl cursor-pointer flex items-center justify-center"
+        >
+          <h2 className="text-[#4A2B4D] text-2xl font-bold">
+            Pizza <br /> Dulce
+          </h2>
+        </div>
 
-        <div className="bg-gray-300 h-40 rounded-xl"></div>
+        <div
+          onClick={() => onSelectCategory("Pizza Sal")}
+          className="bg-[#FFEEDB] h-40 rounded-xl cursor-pointer flex items-center justify-center"
+        >
+          <h2 className="text-[#4A2B4D] text-2xl font-bold">
+            Pizza <br /> de sal
+          </h2>
+        </div>
       </div>
     </div>
   );

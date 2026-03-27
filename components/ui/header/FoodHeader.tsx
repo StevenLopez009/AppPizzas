@@ -8,6 +8,7 @@ import { getProducts } from "@/lib/products";
 
 export default function FoodHeader() {
   const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [pizzaCategory, setPizzaCategory] = useState<string | null>(null);
   const [foods, setFoods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const banners = [{}, {}, {}];
@@ -25,7 +26,11 @@ export default function FoodHeader() {
   const filteredFoods =
     selectedCategory === "Todos"
       ? foods
-      : foods.filter((f) => f.category === selectedCategory);
+      : selectedCategory === "Pizza"
+        ? pizzaCategory
+          ? foods.filter((f) => f.category === pizzaCategory)
+          : foods.filter((f) => f.category.includes("Pizza"))
+        : foods.filter((f) => f.category === selectedCategory);
 
   return (
     <div className="p-4">
@@ -58,7 +63,13 @@ export default function FoodHeader() {
           ].map((item) => (
             <div
               key={item.name}
-              onClick={() => setSelectedCategory(item.name)}
+              onClick={() => {
+                setSelectedCategory(item.name);
+
+                if (item.name === "Pizza") {
+                  setPizzaCategory(null);
+                }
+              }}
               className={`min-w-[120px] rounded-2xl px-4 py-3 text-center shadow-sm flex-shrink-0 cursor-pointer active:scale-95 transition ${
                 selectedCategory === item.name
                   ? "bg-orange-500 text-white"
@@ -71,10 +82,8 @@ export default function FoodHeader() {
         </div>
       </div>
       <div className="mt-6 grid grid-cols-2 gap-4">
-        {loading ? (
-          <p>Cargando productos...</p>
-        ) : selectedCategory === "Pizza" ? (
-          <PizzaSection />
+        {selectedCategory === "Pizza" && !pizzaCategory ? (
+          <PizzaSection onSelectCategory={setPizzaCategory} />
         ) : (
           filteredFoods.map((food) => (
             <FoodCard

@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useParams } from "next/navigation";
+import OrderTrackingTime from "@/components/orderTrackingTime/OrderTrackingTime";
 
 export default function OrderPage() {
+  const [orderType, setOrderType] = useState<
+    "domicilio" | "mesa" | "recoger" | null
+  >(null);
   const supabase = createClient();
   const params = useParams();
   const orderId = params.id as string;
@@ -18,11 +22,14 @@ export default function OrderPage() {
     const getOrder = async () => {
       const { data } = await supabase
         .from("orders")
-        .select("status")
+        .select("status, order_type")
         .eq("id", orderId)
         .single();
 
-      if (data) setStatus(data.status);
+      if (data) {
+        setStatus(data.status);
+        setOrderType(data.order_type);
+      }
     };
 
     getOrder();
@@ -39,6 +46,7 @@ export default function OrderPage() {
         },
         (payload) => {
           setStatus(payload.new.status);
+          setOrderType(payload.new.order_type);
         },
       )
       .subscribe();
@@ -48,11 +56,24 @@ export default function OrderPage() {
     };
   }, [orderId]);
 
+  if (status === "entregado" || "listo_para_recoger") {
+    return (
+      <div className="p-10 text-center">
+        <h1 className="text-2xl font-bold">Pedido finalizado ✅</h1>
+        <p className="mt-4 text-gray-500">
+          Tu pedido ya fue entregado. ¡Gracias por tu compra!
+        </p>
+      </div>
+    );
+  }
+
+  if (!status || !orderType) {
+    return <p className="p-10 text-center">Cargando pedido...</p>;
+  }
+
   return (
     <div className="p-10">
-      <h1 className="text-3xl font-bold">Seguimiento del pedido</h1>
-
-      <p className="mt-6 text-2xl">Estado: {status ?? "Cargando pedido..."}</p>
+      <OrderTrackingTime status={status} orderType={orderType} />
     </div>
   );
 }

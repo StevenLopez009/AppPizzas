@@ -9,8 +9,7 @@ import Link from "next/link";
 import { Bike, Store } from "lucide-react";
 
 export default function Orders() {
-  const { cart, addToCart, removeFromCart, clearCart, updateQuantity } =
-    useCart();
+  const { cart, addToCart, clearCart, updateQuantity } = useCart();
   const router = useRouter();
 
   const supabase = createClient();
@@ -39,7 +38,8 @@ export default function Orders() {
     );
   }
 
-  const handleOrder = () => {
+  const handleOrder = (type: "domicilio" | "recoger") => {
+    localStorage.setItem("order_type", type);
     router.push("/orders/checkout");
   };
 
@@ -109,19 +109,17 @@ export default function Orders() {
           </div>
         </div>
         <div className="flex gap-3 py-2 px-6">
-          {/* RECOGER */}
           <button
+            onClick={() => handleOrder("recoger")}
             className="flex items-center justify-center gap-2 w-full bg-gray-200 text-gray-800 py-4 rounded-2xl font-bold text-lg active:scale-95 transition-transform"
-            onClick={handleOrder}
           >
             <Store size={20} />
             Recoger
           </button>
 
-          {/* DOMICILIO */}
           <button
+            onClick={() => handleOrder("domicilio")}
             className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
-            onClick={handleOrder}
           >
             <Bike size={20} />
             Domicilio

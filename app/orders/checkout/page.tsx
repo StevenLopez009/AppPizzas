@@ -1,11 +1,15 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function CheckoutUI() {
+  const [orderType, setOrderType] = useState<"domicilio" | "recoger">(
+    "domicilio",
+  );
+
   const { cart, clearCart } = useCart();
   const supabase = createClient();
   const router = useRouter();
@@ -15,7 +19,7 @@ export default function CheckoutUI() {
     0,
   );
 
-  const domicilio = subtotal > 0 ? 5000 : 0;
+  const domicilio = orderType === "domicilio" ? 5000 : 0;
   const total = subtotal + domicilio;
 
   const [form, setForm] = useState({
@@ -25,6 +29,15 @@ export default function CheckoutUI() {
     pago: "efectivo",
   });
 
+  useEffect(() => {
+    const type = localStorage.getItem("order_type") as
+      | "domicilio"
+      | "recoger"
+      | null;
+
+    if (type) setOrderType(type);
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({
       ...form,
@@ -33,7 +46,11 @@ export default function CheckoutUI() {
   };
 
   const handleSubmit = async () => {
-    if (!form.nombre || !form.telefono || !form.direccion) {
+    if (
+      !form.nombre ||
+      !form.telefono ||
+      (orderType === "domicilio" && !form.direccion)
+    ) {
       alert("Completa todos los datos");
       return;
     }
@@ -47,15 +64,15 @@ export default function CheckoutUI() {
       const { data: order, error } = await supabase
         .from("orders")
         .insert({
-          order_type: "domicilio",
+          order_type: orderType,
           customer_name: form.nombre,
           customer_phone: form.telefono,
-          customer_address: form.direccion,
+          customer_address: orderType === "domicilio" ? form.direccion : null,
           payment_method: form.pago,
           subtotal,
           delivery_fee: domicilio,
           total,
-          status: "pendiente",
+          status: "recibido",
         })
         .select()
         .single();
@@ -85,6 +102,8 @@ export default function CheckoutUI() {
     } catch (err) {
       console.log(err);
       alert("Error creando la orden");
+    } finally {
+      localStorage.removeItem("order_type");
     }
   };
 
@@ -146,21 +165,23 @@ export default function CheckoutUI() {
           </div>
 
           {/* DIRECCION */}
-          <div className="flex items-center justify-between p-4">
-            <div className="flex gap-3 items-center w-full">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                📍
-              </div>
+          {orderType === "domicilio" && (
+            <div className="flex items-center justify-between p-4">
+              <div className="flex gap-3 items-center w-full">
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                  📍
+                </div>
 
-              <input
-                name="direccion"
-                value={form.direccion}
-                onChange={handleChange}
-                placeholder="Direccion"
-                className="w-full outline-none font-semibold text-gray-800"
-              />
+                <input
+                  name="direccion"
+                  value={form.direccion}
+                  onChange={handleChange}
+                  placeholder="Direccion"
+                  className="w-full outline-none font-semibold text-gray-800"
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

@@ -114,7 +114,7 @@ export default function PizzaMitadesPage() {
         .map((s) => saboresInfo[s])
         .filter(Boolean)
         .join(" / ")
-    : "Selecciona tus sabores para ver la descripción.";
+    : "Elige tus sabores favoritos para cada mitad de la pizza y disfruta de una experiencia personalizada y deliciosa.";
 
   const disabled = saboresSeleccionados.length >= 2;
 

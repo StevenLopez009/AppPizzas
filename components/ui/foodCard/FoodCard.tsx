@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 type FoodCardProps = {
   id: string;

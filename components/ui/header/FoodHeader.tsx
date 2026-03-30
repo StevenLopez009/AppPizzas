@@ -53,29 +53,33 @@ export default function FoodHeader() {
         <h1 className="text-lg font-semibold text-gray-700">La Carreta</h1>
         <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-300"></div>
       </div>
-      <Swiper
-        modules={[Autoplay]}
-        autoplay={{
-          delay: 3000,
-          disableOnInteraction: false,
-        }}
-        loop={true}
-        spaceBetween={16}
-        slidesPerView={1}
-      >
-        {banners.map((banner, index) => (
-          <SwiperSlide key={index}>
-            <div className="relative h-45 rounded-3xl overflow-hidden">
-              <Image
-                src={banner.image_url}
-                alt="banner"
-                fill
-                className="object-cover"
-              />
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+      <div className="mt-6 flex flex-col lg:flex-row gap-6">
+        <div className="w-full lg:w-[60%]">
+          <Swiper
+            modules={[Autoplay]}
+            autoplay={{
+              delay: 3000,
+              disableOnInteraction: false,
+            }}
+            loop={true}
+            spaceBetween={16}
+            slidesPerView={1}
+          >
+            {banners.map((banner, index) => (
+              <SwiperSlide key={index}>
+                <div className="relative h-45 md:h-72 lg:h-[420px] xl:h-[500px] rounded-3xl overflow-hidden">
+                  <Image
+                    src={banner.image_url}
+                    alt="banner"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+      </div>
 
       <div className="mt-6">
         <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">

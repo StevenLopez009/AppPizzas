@@ -56,7 +56,7 @@ export default function OrderPage() {
     };
   }, [orderId]);
 
-  if (status === "entregado" || "listo_para_recoger") {
+  if (status === "entregado" || status === "listo_para_recoger") {
     return (
       <div className="p-10 text-center">
         <h1 className="text-2xl font-bold">Pedido finalizado ✅</h1>

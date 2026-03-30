@@ -13,7 +13,9 @@ export default function ProductUI({ product }: { product: any }) {
 
   // Verificamos si es un producto con múltiples variantes
   const hasMultiplePrices = product.prices?.length > 1;
-  const isPizza = product.category?.toLowerCase() === "pizza dulce";
+  const isPizza =
+    product.category?.toLowerCase().includes("pizza") &&
+    product.prices?.length > 1;
 
   const handleAddToCart = () => {
     const item = {
@@ -109,10 +111,19 @@ export default function ProductUI({ product }: { product: any }) {
           <div className="mb-8">
             <h3 className="font-bold text-gray-800 mb-3">Bordes de la Pizza</h3>
             <select className="w-full border border-gray-100 rounded-xl p-3 bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-orange-500/20">
-              <option value="tradicional">Tradicional</option>
-              <option value="queso">Relleno de queso</option>
-              <option value="chocolate">Relleno de chocolate</option>
-              <option value="arequipe">Relleno de arequipe</option>
+              <option value="queso">Queso</option>
+              <option value="arequipe">arequipe</option>
+              <option value="bocadillo">bocadillo</option>
+              <option value="chocolate">chocolate</option>
+              <option value="chocolate blanco">chocolate blanco</option>
+              <option value="fresa">fresa</option>
+              <option value="frutos amarillos">frutos amarillos</option>
+              <option value="frutos rojos">frutos rojos</option>
+              <option value="melocoton">melocoton</option>
+              <option value="mora">mora</option>
+              <option value="nucita">nucita</option>
+              <option value="nutela">nutela</option>
+              <option value="queso crema">queso crema</option>
             </select>
           </div>
         )}

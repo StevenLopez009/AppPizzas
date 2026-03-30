@@ -29,22 +29,40 @@ export default function PizzaSection({
           </div>
         </Link>
 
+        {/* PIZZA DULCE */}
         <div
           onClick={() => onSelectCategory("Pizza Dulce")}
-          className="bg-[#FFEEDB] h-40 rounded-xl cursor-pointer flex items-center justify-center"
+          className="bg-[#FFEEDB] h-40 rounded-3xl cursor-pointer relative overflow-hidden group px-6 flex items-start"
         >
-          <h2 className="text-[#4A2B4D] text-2xl font-bold">
-            Pizza <br /> Dulce
-          </h2>
+          <div className="z-10 pt-6">
+            <h2 className="text-[#4A2B4D] text-2xl font-bold">
+              Pizza <br /> Dulce
+            </h2>
+          </div>
+
+          <Image
+            src={PizzaMitades}
+            alt="Pizza dulce"
+            className="absolute -bottom-20 -right-15 h-[120%] w-auto object-contain drop-shadow-xl rotate-12 group-hover:rotate-0 transition-transform duration-500"
+          />
         </div>
 
+        {/* PIZZA SAL */}
         <div
           onClick={() => onSelectCategory("Pizza Sal")}
-          className="bg-[#FFEEDB] h-40 rounded-xl cursor-pointer flex items-center justify-center"
+          className="bg-[#FFEEDB] h-40 rounded-3xl cursor-pointer relative overflow-hidden group px-6 flex items-start"
         >
-          <h2 className="text-[#4A2B4D] text-2xl font-bold">
-            Pizza <br /> de sal
-          </h2>
+          <div className="z-10 pt-6">
+            <h2 className="text-[#4A2B4D] text-2xl font-bold">
+              Pizza <br /> de sal
+            </h2>
+          </div>
+
+          <Image
+            src={PizzaMitades}
+            alt="Pizza sal"
+            className="absolute -bottom-20 -right-15 h-[120%] w-auto object-contain drop-shadow-xl rotate-12 group-hover:rotate-0 transition-transform duration-500"
+          />
         </div>
       </div>
     </div>

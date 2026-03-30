@@ -12,6 +12,69 @@ import Image from "next/image";
 import ImagePizza from "../../../assets/images/pizza2.jpg";
 import { useCart } from "@/context/CartContext";
 
+const saboresInfo: Record<string, string> = {
+  aceitunas:
+    "Pizza con aceitunas que aportan un sabor intenso y ligeramente salado.",
+  acaballo:
+    "Carne desmechada, champiñones y tomate, con un sabor fuerte y tradicional.",
+  atun_pollo: "Combinación de atún y pollo, suave pero con buen sabor.",
+  campesina:
+    "Carne desmechada, pollo y maíz tierno, estilo casero y equilibrado.",
+  caprichosa: "Pollo, champiñones y tomate, una mezcla clásica y suave.",
+  carne_champinon: "Carne desmechada con champiñones frescos, sabor profundo.",
+  carnes_1: "Jamón, cabano picado y pepperoni, combinación de carnes intensas.",
+  carnes_2: "Jamón, tocineta, chorizo y pepperoni, potente y jugosa.",
+  carnes_3: "Jamón, chorizo y tocineta, mezcla clásica de carnes.",
+  carnes_4: "Jamón, carne y pollo, combinación completa.",
+  carretazo:
+    "Jamón, tostacos, tomate, pollo y carne desmechada, textura crujiente y sabor fuerte.",
+  criolla: "Carne desmechada, chorizo, maíz tierno y huevo, estilo colombiano.",
+  cuatro_estaciones:
+    "Pollo, champiñones, tomate y jamón, variedad en cada bocado.",
+  deliciosa_especial:
+    "Jamón, tocineta, cabano picado y maíz, combinación equilibrada.",
+  especial: "Jamón, tocineta, cebolla, pimentón, champiñones, maíz y orégano.",
+  guacapizza:
+    "Aguacate, carne desmechada, tomate y jalapeños, sabor fresco y picante.",
+  mediterranea: "Tomate, pollo y tocineta, mezcla ligera con buen sabor.",
+  mexicana:
+    "Carne, tomate, tostacos y jalapeños, ligeramente picante y crujiente.",
+  montini: "Jamón, cabano picado, pollo y champiñones, combinación variada.",
+  napolitana: "Tomate en rodajas con especias, sabor tradicional italiano.",
+  paisa:
+    "Fríjol, carne desmechada, chorizo y aguacate, estilo típico colombiano.",
+  pepperoni: "Clásica pizza de pepperoni con sabor intenso.",
+  perla_negra: "Jamón, tocineta y maíz, combinación dulce-salada.",
+  pollo_champinon: "Pollo con champiñones, suave y cremosa.",
+  pollo_cabano: "Pollo con cabano picado, mezcla de sabores suaves e intensos.",
+  pollo_pepperoni:
+    "Pollo con pepperoni, combinación clásica con un toque fuerte.",
+  primavera: "Tomate, pollo y albahaca, fresca y ligera.",
+  ranchera: "Pollo, chorizo, maíz y carne desmechada, sabor potente.",
+  uva_pasa_tocineta: "Uvas pasas con tocineta, contraste dulce y salado.",
+  vegetariana_3: "Cebolla, tomate, champiñones y pimentón, opción sin carne.",
+  queso: "Solo queso mozzarella, suave y cremosa.",
+  dlux: "Chorizo, tocineta, pollo, tomate y jalapeños, intensa y picante.",
+  atun: "Atún con sabor suave y marino.",
+
+  banano_arequipe: "Banano con arequipe, dulce y cremoso.",
+  choco_queso: "Chocolate con queso, mezcla dulce con toque salado.",
+  ciruela_tocineta: "Ciruela con tocineta, contraste dulce-salado.",
+  coco_miel: "Coco rallado con miel, tropical y suave.",
+  durazno_pina: "Durazno y piña, combinación frutal refrescante.",
+  frutas: "Mezcla de frutas dulces como cerezas, uvas pasas y durazno.",
+  hawaiana_1: "Jamón con piña, clásico dulce-salado.",
+  hawaiana_2: "Jamón con durazno, sabor suave y dulce.",
+  hawacoco: "Jamón, piña y coco rallado, tropical.",
+  infantil_1: "Sabores dulces suaves ideales para niños.",
+  infantil_2: "Combinación dulce pensada para los más pequeños.",
+  infantil_3: "Mezcla dulce suave y agradable.",
+  oreo_miel: "Oreo con miel, dulce intenso.",
+  platano_bocadillo: "Plátano maduro con bocadillo, muy colombiano.",
+  queso_bocadillo: "Queso con bocadillo, clásico dulce.",
+  tropical: "Frutas tropicales como piña, durazno y cereza.",
+};
+
 export default function PizzaMitadesPage() {
   const { addToCart } = useCart();
   const [selectedBorder, setSelectedBorder] = useState("");
@@ -45,6 +108,14 @@ export default function PizzaMitadesPage() {
   };
 
   const saboresSeleccionados = sabores.filter(Boolean);
+
+  const descripcionDinamica = saboresSeleccionados.length
+    ? saboresSeleccionados
+        .map((s) => saboresInfo[s])
+        .filter(Boolean)
+        .join(" / ")
+    : "Selecciona tus sabores para ver la descripción.";
+
   const disabled = saboresSeleccionados.length >= 2;
 
   const handleAddToCart = () => {
@@ -122,9 +193,8 @@ export default function PizzaMitadesPage() {
 
         <div className="mb-8">
           <h3 className="font-bold text-gray-800 mb-2">Description</h3>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          <p className="text-black-500 leading-relaxed">
+            {descripcionDinamica}
           </p>
         </div>
 
@@ -162,11 +232,25 @@ export default function PizzaMitadesPage() {
                 disabled={disabled && !sabores[i]}
               >
                 <option value="">Selecciona sabor</option>
-                <option value="chocolate">Chocolate</option>
-                <option value="durazno">Durazno</option>
-                <option value="pina">Piña</option>
-                <option value="arequipe">Arequipe</option>
-                <option value="fresa">Fresa</option>
+
+                <option value="banano_arequipe">Banano con arequipe</option>
+                <option value="choco_queso">Choco queso</option>
+                <option value="ciruela_tocineta">Ciruela con tocineta</option>
+                <option value="coco_miel">Coco miel</option>
+                <option value="durazno_pina">Durazno piña</option>
+                <option value="frutas">Frutas</option>
+                <option value="hawaiana_1">Hawaiana 1</option>
+                <option value="hawaiana_2">Hawaiana 2</option>
+                <option value="hawacoco">Hawacoco</option>
+                <option value="infantil_1">Infantil 1</option>
+                <option value="infantil_2">Infantil 2</option>
+                <option value="infantil_3">Infantil 3</option>
+                <option value="oreo_miel">Oreo miel</option>
+                <option value="platano_bocadillo">
+                  Plátano maduro con bocadillo
+                </option>
+                <option value="queso_bocadillo">Queso y bocadillo</option>
+                <option value="tropical">Tropical</option>
               </select>
             ))}
           </div>
@@ -182,12 +266,42 @@ export default function PizzaMitadesPage() {
                 disabled={disabled && !sabores[i]}
               >
                 <option value="">Selecciona sabor</option>
-                <option value="jamon_queso">Jamón y Queso</option>
-                <option value="hawaiiana">Hawaiana</option>
-                <option value="pepperoni">Pepperoni</option>
-                <option value="pollo_champinon">Pollo Champiñón</option>
-                <option value="vegetariana">Vegetariana</option>
+
                 <option value="aceitunas">Aceitunas</option>
+                <option value="acaballo">Acaballo</option>
+                <option value="atun_pollo">Atún pollo</option>
+                <option value="campesina">Campesina</option>
+                <option value="caprichosa">Caprichosa</option>
+                <option value="carne_champinon">
+                  Carne desmechada champiñones
+                </option>
+                <option value="carnes_1">Carnes 1</option>
+                <option value="carnes_2">Carnes 2</option>
+                <option value="carnes_3">Carnes 3</option>
+                <option value="carnes_4">Carnes 4</option>
+                <option value="carretazo">Carretazo</option>
+                <option value="criolla">Criolla</option>
+                <option value="cuatro_estaciones">Cuatro Estaciones</option>
+                <option value="deliciosa_especial">Deliciosa Especial</option>
+                <option value="especial">Especial</option>
+                <option value="guacapizza">Guacapizza</option>
+                <option value="mediterranea">Mediterránea</option>
+                <option value="mexicana">Mexicana</option>
+                <option value="montini">Montini</option>
+                <option value="napolitana">Napolitana</option>
+                <option value="paisa">Paisa</option>
+                <option value="pepperoni">Peperoni</option>
+                <option value="perla_negra">Perla negra</option>
+                <option value="pollo_champinon">Pollo champiñón</option>
+                <option value="pollo_cabano">Pollo cabano picado</option>
+                <option value="pollo_pepperoni">Pollo peperoni</option>
+                <option value="primavera">Primavera</option>
+                <option value="ranchera">Ranchera</option>
+                <option value="uva_pasa_tocineta">Uva pasa tocineta</option>
+                <option value="vegetariana_3">Vegetariana 3</option>
+                <option value="queso">Queso</option>
+                <option value="dlux">Dlux</option>
+                <option value="atun">Atún</option>
               </select>
             ))}
           </div>

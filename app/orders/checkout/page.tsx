@@ -4,11 +4,17 @@ import { useEffect, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import imgDelivery from "@/assets/images/bannerDelivery.png";
 
 export default function CheckoutUI() {
+  const [location, setLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [orderType, setOrderType] = useState<"domicilio" | "recoger">(
     "domicilio",
   );
+  const [barrio, setBarrio] = useState("");
 
   const { cart, clearCart } = useCart();
   const supabase = createClient();
@@ -19,7 +25,15 @@ export default function CheckoutUI() {
     0,
   );
 
-  const domicilio = orderType === "domicilio" ? 5000 : 0;
+  const preciosBarrio: Record<string, number> = {
+    prosperidad: 4000,
+    parques: 6000,
+    opalo: 5000,
+    sociego: 3000,
+    otros: 6000,
+  };
+
+  const domicilio = orderType === "domicilio" ? preciosBarrio[barrio] || 0 : 0;
   const total = subtotal + domicilio;
 
   const [form, setForm] = useState({
@@ -38,6 +52,25 @@ export default function CheckoutUI() {
     if (type) setOrderType(type);
   }, []);
 
+  const getLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+
+        setLocation(coords);
+
+        console.log("Ubicación:", coords);
+      },
+      (error) => {
+        console.log(error);
+        alert("No se pudo obtener la ubicación");
+      },
+    );
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({
       ...form,
@@ -45,11 +78,46 @@ export default function CheckoutUI() {
     });
   };
 
+  const generateWhatsAppMessage = () => {
+    const items = cart
+      .map(
+        (item) =>
+          `🍕 ${item.quantity}x ${item.name} (${item.size}) - ${item.extra || "sin extra"} - $${(item.price * item.quantity).toLocaleString("es-CO")}`,
+      )
+      .join("\n");
+
+    return `
+🧾 *Nuevo Pedido*
+
+👤 Cliente: ${form.nombre}
+📞 Tel: ${form.telefono}
+${orderType === "domicilio" ? `📍 Dirección: ${form.direccion}` : ""}
+${orderType === "domicilio" ? `🏘️ Barrio: ${barrio}` : ""}
+${location ? `📍 Ubicación: https://www.google.com/maps?q=${location.lat},${location.lng}` : ""}
+
+🛵 Tipo: ${orderType}
+💳 Pago: ${form.pago}
+
+📦 Pedido:
+${items}
+
+🚚 Domicilio: $${domicilio.toLocaleString("es-CO")}
+💰 Total: $${total.toLocaleString("es-CO")}
+`;
+  };
+
+  const sendToWhatsApp = () => {
+    const phone = "573161534971";
+    const message = generateWhatsAppMessage();
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
+  };
+
   const handleSubmit = async () => {
     if (
       !form.nombre ||
       !form.telefono ||
-      (orderType === "domicilio" && !form.direccion)
+      (orderType === "domicilio" && (!form.direccion || !barrio))
     ) {
       alert("Completa todos los datos");
       return;
@@ -65,11 +133,14 @@ export default function CheckoutUI() {
         .from("orders")
         .insert({
           order_type: orderType,
+          lat: location?.lat || null,
+          lng: location?.lng || null,
           customer_name: form.nombre,
           customer_phone: form.telefono,
           customer_address: orderType === "domicilio" ? form.direccion : null,
           payment_method: form.pago,
           subtotal,
+          neighborhood: barrio,
           delivery_fee: domicilio,
           total,
           status: "recibido",
@@ -94,8 +165,8 @@ export default function CheckoutUI() {
         .insert(items);
 
       if (itemsError) throw itemsError;
-      console.log(cart);
 
+      sendToWhatsApp();
       clearCart();
 
       router.push(`/pedido/${order.id}`);
@@ -122,13 +193,53 @@ export default function CheckoutUI() {
 
       {/* MAP */}
       <div className="px-6">
-        <div className="rounded-3xl overflow-hidden shadow bg-orange-100 h-40 flex items-center justify-center">
-          <span className="text-orange-500 font-semibold">Map Preview</span>
+        <div className="rounded-3xl overflow-hidden shadow bg-orange-100 h-40">
+          {orderType === "domicilio" ? (
+            <div
+              className="relative h-full w-full flex items-center"
+              style={{
+                backgroundImage: `
+                    linear-gradient(to right, #fde7d8 1%, transparent),
+                    url(${imgDelivery.src})
+                  `,
+                backgroundSize: "100% 100%, contain",
+                backgroundPosition: "left, right center",
+                backgroundRepeat: "no-repeat",
+              }}
+            >
+              <div className="relative z-10 flex flex-col items-start justify-center gap-3 px-5 text-white max-w-[70%]">
+                {!location ? (
+                  <>
+                    <p className="text-sm font-semibold leading-tight text-black">
+                      Comparte tu ubicación <br /> para un envío más rápido
+                    </p>
+
+                    <button
+                      onClick={getLocation}
+                      className="bg-orange-600 px-2 py-2 rounded-xl text-sm font-semibold shadow-md active:scale-95 transition"
+                    >
+                      📍 Compartir ubicación
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-lg text-black font-semibold">
+                      Ubicación <br /> compartida
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p>Recoger</p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* ADDRESS CARD */}
-      <div className="px-6 mt-6">
+      <div className="px-6 mt-4">
         <div className="bg-white rounded-3xl shadow-sm divide-y">
           {/* NOMBRE */}
           <div className="flex items-center justify-between p-4">
@@ -166,27 +277,45 @@ export default function CheckoutUI() {
 
           {/* DIRECCION */}
           {orderType === "domicilio" && (
-            <div className="flex items-center justify-between p-4">
-              <div className="flex gap-3 items-center w-full">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                  📍
-                </div>
+            <>
+              <div className="flex items-center justify-between p-4">
+                <div className="flex gap-3 items-center w-full">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    📍
+                  </div>
 
-                <input
-                  name="direccion"
-                  value={form.direccion}
-                  onChange={handleChange}
-                  placeholder="Direccion"
-                  className="w-full outline-none font-semibold text-gray-800"
-                />
+                  <input
+                    name="direccion"
+                    value={form.direccion}
+                    onChange={handleChange}
+                    placeholder="Direccion"
+                    className="w-full outline-none font-semibold text-gray-800"
+                  />
+                </div>
               </div>
-            </div>
+              <div className="flex items-center justify-between p-4">
+                <select
+                  value={barrio}
+                  onChange={(e) => setBarrio(e.target.value)}
+                  className="w-full outline-none"
+                >
+                  <option value="">Barrio</option>
+                  <option value="prosperidad">La prosperidad 4.000$</option>
+                  <option value="parques">
+                    Parques santamaria, san jose, san carlos 6.000$
+                  </option>
+                  <option value="opalo">Opalo y verdes 5.000$</option>
+                  <option value="sociego">El sociego 3.000$</option>
+                  <option value="otros">Otros 6.000$</option>
+                </select>
+              </div>
+            </>
           )}
         </div>
       </div>
 
       {/* PAYMENT */}
-      <div className="px-6 mt-6">
+      <div className="px-6 mt-2">
         <div className="bg-white rounded-3xl shadow-sm">
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-3">

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Sidebar from "@/components/SideBar/SideBar";
+import ReportComponent from "@/components/report/ReportComponent";
 
 export default function AdminLayout({
   children,
@@ -23,9 +24,14 @@ export default function AdminLayout({
   }, []);
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <main className="flex-1 p-6 bg-gray-50 min-h-screen">{children}</main>
+    <div>
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
+      <main className="flex-1 h-20">{children}</main>
+      <div className="hidden md:block">
+        <ReportComponent />
+      </div>
     </div>
   );
 }

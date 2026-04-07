@@ -17,6 +17,8 @@ export default function FoodHeader() {
   const [pizzaCategory, setPizzaCategory] = useState<string | null>(null);
   const [foods, setFoods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
   const banners = [
     { image_url: bannerImg },
     { image_url: bannerImg2 },
@@ -33,27 +35,34 @@ export default function FoodHeader() {
     loadProducts();
   }, []);
 
-  const filteredFoods =
-    selectedCategory === "Todos"
-      ? foods
-      : selectedCategory === "Pizza"
-        ? pizzaCategory
-          ? foods.filter((f) => f.category === pizzaCategory)
-          : foods.filter((f) => f.category.includes("Pizza"))
-        : foods.filter((f) => f.category === selectedCategory);
+  const filteredFoods = foods
+    .filter((food) => {
+      if (selectedCategory === "Todos") return true;
+
+      if (selectedCategory === "Pizza") {
+        if (pizzaCategory) {
+          return food.category === pizzaCategory;
+        }
+        return food.category.includes("Pizza");
+      }
+      return food.category === selectedCategory;
+    })
+    .filter((food) => {
+      return food.name.toLowerCase().includes(search.toLowerCase());
+    });
 
   const shuffledFoods = useMemo(() => {
     return [...filteredFoods].sort(() => Math.random() - 0.5);
   }, [filteredFoods]);
 
   return (
-    <div className="p-4 mb-20">
+    <div className="p-4 mb-10">
       <div className="w-full px-4 py-4 flex items-center justify-between">
         <button className="text-2xl text-gray-600">☰</button>
         <h1 className="text-lg font-semibold text-gray-700">La Carreta</h1>
         <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-300"></div>
       </div>
-      <div className="mt-6 flex flex-col lg:flex-row gap-6">
+      <div className="mt-2 flex flex-col lg:flex-row gap-6">
         <div className="w-full lg:w-[60%]">
           <Swiper
             modules={[Autoplay]}
@@ -111,7 +120,22 @@ export default function FoodHeader() {
             </div>
           ))}
         </div>
+        {selectedCategory === "Todos" && (
+          <div className="relative mt-4">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar tus platos favoritos ..."
+              className="w-full py-3 pl-4 pr-4 rounded-2xl border border-gray-200 
+                   bg-white shadow-sm text-sm 
+                   focus:outline-none focus:ring-2 focus:ring-orange-400 
+                   focus:border-transparent transition"
+            />
+          </div>
+        )}
       </div>
+
       <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {selectedCategory === "Pizza" && !pizzaCategory ? (
           <PizzaSection onSelectCategory={setPizzaCategory} />

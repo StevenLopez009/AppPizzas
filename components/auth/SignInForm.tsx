@@ -1,9 +1,6 @@
 "use client";
 import { createClient } from "../../lib/supabase/client";
 import { useRouter } from "next/navigation";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -16,11 +13,11 @@ import {
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { useState } from "react";
-import { LoaderCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthFormProps } from "./AuthForm";
+import { Input } from "../ui/input";
+import ImgLogin from "@/assets/images/loginImg.jpg";
 
 const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
   const supabase = createClient();
@@ -64,9 +61,6 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
       toast.success("¡Bienvenido!");
 
       const USER_EMAIL = authData.user?.email;
-      console.log("USER EMAIL:", USER_EMAIL);
-      console.log("ADMIN EMAIL:", ADMIN_EMAIL);
-      // Lógica de redirección basada en el correo
       if (USER_EMAIL?.toLowerCase() === ADMIN_EMAIL?.toLowerCase()) {
         router.replace("/dashboardAdmin");
       } else {
@@ -79,84 +73,76 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
     }
   };
 
-  const googleSignIn = async () => {};
-
   return (
-    <div>
-      <div className="w-full backdrop-blur-xl py-2 rounded-4xl">
-        <div className="text-center">
-          <h1 className="lg:text-5xl md:text-4xl text-3xl font-semibold text-center my-4">
-            Iniciar Sesión
-          </h1>
-          <p className="text-sm text-muted-foreground mb-8">
-            Ingresa para acceder a todo el contenido
-          </p>
+    <div className="w-full h-full max-w-md  overflow-hidden shadow-2xl flex flex-col ">
+      <div
+        className="relative h-70 bg-cover bg-center rounded-[30px]"
+        style={{ backgroundImage: `url(${ImgLogin.src})` }}
+      >
+        <button className="absolute top-4 left-4 text-white text-sm flex items-center gap-1 bg-black/20 px-3 py-1 rounded-full backdrop-blur">
+          ← Back
+        </button>
+      </div>
+      <div className=" rounded-t-[30px] mt-5 p-6">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-orange-600">Iniciar Sesión</h1>
+          <p className="text-sm text-gray-400 mt-2">Accede para continuar</p>
         </div>
 
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className="mx-4">
-            <div className="grid gap-2">
-              {/* ========== Email ========= */}
-              <FormField
-                control={control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="mb-3">
-                    <FormLabel>Correo</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        id="email"
-                        placeholder="name@example.com"
-                        type="email"
-                        autoComplete="email"
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-500 text-sm">Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Enter your email"
+                      className="h-12 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-orange-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/* ========== Password ========= */}
-              <FormField
-                control={control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem className="mb-3">
-                    <FormLabel>Contraseña</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        id="password"
-                        placeholder="*****"
-                        type="password"
-                        autoComplete="current-password"
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* ========== Submit ========= */}
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && (
-                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Ingresar
-              </Button>
-            </div>
+            <FormField
+              control={control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-500 text-sm">
+                    Password
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="password"
+                      placeholder="Enter password"
+                      className="h-12 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <button
+              type="submit"
+              className="w-full h-12 bg-orange-500 text-white rounded-xl font-semibold shadow-md hover:bg-orange-600 transition"
+            >
+              {isLoading ? "Cargando..." : "Ingresar"}
+            </button>
           </form>
         </Form>
 
-        {/* ========== Sign Up ========= */}
-        <p className="text-center text-sm  mt-4">
-          {"¿No tienes cuenta?  "}
+        <p className="text-center text-sm text-gray-400 mt-6">
+          ¿No tienes cuenta?{" "}
           <span
             onClick={() => setTypeSelected("sign-up")}
-            className="underline underline-offset-4 hover:text-primary cursor-pointer"
+            className="text-orange-500 font-semibold cursor-pointer"
           >
             Regístrate
           </span>

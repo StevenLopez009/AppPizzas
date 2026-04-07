@@ -19,6 +19,9 @@ interface Order {
   customer_phone: string;
   payment_method: string;
   customer_address: string;
+  neighborhood: string;
+  lat?: number | null;
+  lng?: number | null;
   total: number;
   status: string;
   order_type: "domicilio" | "mesa" | "recoger";
@@ -52,6 +55,9 @@ export default function AdminDashboard() {
           total,
           order_type,
           status,
+          neighborhood,
+          lat,
+          lng,
           order_items (
             id,
             product_name,
@@ -89,7 +95,7 @@ export default function AdminDashboard() {
 
     const nextStatus = flow[index + 1];
 
-    if (!nextStatus) return; // ya está finalizada
+    if (!nextStatus) return;
 
     const { error } = await supabase
       .from("orders")
@@ -131,6 +137,20 @@ export default function AdminDashboard() {
                   <p className="text-sm text-gray-400">
                     💳 {order.payment_method}
                   </p>
+                  {order.order_type === "domicilio" && (
+                    <p className="text-sm text-gray-400">
+                      {order.neighborhood}
+                    </p>
+                  )}
+                  {order.lat && order.lng && (
+                    <a
+                      href={`https://www.google.com/maps?q=${order.lat},${order.lng}`}
+                      target="_blank"
+                      className="text-blue-500 text-sm underline"
+                    >
+                      📍 Ver ubicación en mapa
+                    </a>
+                  )}
                 </div>
 
                 <div className="text-right">
@@ -149,9 +169,9 @@ export default function AdminDashboard() {
                 {order.order_items?.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
                     <div>
-                      🍕 {item.product_name} x{item.quantity}
-                      <p className="text-gray-400 text-xs">
-                        {item.size} • {item.extra || "sin extra"}
+                      🍕{item.quantity} {item.size}
+                      <p className="text-md">
+                        {item.product_name} • {item.extra || "sin extra"}
                       </p>
                     </div>
 

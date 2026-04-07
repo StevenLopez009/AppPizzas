@@ -77,7 +77,7 @@ const saboresInfo: Record<string, string> = {
 
 export default function PizzaMitadesPage() {
   const { addToCart } = useCart();
-  const [selectedBorder, setSelectedBorder] = useState("");
+  const [borders, setBorders] = useState<string[]>([]);
   const [sabores, setSabores] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -118,6 +118,12 @@ export default function PizzaMitadesPage() {
 
   const disabled = saboresSeleccionados.length >= 2;
 
+  const handleBorderSelect = (value: string, index: number) => {
+    const nuevos = [...borders];
+    nuevos[index] = value;
+    setBorders(nuevos);
+  };
+
   const handleAddToCart = () => {
     if (!selectedSize) {
       setError("Debes seleccionar un tamaño para tu pizza.");
@@ -127,7 +133,7 @@ export default function PizzaMitadesPage() {
       setError("Por favor, elige los 2 sabores para las mitades.");
       return;
     }
-    if (!selectedBorder) {
+    if (!borders) {
       setError("Por favor, elige un sabor para tu borde");
       return;
     }
@@ -138,7 +144,7 @@ export default function PizzaMitadesPage() {
       price: selectedSize.price,
       size: selectedSize.label,
       image: ImagePizza.src,
-      extra: `Mitades: ${saboresSeleccionados.join(" / ")} | Borde: ${selectedBorder || "Tradicional"}`,
+      extra: `Mitades: ${saboresSeleccionados.join(" / ")} | Borde: ${borders.join(" / ") || "Tradicional"}`,
       quantity: 1,
     };
 
@@ -307,18 +313,20 @@ export default function PizzaMitadesPage() {
           </div>
 
           <h3 className="font-bold text-gray-800 mb-3">Bordes de la Pizza</h3>
-
-          <select
-            className="w-full border rounded-xl p-3 bg-white"
-            value={selectedBorder}
-            onChange={(e) => setSelectedBorder(e.target.value)}
-          >
-            <option value="">Selecciona borde</option>
-            <option value="tradicional">Tradicional</option>
-            <option value="queso">Relleno de queso</option>
-            <option value="chocolate">Relleno de chocolate</option>
-            <option value="arequipe">Relleno de arequipe</option>
-          </select>
+          {[0, 1].map((i) => (
+            <select
+              key={i}
+              className="w-full border rounded-xl p-3 bg-white mb-2"
+              value={borders[i] || ""}
+              onChange={(e) => handleBorderSelect(e.target.value, i)}
+            >
+              <option value="">Borde ${i + 1}</option>
+              <option value="tradicional">Tradicional</option>
+              <option value="queso">Queso</option>
+              <option value="chocolate">Chocolate</option>
+              <option value="arequipe">Arequipe</option>
+            </select>
+          ))}
         </div>
       </div>
 

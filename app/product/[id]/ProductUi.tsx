@@ -1,17 +1,42 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Heart, ShoppingBag, Star } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ProductUI({ product }: { product: any }) {
   const { addToCart } = useCart();
   const [selectedSize, setSelectedSize] = useState(product.prices[0]);
   const [selectedBorder, setSelectedBorder] = useState("tradicional");
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
-  // Verificamos si es un producto con múltiples variantes
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUserRole = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+
+      const user = userData.user;
+
+      if (!user) return;
+
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.role === "admin") {
+        setIsAdmin(true);
+      }
+    };
+
+    getUserRole();
+  }, []);
+
   const hasMultiplePrices = product.prices?.length > 1;
   const isPizza =
     product.category?.toLowerCase().includes("pizza") &&
@@ -54,9 +79,18 @@ export default function ProductUI({ product }: { product: any }) {
           >
             <ChevronLeft size={20} className="text-gray-700" />
           </button>
-          <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm">
-            <Heart size={20} className="text-gray-700" />
-          </button>
+
+          <div className="flex items-center gap-2">
+            {isAdmin ? (
+              <button className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md ">
+                Editar
+              </button>
+            ) : (
+              <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm">
+                <Heart size={20} className="text-gray-700" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -70,13 +104,28 @@ export default function ProductUI({ product }: { product: any }) {
             <span className="font-bold text-sm">4.9</span>
           </div>
         </div>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold text-gray-800 leading-tight">
+            {product.name}
+          </h1>
 
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">
-          {product.name}
-        </h1>
-
+          {isAdmin && (
+            <button className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md ">
+              Editar
+            </button>
+          )}
+        </div>
         <div className="mb-8">
-          <h3 className="font-bold text-gray-800 mb-2">Descripción</h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-bold text-gray-800">Descripción</h3>
+
+            {isAdmin && (
+              <button className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md ">
+                Editar
+              </button>
+            )}
+          </div>
+
           <p className="text-gray-400 text-sm leading-relaxed">
             {product.description}
           </p>

@@ -12,7 +12,9 @@ export default function ProductUI({ product }: { product: any }) {
   const [selectedBorder, setSelectedBorder] = useState("tradicional");
   const [isAdmin, setIsAdmin] = useState(false);
   const [title, setTitle] = useState(product.name);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [description, setDescription] = useState(product.description);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editablePrices, setEditablePrices] = useState(product.prices || []);
   const router = useRouter();
 
   const supabase = createClient();
@@ -64,18 +66,46 @@ export default function ProductUI({ product }: { product: any }) {
     addToCart(item);
   };
 
-  const handleUpdateTitle = async () => {
+  const handleUpdateProduct = async () => {
     await supabase
       .from("products")
-      .update({ name: title })
+      .update({ name: title, description: description, prices: editablePrices })
       .eq("id", product.id);
 
-    setIsEditingTitle(false);
+    setIsEditing(false);
+    router.refresh();
+  };
+
+  const handlePriceChange = (index: number, value: string) => {
+    const updated = [...editablePrices];
+    updated[index].price = Number(value);
+    setEditablePrices(updated);
+  };
+
+  const handleDeleteProduct = async () => {
+    const confirmDelete = confirm(
+      "¿Seguro que quieres eliminar este producto?",
+    );
+
+    if (!confirmDelete) return;
+
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", product.id);
+
+    if (error) {
+      console.error(error);
+      alert("Error al eliminar el producto");
+      return;
+    }
+
+    router.push("/dashboardAdmin");
   };
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-24 relative font-sans">
-      <div className="relative h-[350px] w-full bg-gray-100">
+      <div className="relative h-[250px] w-full bg-gray-100">
         <Image
           src={product.image_url || "/placeholder-pizza.jpg"}
           alt={product.name}
@@ -94,7 +124,7 @@ export default function ProductUI({ product }: { product: any }) {
           <div className="flex items-center gap-2">
             {isAdmin ? (
               <button
-                onClick={() => setIsEditingTitle(true)}
+                onClick={() => setIsEditing(true)}
                 className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md "
               >
                 <Pencil size={16} />
@@ -119,13 +149,12 @@ export default function ProductUI({ product }: { product: any }) {
           </div>
         </div>
         <div className="flex items-center justify-between mb-4 gap-2">
-          {isEditingTitle ? (
+          {isEditing ? (
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              onBlur={handleUpdateTitle}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleUpdateTitle();
+                if (e.key === "Enter") handleUpdateProduct();
               }}
               className="text-2xl font-bold text-gray-800 leading-tight border-b border-gray-300 outline-none w-full"
               autoFocus
@@ -136,9 +165,9 @@ export default function ProductUI({ product }: { product: any }) {
             </h1>
           )}
 
-          {isAdmin && !isEditingTitle && (
+          {isAdmin && !isEditing && (
             <button
-              onClick={() => setIsEditingTitle(true)}
+              onClick={() => setIsEditing(true)}
               className="flex items-center gap-2 bg-gray-900 text-white px-3 py-2 rounded-xl text-sm font-semibold shadow-md"
             >
               <Pencil size={16} />
@@ -147,21 +176,47 @@ export default function ProductUI({ product }: { product: any }) {
         </div>
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-bold text-gray-800">Descripción</h3>
-
-            {isAdmin && (
-              <button className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md ">
-                <Pencil size={16} />
-              </button>
+            {isEditing ? (
+              <input
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleUpdateProduct();
+                }}
+                className="text-sm  text-gray w-full"
+                autoFocus
+              />
+            ) : (
+              <p className="text-gray-400 text-sm leading-relaxed">
+                {description}
+              </p>
             )}
           </div>
-
-          <p className="text-gray-400 text-sm leading-relaxed">
-            {product.description}
-          </p>
         </div>
+        {isAdmin && editablePrices?.length > 0 && (
+          <div className="mb-4 space-y-2">
+            {editablePrices.map((p: any, index: number) => (
+              <div key={p.label} className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">{p.label}</span>
 
-        {hasMultiplePrices && (
+                {isEditing ? (
+                  <input
+                    type="number"
+                    value={p.price}
+                    onChange={(e) => handlePriceChange(index, e.target.value)}
+                    className="w-24 text-right border-b border-gray-300 outline-none"
+                  />
+                ) : (
+                  <span className="text-sm font-semibold">
+                    ${p.price.toLocaleString("es-CO")}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {hasMultiplePrices && !isAdmin && (
           <div className="mb-8">
             <h3 className="font-bold text-gray-800 mb-3">
               Seleccione un tamaño
@@ -185,8 +240,8 @@ export default function ProductUI({ product }: { product: any }) {
           </div>
         )}
 
-        {isPizza && (
-          <div className="mb-8">
+        {isPizza && !isAdmin && (
+          <div className="mb-2">
             <h3 className="font-bold text-gray-800 mb-3">Bordes de la Pizza</h3>
             <select className="w-full border border-gray-100 rounded-xl p-3 bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-orange-500/20">
               <option value="queso">Queso</option>
@@ -205,23 +260,50 @@ export default function ProductUI({ product }: { product: any }) {
             </select>
           </div>
         )}
+        {!isAdmin && (
+          <textarea
+            placeholder="Quieres agregar algo al pedido? Ej: Sin cebolla, extra queso, etc..."
+            className="w-full mt-4 p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-700 placeholder-gray-400 
+  outline-none resize-none transition-all duration-200
+  focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-100 mb-6"
+          />
+        )}
       </div>
 
       {/* BARRA INFERIOR DE COMPRA */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/90 backdrop-blur-md p-6 border-t border-gray-100 flex justify-between items-center rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-        <div>
-          <p className="text-gray-400 text-xs">Precio</p>
-          <p className="text-2xl font-black text-gray-800">
-            ${selectedSize?.price?.toLocaleString("es-CO") || 0}
-          </p>
-        </div>
-        <button
-          className="bg-orange-600 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
-          onClick={handleAddToCart}
-        >
-          <ShoppingBag size={20} />
-          Agregar
-        </button>
+        {!isAdmin ? (
+          <div>
+            <p className="text-gray-400 text-xs">Precio</p>
+            <p className="text-2xl font-black text-gray-800">
+              ${selectedSize?.price?.toLocaleString("es-CO") || 0}
+            </p>
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={handleDeleteProduct}
+              className="bg-red-600 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
+            >
+              Eliminar
+            </button>
+            <button
+              onClick={handleUpdateProduct}
+              className=" bg-green-600 text-white px-8 py-4 rounded-2xl"
+            >
+              Guardar cambios
+            </button>
+          </>
+        )}
+        {!isAdmin && (
+          <button
+            className="bg-orange-600 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
+            onClick={handleAddToCart}
+          >
+            <ShoppingBag size={20} />
+            Agregar
+          </button>
+        )}
       </div>
     </div>
   );

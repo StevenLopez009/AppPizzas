@@ -136,7 +136,7 @@ export default function FoodHeader() {
         )}
       </div>
 
-      <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="mb-10 mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {selectedCategory === "Pizza" && !pizzaCategory ? (
           <PizzaSection onSelectCategory={setPizzaCategory} />
         ) : (

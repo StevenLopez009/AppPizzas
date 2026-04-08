@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Heart, ShoppingBag, Star } from "lucide-react";
+import { ChevronLeft, Heart, Pencil, ShoppingBag, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
@@ -11,6 +11,8 @@ export default function ProductUI({ product }: { product: any }) {
   const [selectedSize, setSelectedSize] = useState(product.prices[0]);
   const [selectedBorder, setSelectedBorder] = useState("tradicional");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [title, setTitle] = useState(product.name);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const router = useRouter();
 
   const supabase = createClient();
@@ -62,6 +64,15 @@ export default function ProductUI({ product }: { product: any }) {
     addToCart(item);
   };
 
+  const handleUpdateTitle = async () => {
+    await supabase
+      .from("products")
+      .update({ name: title })
+      .eq("id", product.id);
+
+    setIsEditingTitle(false);
+  };
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-24 relative font-sans">
       <div className="relative h-[350px] w-full bg-gray-100">
@@ -82,8 +93,11 @@ export default function ProductUI({ product }: { product: any }) {
 
           <div className="flex items-center gap-2">
             {isAdmin ? (
-              <button className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md ">
-                Editar
+              <button
+                onClick={() => setIsEditingTitle(true)}
+                className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md "
+              >
+                <Pencil size={16} />
               </button>
             ) : (
               <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm">
@@ -104,14 +118,30 @@ export default function ProductUI({ product }: { product: any }) {
             <span className="font-bold text-sm">4.9</span>
           </div>
         </div>
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-800 leading-tight">
-            {product.name}
-          </h1>
+        <div className="flex items-center justify-between mb-4 gap-2">
+          {isEditingTitle ? (
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={handleUpdateTitle}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleUpdateTitle();
+              }}
+              className="text-2xl font-bold text-gray-800 leading-tight border-b border-gray-300 outline-none w-full"
+              autoFocus
+            />
+          ) : (
+            <h1 className="text-2xl font-bold text-gray-800 leading-tight">
+              {title}
+            </h1>
+          )}
 
-          {isAdmin && (
-            <button className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md ">
-              Editar
+          {isAdmin && !isEditingTitle && (
+            <button
+              onClick={() => setIsEditingTitle(true)}
+              className="flex items-center gap-2 bg-gray-900 text-white px-3 py-2 rounded-xl text-sm font-semibold shadow-md"
+            >
+              <Pencil size={16} />
             </button>
           )}
         </div>
@@ -121,7 +151,7 @@ export default function ProductUI({ product }: { product: any }) {
 
             {isAdmin && (
               <button className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md ">
-                Editar
+                <Pencil size={16} />
               </button>
             )}
           </div>
@@ -131,7 +161,6 @@ export default function ProductUI({ product }: { product: any }) {
           </p>
         </div>
 
-        {/* --- RENDERIZADO CONDICIONAL DE TAMAÑOS --- */}
         {hasMultiplePrices && (
           <div className="mb-8">
             <h3 className="font-bold text-gray-800 mb-3">
@@ -186,7 +215,6 @@ export default function ProductUI({ product }: { product: any }) {
             ${selectedSize?.price?.toLocaleString("es-CO") || 0}
           </p>
         </div>
-
         <button
           className="bg-orange-600 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
           onClick={handleAddToCart}

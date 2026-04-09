@@ -10,6 +10,7 @@ interface CartItem {
   size: string;
   image: string;
   extra?: string | null;
+  observations?: string;
   quantity: number;
 }
 

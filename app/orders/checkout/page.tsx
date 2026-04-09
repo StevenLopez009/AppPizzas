@@ -82,7 +82,7 @@ export default function CheckoutUI() {
     const items = cart
       .map(
         (item) =>
-          `🍕 ${item.quantity}x ${item.name} (${item.size}) - ${item.extra || "sin extra"} - $${(item.price * item.quantity).toLocaleString("es-CO")}`,
+          `🍕 ${item.quantity}x ${item.name} (${item.size}) - ${item.extra || "sin extra"} - ${item.observations ? `📝 ${item.observations}` : ""} - $${(item.price * item.quantity).toLocaleString("es-CO")}`,
       )
       .join("\n");
 
@@ -158,6 +158,7 @@ ${items}
         quantity: item.quantity,
         size: item.size,
         extra: item.extra || null,
+        observations: item.observations || null,
       }));
 
       const { error: itemsError } = await supabase

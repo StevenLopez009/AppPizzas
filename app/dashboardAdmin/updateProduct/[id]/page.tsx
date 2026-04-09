@@ -1,8 +1,8 @@
-import { notFound } from "next/navigation";
-import ProductUI from "./ProductUi";
 import { createClient } from "@/lib/supabase/client";
+import ProductUpdate from "./ProductUpdate";
+import { notFound } from "next/navigation";
 
-export default async function ProductDetail({
+export default async function Page({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -18,5 +18,5 @@ export default async function ProductDetail({
 
   if (!product) return notFound();
 
-  return <ProductUI product={product} />;
+  return <ProductUpdate product={product} />;
 }

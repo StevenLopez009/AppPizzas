@@ -1,5 +1,6 @@
 "use client";
 import FoodCard from "@/components/ui/foodCard/FoodCard";
+import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import PizzaSection from "@/components/pizzaSection/PizzaSection";
 import { getProducts } from "@/lib/products";
@@ -14,6 +15,7 @@ export default function Page() {
   const [foods, setFoods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     async function loadProducts() {
@@ -21,8 +23,30 @@ export default function Page() {
       setFoods(data);
       setLoading(false);
     }
-
     loadProducts();
+  }, []);
+
+  useEffect(() => {
+    async function loadUserRole() {
+      const supabase = createClient();
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.role === "admin") {
+        setIsAdmin(true);
+      }
+    }
+
+    loadUserRole();
   }, []);
 
   const filteredFoods = foods
@@ -117,6 +141,7 @@ export default function Page() {
               size={"--"}
               price={food.price}
               category={food.category}
+              isAdmin={isAdmin}
             />
           ))
         )}

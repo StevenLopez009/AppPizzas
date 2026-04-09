@@ -9,11 +9,16 @@ type FoodCardProps = {
   size: string;
   price: number;
   category: string;
+  isAdmin?: boolean;
 };
 
-export default function FoodCard({ id, image, title }: FoodCardProps) {
+export default function FoodCard({ id, image, title, isAdmin }: FoodCardProps) {
+  const href = isAdmin
+    ? `/dashboardAdmin/updateProduct/${id}`
+    : `/product/${id}`;
+
   return (
-    <Link href={`/product/${id}`} className="w-full">
+    <Link href={href} className="w-full">
       <div className="relative w-full h-50 bg-[#F5F5F5] rounded-[24px] sm:rounded-[28px] p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
         <div className="flex justify-center mt-1 sm:mt-2">
           <Image
@@ -36,9 +41,9 @@ export default function FoodCard({ id, image, title }: FoodCardProps) {
             </p>
           </div>
 
-          <button className="mt-1 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-orange-400 flex items-center justify-center shadow-lg hover:bg-orange-500 transition shrink-0">
+          <div className="mt-1 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-orange-400 flex items-center justify-center shadow-lg hover:bg-orange-500 transition shrink-0">
             <Plus size={16} className="text-white sm:w-[18px] sm:h-[18px]" />
-          </button>
+          </div>
         </div>
       </div>
     </Link>

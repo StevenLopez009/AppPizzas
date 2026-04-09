@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Heart, Pencil, ShoppingBag, Star } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChevronLeft, Heart, ShoppingBag, Star } from "lucide-react";
+import { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 import { createClient } from "@/lib/supabase/client";
@@ -10,38 +10,11 @@ export default function ProductUI({ product }: { product: any }) {
   const { addToCart } = useCart();
   const [selectedSize, setSelectedSize] = useState(product.prices[0]);
   const [selectedBorder, setSelectedBorder] = useState("tradicional");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [title, setTitle] = useState(product.name);
-  const [description, setDescription] = useState(product.description);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editablePrices, setEditablePrices] = useState(product.prices || []);
+  const [observations, setObservations] = useState("");
   const router = useRouter();
 
-  const supabase = createClient();
-
-  useEffect(() => {
-    const getUserRole = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-
-      const user = userData.user;
-
-      if (!user) return;
-
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-
-      if (profile?.role === "admin") {
-        setIsAdmin(true);
-      }
-    };
-
-    getUserRole();
-  }, []);
-
   const hasMultiplePrices = product.prices?.length > 1;
+
   const isPizza =
     product.category?.toLowerCase().includes("pizza") &&
     product.prices?.length > 1;
@@ -60,47 +33,12 @@ export default function ProductUI({ product }: { product: any }) {
         ? `Borde: ${selectedBorder}`
         : null,
 
+      observations: observations,
+
       quantity: 1,
     };
 
     addToCart(item);
-  };
-
-  const handleUpdateProduct = async () => {
-    await supabase
-      .from("products")
-      .update({ name: title, description: description, prices: editablePrices })
-      .eq("id", product.id);
-
-    setIsEditing(false);
-    router.refresh();
-  };
-
-  const handlePriceChange = (index: number, value: string) => {
-    const updated = [...editablePrices];
-    updated[index].price = Number(value);
-    setEditablePrices(updated);
-  };
-
-  const handleDeleteProduct = async () => {
-    const confirmDelete = confirm(
-      "¿Seguro que quieres eliminar este producto?",
-    );
-
-    if (!confirmDelete) return;
-
-    const { error } = await supabase
-      .from("products")
-      .delete()
-      .eq("id", product.id);
-
-    if (error) {
-      console.error(error);
-      alert("Error al eliminar el producto");
-      return;
-    }
-
-    router.push("/dashboardAdmin");
   };
 
   return (
@@ -122,18 +60,9 @@ export default function ProductUI({ product }: { product: any }) {
           </button>
 
           <div className="flex items-center gap-2">
-            {isAdmin ? (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md "
-              >
-                <Pencil size={16} />
-              </button>
-            ) : (
-              <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm">
-                <Heart size={20} className="text-gray-700" />
-              </button>
-            )}
+            <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm">
+              <Heart size={20} className="text-gray-700" />
+            </button>
           </div>
         </div>
       </div>
@@ -148,75 +77,22 @@ export default function ProductUI({ product }: { product: any }) {
             <span className="font-bold text-sm">4.9</span>
           </div>
         </div>
-        <div className="flex items-center justify-between mb-4 gap-2">
-          {isEditing ? (
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleUpdateProduct();
-              }}
-              className="text-2xl font-bold text-gray-800 leading-tight border-b border-gray-300 outline-none w-full"
-              autoFocus
-            />
-          ) : (
-            <h1 className="text-2xl font-bold text-gray-800 leading-tight">
-              {title}
-            </h1>
-          )}
 
-          {isAdmin && !isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2 bg-gray-900 text-white px-3 py-2 rounded-xl text-sm font-semibold shadow-md"
-            >
-              <Pencil size={16} />
-            </button>
-          )}
+        <div className="flex items-center justify-between mb-4 gap-2">
+          <h1 className="text-2xl font-bold text-gray-800 leading-tight">
+            {product.name}
+          </h1>
         </div>
+
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            {isEditing ? (
-              <input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleUpdateProduct();
-                }}
-                className="text-sm  text-gray w-full"
-                autoFocus
-              />
-            ) : (
-              <p className="text-gray-400 text-sm leading-relaxed">
-                {description}
-              </p>
-            )}
+            <p className="text-gray-400 text-sm leading-relaxed">
+              {product.description}
+            </p>
           </div>
         </div>
-        {isAdmin && editablePrices?.length > 0 && (
-          <div className="mb-4 space-y-2">
-            {editablePrices.map((p: any, index: number) => (
-              <div key={p.label} className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">{p.label}</span>
 
-                {isEditing ? (
-                  <input
-                    type="number"
-                    value={p.price}
-                    onChange={(e) => handlePriceChange(index, e.target.value)}
-                    className="w-24 text-right border-b border-gray-300 outline-none"
-                  />
-                ) : (
-                  <span className="text-sm font-semibold">
-                    ${p.price.toLocaleString("es-CO")}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {hasMultiplePrices && !isAdmin && (
+        {hasMultiplePrices && (
           <div className="mb-8">
             <h3 className="font-bold text-gray-800 mb-3">
               Seleccione un tamaño
@@ -240,7 +116,7 @@ export default function ProductUI({ product }: { product: any }) {
           </div>
         )}
 
-        {isPizza && !isAdmin && (
+        {isPizza && (
           <div className="mb-2">
             <h3 className="font-bold text-gray-800 mb-3">Bordes de la Pizza</h3>
             <select className="w-full border border-gray-100 rounded-xl p-3 bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-orange-500/20">
@@ -260,50 +136,33 @@ export default function ProductUI({ product }: { product: any }) {
             </select>
           </div>
         )}
-        {!isAdmin && (
-          <textarea
-            placeholder="Quieres agregar algo al pedido? Ej: Sin cebolla, extra queso, etc..."
-            className="w-full mt-4 p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-700 placeholder-gray-400 
+
+        <textarea
+          value={observations}
+          onChange={(e) => setObservations(e.target.value)}
+          placeholder="Quieres eliminar algo del pedido? Ej: Sin cebolla, Sin queso, etc..."
+          className="w-full mt-4 p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-700 placeholder-gray-400 
   outline-none resize-none transition-all duration-200
   focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-100 mb-6"
-          />
-        )}
+        />
       </div>
 
       {/* BARRA INFERIOR DE COMPRA */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/90 backdrop-blur-md p-6 border-t border-gray-100 flex justify-between items-center rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-        {!isAdmin ? (
-          <div>
-            <p className="text-gray-400 text-xs">Precio</p>
-            <p className="text-2xl font-black text-gray-800">
-              ${selectedSize?.price?.toLocaleString("es-CO") || 0}
-            </p>
-          </div>
-        ) : (
-          <>
-            <button
-              onClick={handleDeleteProduct}
-              className="bg-red-600 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
-            >
-              Eliminar
-            </button>
-            <button
-              onClick={handleUpdateProduct}
-              className=" bg-green-600 text-white px-8 py-4 rounded-2xl"
-            >
-              Guardar cambios
-            </button>
-          </>
-        )}
-        {!isAdmin && (
-          <button
-            className="bg-orange-600 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
-            onClick={handleAddToCart}
-          >
-            <ShoppingBag size={20} />
-            Agregar
-          </button>
-        )}
+        <div>
+          <p className="text-gray-400 text-xs">Precio</p>
+          <p className="text-2xl font-black text-gray-800">
+            ${selectedSize?.price?.toLocaleString("es-CO") || 0}
+          </p>
+        </div>
+
+        <button
+          className="bg-orange-600 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
+          onClick={handleAddToCart}
+        >
+          <ShoppingBag size={20} />
+          Agregar
+        </button>
       </div>
     </div>
   );

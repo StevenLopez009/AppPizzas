@@ -73,6 +73,13 @@ export default function Orders() {
               <p className="text-gray-400 text-xs mt-1">
                 {item.size} {item.extra ? `• ${item.extra}` : ""}
               </p>
+              <p>
+                {item.observations && (
+                  <span className="text-gray-500 text-xs mt-1 block">
+                    {item.observations}
+                  </span>
+                )}
+              </p>
               <p className="text-orange-600 font-bold mt-1">
                 ${(item.price * item.quantity).toLocaleString("es-CO")}
               </p>

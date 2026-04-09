@@ -18,6 +18,7 @@ export default function FoodHeader() {
   const [foods, setFoods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const banners = [
     { image_url: bannerImg },

@@ -10,6 +10,7 @@ interface OrderItem {
   price: number;
   size: string;
   extra?: string | null;
+  observations?: string | null;
 }
 
 interface Order {
@@ -64,7 +65,8 @@ export default function AdminDashboard() {
             quantity,
             price,
             size,
-            extra
+            extra,
+            observations
           )
         `,
         )
@@ -137,11 +139,13 @@ export default function AdminDashboard() {
                   <p className="text-sm text-gray-400">
                     💳 {order.payment_method}
                   </p>
+
                   {order.order_type === "domicilio" && (
                     <p className="text-sm text-gray-400">
                       {order.neighborhood}
                     </p>
                   )}
+
                   {order.lat && order.lng && (
                     <a
                       href={`https://www.google.com/maps?q=${order.lat},${order.lng}`}
@@ -173,8 +177,10 @@ export default function AdminDashboard() {
                       <p className="text-md">
                         {item.product_name} • {item.extra || "sin extra"}
                       </p>
+                      {item.observations && (
+                        <p className="text-sm">{item.observations}</p>
+                      )}
                     </div>
-
                     <p className="font-semibold">
                       $
                       {Number(item.price * item.quantity).toLocaleString(

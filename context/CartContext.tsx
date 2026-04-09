@@ -11,6 +11,10 @@ interface CartItem {
   image: string;
   extra?: string | null;
   observations?: string;
+  additional?: {
+    name: string;
+    price: number;
+  } | null;
   quantity: number;
 }
 
@@ -44,14 +48,16 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         (item) =>
           item.product_id === newItem.product_id &&
           item.size === newItem.size &&
-          item.extra === newItem.extra,
+          item.extra === newItem.extra &&
+          item.additional?.name === newItem.additional?.name,
       );
 
       if (existingItem) {
         return prevCart.map((item) =>
           item.product_id === newItem.product_id &&
           item.size === newItem.size &&
-          item.extra === newItem.extra
+          item.extra === newItem.extra &&
+          item.additional?.name === newItem.additional?.name
             ? { ...item, quantity: item.quantity + newItem.quantity }
             : item,
         );

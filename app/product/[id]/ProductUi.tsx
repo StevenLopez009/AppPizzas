@@ -4,20 +4,27 @@ import { ChevronLeft, Heart, ShoppingBag, Star } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
-import { createClient } from "@/lib/supabase/client";
 
 export default function ProductUI({ product }: { product: any }) {
   const { addToCart } = useCart();
   const [selectedSize, setSelectedSize] = useState(product.prices[0]);
-  const [selectedBorder, setSelectedBorder] = useState("tradicional");
+  const [selectedBorder, setSelectedBorder] = useState("");
+  const [selectedAdditional, setSelectedAdditional] = useState<any | null>(
+    null,
+  );
   const [observations, setObservations] = useState("");
+
   const router = useRouter();
 
   const hasMultiplePrices = product.prices?.length > 1;
+  const isPizza = product.category?.toLowerCase().includes("pizza");
+  const additionalsList = [
+    { name: "queso", price: 3000 },
+    { name: "aceitunas", price: 2000 },
+  ];
 
-  const isPizza =
-    product.category?.toLowerCase().includes("pizza") &&
-    product.prices?.length > 1;
+  const additionalPrice = selectedAdditional?.price || 0;
+  const finalPrice = selectedSize.price + additionalPrice;
 
   const handleAddToCart = () => {
     const item = {
@@ -25,25 +32,30 @@ export default function ProductUI({ product }: { product: any }) {
       product_id: product.id,
 
       name: product.name,
-      price: selectedSize.price,
+      price: finalPrice,
       size: selectedSize.label,
       image: product.image_url,
 
-      extra: product.category?.toLowerCase().includes("pizza")
-        ? `Borde: ${selectedBorder}`
-        : null,
-
+      extra: isPizza ? selectedBorder : null,
+      additional:
+        isPizza && selectedAdditional
+          ? {
+              name: selectedAdditional.name,
+              price: selectedAdditional.price,
+            }
+          : null,
       observations: observations,
 
       quantity: 1,
     };
 
+    console.log("Item a guardar:", item);
     addToCart(item);
   };
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-24 relative font-sans">
-      <div className="relative h-[250px] w-full bg-gray-100">
+      <div className="relative h-[220px] w-full bg-gray-100">
         <Image
           src={product.image_url || "/placeholder-pizza.jpg"}
           alt={product.name}
@@ -67,7 +79,7 @@ export default function ProductUI({ product }: { product: any }) {
         </div>
       </div>
 
-      <div className="px-6 pt-6">
+      <div className="px-6 pt-4">
         <div className="flex justify-between items-start mb-1">
           <span className="text-orange-500 font-medium text-sm">
             {product.category || "General"}
@@ -84,7 +96,7 @@ export default function ProductUI({ product }: { product: any }) {
           </h1>
         </div>
 
-        <div className="mb-8">
+        <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-gray-400 text-sm leading-relaxed">
               {product.description}
@@ -93,7 +105,7 @@ export default function ProductUI({ product }: { product: any }) {
         </div>
 
         {hasMultiplePrices && (
-          <div className="mb-8">
+          <div className="mb-4">
             <h3 className="font-bold text-gray-800 mb-3">
               Seleccione un tamaño
             </h3>
@@ -117,30 +129,61 @@ export default function ProductUI({ product }: { product: any }) {
         )}
 
         {isPizza && (
-          <div className="mb-2">
-            <h3 className="font-bold text-gray-800 mb-3">Bordes de la Pizza</h3>
-            <select className="w-full border border-gray-100 rounded-xl p-3 bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-orange-500/20">
-              <option value="queso">Queso</option>
-              <option value="arequipe">arequipe</option>
-              <option value="bocadillo">bocadillo</option>
-              <option value="chocolate">chocolate</option>
-              <option value="chocolate blanco">chocolate blanco</option>
-              <option value="fresa">fresa</option>
-              <option value="frutos amarillos">frutos amarillos</option>
-              <option value="frutos rojos">frutos rojos</option>
-              <option value="melocoton">melocoton</option>
-              <option value="mora">mora</option>
-              <option value="nucita">nucita</option>
-              <option value="nutela">nutela</option>
-              <option value="queso crema">queso crema</option>
-            </select>
-          </div>
+          <>
+            <div className="mb-2">
+              <h3 className="font-bold text-gray-800 mb-3">
+                Bordes de la Pizza
+              </h3>
+              <select
+                value={selectedBorder}
+                onChange={(e) => setSelectedBorder(e.target.value)}
+                className="w-full border border-gray-100 rounded-xl p-3 bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-orange-500/20"
+              >
+                <option value="">---</option>
+                <option value="queso">Queso</option>
+                <option value="arequipe">arequipe</option>
+                <option value="bocadillo">bocadillo</option>
+                <option value="chocolate">chocolate</option>
+                <option value="chocolate blanco">chocolate blanco</option>
+                <option value="fresa">fresa</option>
+                <option value="frutos amarillos">frutos amarillos</option>
+                <option value="frutos rojos">frutos rojos</option>
+                <option value="melocoton">melocoton</option>
+                <option value="mora">mora</option>
+                <option value="nucita">nucita</option>
+                <option value="nutela">nutela</option>
+                <option value="queso crema">queso crema</option>
+              </select>
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-800 mb-3">
+                Ingredientes Adicionales
+              </h3>
+              <select
+                value={selectedAdditional?.name || ""}
+                onChange={(e) => {
+                  const selected = additionalsList.find(
+                    (a) => a.name === e.target.value,
+                  );
+                  setSelectedAdditional(selected || null);
+                }}
+                className="w-full border border-gray-100 rounded-xl p-3 bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-orange-500/20"
+              >
+                <option value="">---</option>
+                {additionalsList.map((a) => (
+                  <option key={a.name} value={a.name}>
+                    {a.name} (+${a.price})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
         )}
 
         <textarea
           value={observations}
           onChange={(e) => setObservations(e.target.value)}
-          placeholder="Quieres eliminar algo del pedido? Ej: Sin cebolla, Sin queso, etc..."
+          placeholder="Quieres eliminar algo del pedido? Ej: Sin cebolla, etc..."
           className="w-full mt-4 p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-700 placeholder-gray-400 
   outline-none resize-none transition-all duration-200
   focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-100 mb-6"
@@ -152,7 +195,7 @@ export default function ProductUI({ product }: { product: any }) {
         <div>
           <p className="text-gray-400 text-xs">Precio</p>
           <p className="text-2xl font-black text-gray-800">
-            ${selectedSize?.price?.toLocaleString("es-CO") || 0}
+            ${(selectedSize.price + additionalPrice).toLocaleString("es-CO")}
           </p>
         </div>
 

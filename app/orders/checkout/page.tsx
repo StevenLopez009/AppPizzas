@@ -61,8 +61,6 @@ export default function CheckoutUI() {
         };
 
         setLocation(coords);
-
-        console.log("Ubicación:", coords);
       },
       (error) => {
         console.log(error);
@@ -159,6 +157,7 @@ ${items}
         size: item.size,
         extra: item.extra || null,
         observations: item.observations || null,
+        additional: item.additional || null,
       }));
 
       const { error: itemsError } = await supabase
@@ -181,7 +180,6 @@ ${items}
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-gray-100 font-sans pb-32">
-      {/* HEADER */}
       <div className="flex items-center gap-4 p-6">
         <Link
           href="/orders"

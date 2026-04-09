@@ -1,18 +1,15 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
-import { Trash2, Plus, Minus, ChevronLeft, ShoppingBasket } from "lucide-react";
+import { Plus, Minus, ChevronLeft, ShoppingBasket } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { Bike, Store } from "lucide-react";
 
 export default function Orders() {
-  const { cart, addToCart, clearCart, updateQuantity } = useCart();
+  const { cart, updateQuantity } = useCart();
   const router = useRouter();
-
-  const supabase = createClient();
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
@@ -80,6 +77,12 @@ export default function Orders() {
                   </span>
                 )}
               </p>
+              {item.additional && (
+                <p className="text-gray-500 text-xs mt-1">
+                  Adicional: {item.additional.name} (+$
+                  {item.additional.price.toLocaleString("es-CO")})
+                </p>
+              )}
               <p className="text-orange-600 font-bold mt-1">
                 ${(item.price * item.quantity).toLocaleString("es-CO")}
               </p>

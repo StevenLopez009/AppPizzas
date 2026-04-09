@@ -11,6 +11,10 @@ interface OrderItem {
   size: string;
   extra?: string | null;
   observations?: string | null;
+  additional?: {
+    name: string;
+    price: number;
+  } | null;
 }
 
 interface Order {
@@ -66,7 +70,8 @@ export default function AdminDashboard() {
             price,
             size,
             extra,
-            observations
+            observations,
+            additional
           )
         `,
         )
@@ -75,7 +80,6 @@ export default function AdminDashboard() {
       if (error) {
         console.log(error);
       } else {
-        console.log(data);
         setOrders(data as Order[]);
       }
 
@@ -179,6 +183,12 @@ export default function AdminDashboard() {
                       </p>
                       {item.observations && (
                         <p className="text-sm">{item.observations}</p>
+                      )}
+                      {item.additional && (
+                        <p className="text-gray-500 text-xs mt-1">
+                          Adicional: {item.additional.name} (+$
+                          {item.additional.price.toLocaleString("es-CO")})
+                        </p>
                       )}
                     </div>
                     <p className="font-semibold">

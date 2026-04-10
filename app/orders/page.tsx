@@ -72,7 +72,7 @@ export default function Orders() {
               </p>
               {item.additionals && item.additionals.length > 0 && (
                 <div className="mt-1">
-                  <p className="text-gray-500 text-xs">🧀 Adicionales:</p>
+                  <p className="text-gray-500 text-xs"> Adicionales:</p>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {item.additionals.map((additional: any, idx: number) => (
                       <span

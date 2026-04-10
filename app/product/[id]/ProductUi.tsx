@@ -16,13 +16,21 @@ export default function ProductUI({ product }: { product: any }) {
 
   const hasMultiplePrices = product.prices?.length > 1;
   const isPizza = product.category?.toLowerCase().includes("pizza");
-  const additionalsList = [
+  const isLasagna = product.category
+    ?.toLowerCase()
+    .includes("lasaña spaguetti");
+
+  const additionalsPizzaList = [
     { name: "Queso Mozarella", price: 5000 },
     { name: "Jalapeños", price: 2000 },
     { name: "Peperoni", price: 3000 },
     { name: "Pollo", price: 4000 },
     { name: "Carne Desmechada", price: 2000 },
     { name: "Jamon", price: 2000 },
+  ];
+  const additionalsLasagnaList = [
+    { name: "Pan de ajo", price: 3000 },
+    { name: "Cubiertos", price: 1000 },
   ];
 
   const additionalsTotalPrice = selectedAdditionals.reduce(
@@ -55,7 +63,7 @@ export default function ProductUI({ product }: { product: any }) {
       image: product.image_url,
 
       extra: isPizza ? selectedBorder : null,
-      additionals: isPizza ? selectedAdditionals : [],
+      additionals: selectedAdditionals,
       observations: observations,
 
       quantity: 1,
@@ -172,7 +180,68 @@ export default function ProductUI({ product }: { product: any }) {
                 Ingredientes Adicionales (puedes seleccionar varios)
               </h3>
               <div className="grid grid-cols-2 gap-2">
-                {additionalsList.map((additional) => {
+                {additionalsPizzaList.map((additional) => {
+                  const isSelected = selectedAdditionals.some(
+                    (item) => item.name === additional.name,
+                  );
+                  return (
+                    <button
+                      key={additional.name}
+                      onClick={() => toggleAdditional(additional)}
+                      className={`p-3 rounded-xl text-left transition-all active:scale-95
+                        ${
+                          isSelected
+                            ? "bg-orange-500 text-white shadow-md"
+                            : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+                        }
+                      `}
+                    >
+                      <div className="font-medium text-sm">
+                        {additional.name}
+                      </div>
+                      <div className="text-xs mt-1 opacity-80">
+                        +${additional.price.toLocaleString("es-CO")}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Mostrar adicionales seleccionados */}
+              {selectedAdditionals.length > 0 && (
+                <div className="mt-3 p-3 bg-orange-50 rounded-xl">
+                  <div className="text-xs text-orange-600 font-medium mb-2">
+                    Ingredientes seleccionados:
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedAdditionals.map((item) => (
+                      <span
+                        key={item.name}
+                        className="inline-flex items-center gap-1 text-xs bg-white px-2 py-1 rounded-full shadow-sm"
+                      >
+                        {item.name}
+                        <button
+                          onClick={() => toggleAdditional(item)}
+                          className="hover:text-red-500"
+                        >
+                          <CircleX size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+        {isLasagna && (
+          <>
+            <div className="mb-4">
+              <h3 className="font-bold text-gray-800 mb-3">
+                Ingredientes Adicionales (puedes seleccionar varios)
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                {additionalsLasagnaList.map((additional) => {
                   const isSelected = selectedAdditionals.some(
                     (item) => item.name === additional.name,
                   );
@@ -231,7 +300,7 @@ export default function ProductUI({ product }: { product: any }) {
           value={observations}
           onChange={(e) => setObservations(e.target.value)}
           placeholder="Quieres eliminar algo del pedido? Ej: Sin cebolla, etc..."
-          className="w-full mt-4 p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-700 placeholder-gray-400 
+          className="w-full mt-2 p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-700 placeholder-gray-400 
   outline-none resize-none transition-all duration-200
   focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-100 mb-6"
         />

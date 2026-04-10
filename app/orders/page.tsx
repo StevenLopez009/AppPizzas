@@ -70,6 +70,24 @@ export default function Orders() {
               <p className="text-gray-400 text-xs mt-1">
                 {item.size} {item.extra ? `• ${item.extra}` : ""}
               </p>
+              {item.additionals && item.additionals.length > 0 && (
+                <div className="mt-1">
+                  <p className="text-gray-500 text-xs">🧀 Adicionales:</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {item.additionals.map((additional: any, idx: number) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1 text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full"
+                      >
+                        {additional.name}
+                        <span className="text-orange-400">
+                          (+${additional.price.toLocaleString("es-CO")})
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               <p>
                 {item.observations && (
                   <span className="text-gray-500 text-xs mt-1 block">
@@ -77,12 +95,6 @@ export default function Orders() {
                   </span>
                 )}
               </p>
-              {item.additional && (
-                <p className="text-gray-500 text-xs mt-1">
-                  Adicional: {item.additional.name} (+$
-                  {item.additional.price.toLocaleString("es-CO")})
-                </p>
-              )}
               <p className="text-orange-600 font-bold mt-1">
                 ${(item.price * item.quantity).toLocaleString("es-CO")}
               </p>

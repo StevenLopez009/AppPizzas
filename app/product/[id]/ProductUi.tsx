@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Clock1, Heart, ShoppingBag, Star } from "lucide-react";
+import { ChevronLeft, CircleX, Heart, ShoppingBag, Star } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
@@ -216,7 +216,7 @@ export default function ProductUI({ product }: { product: any }) {
                           onClick={() => toggleAdditional(item)}
                           className="hover:text-red-500"
                         >
-                          <Clock1 size={12} />
+                          <CircleX size={12} />
                         </button>
                       </span>
                     ))}

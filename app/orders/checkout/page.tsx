@@ -157,7 +157,7 @@ ${items}
         size: item.size,
         extra: item.extra || null,
         observations: item.observations || null,
-        additional: item.additional || null,
+        additionals: item.additionals || [],
       }));
 
       const { error: itemsError } = await supabase

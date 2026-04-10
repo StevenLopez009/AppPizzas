@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Heart, ShoppingBag, Star } from "lucide-react";
+import { ChevronLeft, Clock1, Heart, ShoppingBag, Star } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
@@ -9,9 +9,7 @@ export default function ProductUI({ product }: { product: any }) {
   const { addToCart } = useCart();
   const [selectedSize, setSelectedSize] = useState(product.prices[0]);
   const [selectedBorder, setSelectedBorder] = useState("");
-  const [selectedAdditional, setSelectedAdditional] = useState<any | null>(
-    null,
-  );
+  const [selectedAdditionals, setSelectedAdditionals] = useState<any[]>([]);
   const [observations, setObservations] = useState("");
 
   const router = useRouter();
@@ -19,12 +17,32 @@ export default function ProductUI({ product }: { product: any }) {
   const hasMultiplePrices = product.prices?.length > 1;
   const isPizza = product.category?.toLowerCase().includes("pizza");
   const additionalsList = [
-    { name: "queso", price: 3000 },
-    { name: "aceitunas", price: 2000 },
+    { name: "Queso Mozarella", price: 5000 },
+    { name: "Jalapeños", price: 2000 },
+    { name: "Peperoni", price: 3000 },
+    { name: "Pollo", price: 4000 },
+    { name: "Carne Desmechada", price: 2000 },
+    { name: "Jamon", price: 2000 },
   ];
 
-  const additionalPrice = selectedAdditional?.price || 0;
-  const finalPrice = selectedSize.price + additionalPrice;
+  const additionalsTotalPrice = selectedAdditionals.reduce(
+    (total, item) => total + item.price,
+    0,
+  );
+  const finalPrice = selectedSize.price + additionalsTotalPrice;
+
+  const toggleAdditional = (additional: any) => {
+    setSelectedAdditionals((prev) => {
+      const exists = prev.find((item) => item.name === additional.name);
+      if (exists) {
+        // Si ya existe, lo quitamos
+        return prev.filter((item) => item.name !== additional.name);
+      } else {
+        // Si no existe, lo agregamos
+        return [...prev, additional];
+      }
+    });
+  };
 
   const handleAddToCart = () => {
     const item = {
@@ -37,13 +55,7 @@ export default function ProductUI({ product }: { product: any }) {
       image: product.image_url,
 
       extra: isPizza ? selectedBorder : null,
-      additional:
-        isPizza && selectedAdditional
-          ? {
-              name: selectedAdditional.name,
-              price: selectedAdditional.price,
-            }
-          : null,
+      additionals: isPizza ? selectedAdditionals : [],
       observations: observations,
 
       quantity: 1,
@@ -155,27 +167,62 @@ export default function ProductUI({ product }: { product: any }) {
                 <option value="queso crema">queso crema</option>
               </select>
             </div>
-            <div>
+            <div className="mb-4">
               <h3 className="font-bold text-gray-800 mb-3">
-                Ingredientes Adicionales
+                Ingredientes Adicionales (puedes seleccionar varios)
               </h3>
-              <select
-                value={selectedAdditional?.name || ""}
-                onChange={(e) => {
-                  const selected = additionalsList.find(
-                    (a) => a.name === e.target.value,
+              <div className="grid grid-cols-2 gap-2">
+                {additionalsList.map((additional) => {
+                  const isSelected = selectedAdditionals.some(
+                    (item) => item.name === additional.name,
                   );
-                  setSelectedAdditional(selected || null);
-                }}
-                className="w-full border border-gray-100 rounded-xl p-3 bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-orange-500/20"
-              >
-                <option value="">---</option>
-                {additionalsList.map((a) => (
-                  <option key={a.name} value={a.name}>
-                    {a.name} (+${a.price})
-                  </option>
-                ))}
-              </select>
+                  return (
+                    <button
+                      key={additional.name}
+                      onClick={() => toggleAdditional(additional)}
+                      className={`p-3 rounded-xl text-left transition-all active:scale-95
+                        ${
+                          isSelected
+                            ? "bg-orange-500 text-white shadow-md"
+                            : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+                        }
+                      `}
+                    >
+                      <div className="font-medium text-sm">
+                        {additional.name}
+                      </div>
+                      <div className="text-xs mt-1 opacity-80">
+                        +${additional.price.toLocaleString("es-CO")}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Mostrar adicionales seleccionados */}
+              {selectedAdditionals.length > 0 && (
+                <div className="mt-3 p-3 bg-orange-50 rounded-xl">
+                  <div className="text-xs text-orange-600 font-medium mb-2">
+                    Ingredientes seleccionados:
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedAdditionals.map((item) => (
+                      <span
+                        key={item.name}
+                        className="inline-flex items-center gap-1 text-xs bg-white px-2 py-1 rounded-full shadow-sm"
+                      >
+                        {item.name}
+                        <button
+                          onClick={() => toggleAdditional(item)}
+                          className="hover:text-red-500"
+                        >
+                          <Clock1 size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -195,7 +242,10 @@ export default function ProductUI({ product }: { product: any }) {
         <div>
           <p className="text-gray-400 text-xs">Precio</p>
           <p className="text-2xl font-black text-gray-800">
-            ${(selectedSize.price + additionalPrice).toLocaleString("es-CO")}
+            $
+            {(selectedSize.price + additionalsTotalPrice).toLocaleString(
+              "es-CO",
+            )}
           </p>
         </div>
 

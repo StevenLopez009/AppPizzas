@@ -41,6 +41,7 @@ export default function CheckoutUI() {
     telefono: "",
     direccion: "",
     pago: "efectivo",
+    montoEfectivo: "",
   });
 
   useEffect(() => {
@@ -84,6 +85,11 @@ export default function CheckoutUI() {
       )
       .join("\n");
 
+    const montoEfectivoTexto =
+      form.pago === "efectivo" && form.montoEfectivo
+        ? `\n💵 Paga con: $${parseInt(form.montoEfectivo).toLocaleString("es-CO")}\n🔄 Cambio: $${(parseInt(form.montoEfectivo) - total).toLocaleString("es-CO")}`
+        : "";
+
     return `
 🧾 *Nuevo Pedido*
 
@@ -94,7 +100,7 @@ ${orderType === "domicilio" ? `🏘️ Barrio: ${barrio}` : ""}
 ${location ? `📍 Ubicación: https://www.google.com/maps?q=${location.lat},${location.lng}` : ""}
 
 🛵 Tipo: ${orderType}
-💳 Pago: ${form.pago}
+💳 Pago: ${form.pago}${montoEfectivoTexto}
 
 📦 Pedido:
 ${items}
@@ -137,6 +143,8 @@ ${items}
           customer_phone: form.telefono,
           customer_address: orderType === "domicilio" ? form.direccion : null,
           payment_method: form.pago,
+          cash_amount:
+            form.pago === "efectivo" ? parseInt(form.montoEfectivo) : null,
           subtotal,
           neighborhood: barrio,
           delivery_fee: domicilio,
@@ -177,6 +185,11 @@ ${items}
       localStorage.removeItem("order_type");
     }
   };
+
+  const cambio =
+    form.pago === "efectivo" && form.montoEfectivo
+      ? parseInt(form.montoEfectivo) - total
+      : 0;
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-gray-100 font-sans pb-32">
@@ -330,6 +343,40 @@ ${items}
               onChange={handleChange}
             />
           </div>
+
+          {form.pago === "efectivo" && (
+            <div className="p-4 border-b bg-white">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                💵 ¿Con cuánto pagas?
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  $
+                </span>
+                <input
+                  type="number"
+                  name="montoEfectivo"
+                  value={form.montoEfectivo}
+                  onChange={handleChange}
+                  placeholder="Monto en efectivo"
+                  className="w-full pl-8 pr-4 py-3 border border-orange-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  min={total}
+                  step="1000"
+                />
+              </div>
+              {form.montoEfectivo && parseInt(form.montoEfectivo) >= total && (
+                <div className="mt-2 text-sm text-green-600">
+                  💰 Cambio: ${cambio.toLocaleString("es-CO")}
+                </div>
+              )}
+              {form.montoEfectivo && parseInt(form.montoEfectivo) < total && (
+                <div className="mt-2 text-sm text-red-600">
+                  ⚠️ El monto debe ser mayor o igual al total ($
+                  {total.toLocaleString("es-CO")})
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">

@@ -7,6 +7,7 @@ type MenuItem = {
   icon: any;
   path?: string;
   onClick?: () => void;
+  badge?: number;
 };
 
 type BottomMenuProps = {
@@ -46,7 +47,7 @@ export default function BottomMenu({ items, defaultActive }: BottomMenuProps) {
                   router.push(item.path);
                 }
               }}
-              className="flex flex-col items-center justify-center w-full"
+              className="flex flex-col items-center justify-center w-full relative"
             >
               <Icon
                 size={26}
@@ -54,6 +55,11 @@ export default function BottomMenu({ items, defaultActive }: BottomMenuProps) {
                   isActive ? "text-gray-900" : "text-gray-400"
                 }`}
               />
+              {item.badge !== undefined && item.badge > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-md">
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              )}
             </button>
           );
         })}

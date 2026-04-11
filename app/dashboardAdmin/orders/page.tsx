@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { BookMinus, PrinterIcon, TrashIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface OrderItem {
   id: string;
@@ -20,6 +22,7 @@ interface Order {
   customer_name: string;
   customer_phone: string;
   payment_method: string;
+  cash_amount?: number | null;
   customer_address: string;
   neighborhood: string;
   lat?: number | null;
@@ -37,6 +40,7 @@ const ORDER_FLOW = {
 };
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const supabase = createClient();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -60,6 +64,7 @@ export default function AdminDashboard() {
           neighborhood,
           lat,
           lng,
+          cash_amount,
           order_items (
             id,
             product_name,
@@ -85,6 +90,42 @@ export default function AdminDashboard() {
 
     getOrders();
   }, []);
+
+  const openInvoice = (orderId: string) => {
+    window.open(`/dashboardAdmin/factura/${orderId}`, "_blank");
+  };
+
+  const openKitchenOrder = (orderId: string) => {
+    window.open(`/dashboardAdmin/comanda/${orderId}`, "_blank");
+  };
+
+  const deleteOrder = async (orderId: string, customerName: string) => {
+    const confirmDelete = window.confirm(
+      `¿Estás seguro de eliminar el pedido de ${customerName}?\n\nEsta acción no se puede deshacer.`,
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("order_id", orderId);
+
+      if (itemsError) throw itemsError;
+      const { error: orderError } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", orderId);
+
+      if (orderError) throw orderError;
+
+      setOrders((prevOrders) => prevOrders.filter((o) => o.id !== orderId));
+    } catch (error) {
+      console.error("Error eliminando pedido:", error);
+      alert("❌ Error al eliminar el pedido. Por favor, intenta de nuevo.");
+    }
+  };
 
   if (loading) return <p className="p-10 text-center">Cargando pedidos...</p>;
 
@@ -139,6 +180,11 @@ export default function AdminDashboard() {
 
                   <p className="text-sm text-gray-400">
                     💳 {order.payment_method}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    {order.cash_amount
+                      ? `Paga con $${order.cash_amount.toLocaleString("es-CO")}`
+                      : "No especificado"}
                   </p>
 
                   {order.order_type === "domicilio" && (
@@ -199,12 +245,35 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
-              <button
-                onClick={() => changeStatus(order)}
-                className="w-full bg-orange-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
-              >
-                Cambiar estado
-              </button>
+              <div className="space-y-4 mt-4">
+                <div className="flex flex-row gap-3">
+                  <button
+                    onClick={() => deleteOrder(order.id, order.customer_name)}
+                    className="w-full  hover:bg-red-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-red-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <TrashIcon className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => openKitchenOrder(order.id)}
+                    className="w-full hover:bg-green-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-green-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <PrinterIcon className="w-5 h-5" />
+                  </button>
+
+                  <button
+                    onClick={() => openInvoice(order.id)}
+                    className="w-full  hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <BookMinus className="w-5 h-5" />
+                  </button>
+                </div>
+                <button
+                  onClick={() => changeStatus(order)}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-5 rounded-3xl font-bold text-lg shadow-lg hover:shadow-xl shadow-orange-900/30 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                >
+                  Cambiar estado
+                </button>
+              </div>
             </div>
           ))}
         </div>

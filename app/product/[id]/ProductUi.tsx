@@ -71,6 +71,7 @@ export default function ProductUI({ product }: { product: any }) {
 
     console.log("Item a guardar:", item);
     addToCart(item);
+    router.push("/");
   };
 
   return (

@@ -5,9 +5,6 @@ import { useEffect, useState } from "react";
 import PizzaSection from "@/components/pizzaSection/PizzaSection";
 import { getProducts } from "@/lib/products";
 import { useMemo } from "react";
-import BottomMenu from "@/components/bottomMenu/BottomMenu";
-
-import { Home, User, Pizza, ChefHat } from "lucide-react";
 
 export default function Page() {
   const [selectedCategory, setSelectedCategory] = useState("Todos");
@@ -146,15 +143,6 @@ export default function Page() {
           ))
         )}
       </div>
-      <BottomMenu
-        defaultActive="home"
-        items={[
-          { id: "home", icon: Home, path: "/" },
-          { id: "orders", icon: ChefHat, path: "/dashboardAdmin/orders" },
-          { id: "create", icon: Pizza, path: "/dashboardAdmin/create" },
-          { id: "profile", icon: User, path: "/profile" },
-        ]}
-      />
     </div>
   );
 }

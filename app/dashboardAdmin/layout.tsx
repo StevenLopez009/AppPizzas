@@ -4,12 +4,54 @@ import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Sidebar from "@/components/SideBar/SideBar";
 import ReportComponent from "@/components/report/ReportComponent";
+import {
+  LayoutDashboard,
+  PackagePlus,
+  ShoppingCart,
+  BarChart3,
+  Home,
+  ChefHat,
+  Pizza,
+  User,
+} from "lucide-react";
+import BottomMenu from "@/components/bottomMenu/BottomMenu";
+import { usePathname } from "next/navigation";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const hideBottomMenu = pathname.startsWith("/dashboardAdmin/updateProduct/");
+
+  const adminMenu = [
+    {
+      id: "overview",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      path: "/dashboardAdmin",
+    },
+    {
+      id: "create",
+      label: "Crear Productos",
+      icon: PackagePlus,
+      path: "/dashboardAdmin/create",
+    },
+    {
+      id: "orders",
+      label: "Pedidos",
+      icon: ShoppingCart,
+      path: "/dashboardAdmin/orders",
+    },
+    {
+      id: "sales",
+      label: "Ventas",
+      icon: BarChart3,
+      path: "/sales",
+    },
+  ];
+
   useEffect(() => {
     const checkAdmin = async () => {
       const supabase = createClient();
@@ -24,14 +66,31 @@ export default function AdminLayout({
   }, []);
 
   return (
-    <div>
-      <div className="hidden md:block">
-        <Sidebar />
+    <div className="md:flex w-full min-h-screen">
+      <div className="hidden md:block md:w-[20%]">
+        <Sidebar
+          menu={adminMenu}
+          title="Pizzas La Carreta"
+          highlightColor="orange-500"
+        />
       </div>
-      <main className="flex-1 h-20">{children}</main>
-      <div className="hidden md:block">
+      <main className="w-full md:w-[60%] md:p-4">{children}</main>
+      <div className="hidden md:block md:w-[20%]">
         <ReportComponent />
       </div>
+      {!hideBottomMenu && (
+        <div className="block md:hidden fixed bottom-0 left-0 w-full">
+          <BottomMenu
+            defaultActive="home"
+            items={[
+              { id: "home", icon: Home, path: "/dashboardAdmin" },
+              { id: "orders", icon: ChefHat, path: "/dashboardAdmin/orders" },
+              { id: "create", icon: Pizza, path: "/dashboardAdmin/create" },
+              { id: "profile", icon: User, path: "/profile" },
+            ]}
+          />
+        </div>
+      )}
     </div>
   );
 }

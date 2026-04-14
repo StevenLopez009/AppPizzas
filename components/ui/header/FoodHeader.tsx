@@ -57,7 +57,7 @@ export default function FoodHeader() {
   }, [filteredFoods]);
 
   return (
-    <div className="p-4 mb-10">
+    <div className="mb-10">
       <div className="w-full px-4 py-4 flex items-center justify-between">
         <button className="text-2xl text-gray-600">☰</button>
         <h1 className="text-lg font-semibold text-gray-700">La Carreta</h1>
@@ -77,7 +77,7 @@ export default function FoodHeader() {
           >
             {banners.map((banner, index) => (
               <SwiperSlide key={index}>
-                <div className="relative h-45 md:h-72 lg:h-[420px] xl:h-[500px] rounded-3xl overflow-hidden">
+                <div className="relative h-45 md:h-56 lg:h-42 xl:h-80 rounded-3xl overflow-hidden">
                   <Image
                     src={banner.image_url}
                     alt="banner"
@@ -89,57 +89,60 @@ export default function FoodHeader() {
             ))}
           </Swiper>
         </div>
-      </div>
 
-      <div className="mt-6">
-        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-          {[
-            { name: "Todos" },
-            { name: "Pizza" },
-            { name: "Panzerotti" },
-            { name: "Lasaña Spaguetti" },
-            { name: "Com. Rapidas" },
-            { name: "Platos Fuertes" },
-            { name: "Bebidas" },
-          ].map((item) => (
-            <div
-              key={item.name}
-              onClick={() => {
-                setSelectedCategory(item.name);
-
-                if (item.name === "Pizza") {
-                  setPizzaCategory(null);
-                }
-              }}
-              className={`min-w-[120px] rounded-2xl px-4 py-3 text-center shadow-sm flex-shrink-0 cursor-pointer active:scale-95 transition ${
-                selectedCategory === item.name
-                  ? "bg-orange-500 text-white"
-                  : "bg-white text-gray-600"
-              }`}
-            >
-              <p className="text-sm font-medium text-white-600">{item.name}</p>
-            </div>
-          ))}
-        </div>
-        {selectedCategory === "Todos" && (
-          <div className="relative mt-4">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar tus platos favoritos ..."
-              className="w-full py-3 pl-4 pr-4 rounded-2xl border border-gray-200 
-                   bg-white shadow-sm text-sm 
-                   focus:outline-none focus:ring-2 focus:ring-orange-400 
-                   focus:border-transparent transition"
-            />
+        <div className="w-full lg:w-[40%]">
+          <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto pb-2 lg:pb-0 no-scrollbar h-full max-h-[320px] lg:max-h-[320px]">
+            {[
+              { name: "Todos" },
+              { name: "Pizza" },
+              { name: "Panzerotti" },
+              { name: "Lasaña Spaguetti" },
+              { name: "Com. Rapidas" },
+              { name: "Platos Fuertes" },
+              { name: "Bebidas" },
+            ].map((item) => (
+              <div
+                key={item.name}
+                onClick={() => {
+                  setSelectedCategory(item.name);
+                  if (item.name === "Pizza") {
+                    setPizzaCategory(null);
+                  }
+                }}
+                className={`min-w-[120px] lg:min-w-full rounded-2xl px-4 py-3 text-center shadow-sm flex-shrink-0 lg:flex-shrink cursor-pointer active:scale-95 transition ${
+                  selectedCategory === item.name
+                    ? "bg-orange-500 text-white"
+                    : "bg-white text-gray-600"
+                }`}
+              >
+                <p className="text-sm font-medium text-white-600">
+                  {item.name}
+                </p>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </div>
+      {selectedCategory === "Todos" && (
+        <div className="relative mt-4">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar tus platos favoritos ..."
+            className="w-full py-3 pl-4 pr-4 rounded-2xl border border-gray-200 
+               bg-white shadow-sm text-sm 
+               focus:outline-none focus:ring-2 focus:ring-orange-400 
+               focus:border-transparent transition"
+          />
+        </div>
+      )}
 
-      <div className="mb-10 mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className=" mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {selectedCategory === "Pizza" && !pizzaCategory ? (
-          <PizzaSection onSelectCategory={setPizzaCategory} />
+          <div className="col-span-full">
+            <PizzaSection onSelectCategory={setPizzaCategory} />
+          </div>
         ) : (
           shuffledFoods.map((food) => (
             <FoodCard

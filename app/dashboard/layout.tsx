@@ -7,6 +7,7 @@ import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/SideBar/SideBar";
 import ReportComponent from "@/components/report/ReportComponent";
+import CartSummary from "@/components/cartSummary/CartSummary";
 
 export default function UserLayout({
   children,
@@ -27,13 +28,13 @@ export default function UserLayout({
   return (
     <div className="w-full max-w-screen overflow-x-hidden">
       {/* Desktop layout */}
-      <div className="hidden md:flex w-full">
-        <div className="w-[20%] min-w-[200px] max-w-[280px] flex-shrink-0">
+      <div className="hidden md:grid w-full grid-cols-[250px_1fr_350px]">
+        <div>
           <Sidebar menu={menu} title="Pizzas La Carreta" />
         </div>
-        <main className="flex-1 min-w-0 p-4 overflow-x-auto">{children}</main>
-        <div className="w-[20%] min-w-[200px] max-w-[280px] flex-shrink-0">
-          <ReportComponent />
+        <main className="min-w-0 p-4 overflow-x-auto">{children}</main>
+        <div className="h-screen overflow-y-auto border-l">
+          <CartSummary />
         </div>
       </div>
 

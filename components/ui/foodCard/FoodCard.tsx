@@ -15,11 +15,11 @@ type FoodCardProps = {
 export default function FoodCard({ id, image, title, isAdmin }: FoodCardProps) {
   const href = isAdmin
     ? `/dashboardAdmin/updateProduct/${id}`
-    : `/product/${id}`;
+    : `/dashboard/product/${id}`;
 
   return (
     <Link href={href} className="w-full">
-      <div className="relative w-full h-50 bg-[#F5F5F5] rounded-[24px] sm:rounded-[28px] p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
+      <div className="relative w-full h-50 lg:h-[40%] bg-[#F5F5F5] rounded-[24px] sm:rounded-[28px] p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
         <div className="flex justify-center mt-1 sm:mt-2">
           <Image
             src={image}

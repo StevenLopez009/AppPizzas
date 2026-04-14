@@ -57,7 +57,7 @@ export default function FoodHeader() {
   }, [filteredFoods]);
 
   return (
-    <div className="mb-10">
+    <div className="lg:px-4 mb-10">
       <div className="w-full px-4 py-4 flex items-center justify-between">
         <button className="text-2xl text-gray-600">☰</button>
         <h1 className="text-lg font-semibold text-gray-700">La Carreta</h1>

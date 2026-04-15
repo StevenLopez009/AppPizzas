@@ -41,7 +41,7 @@ export default function CartSummary() {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen pb-32 font-sans">
+    <div className="max-w-md mx-auto bg-white min-h-screen flex flex-col font-sans">
       {/* HEADER */}
       <div className="p-6 flex items-center gap-4">
         <Link href="/" className="p-2 bg-gray-50 rounded-full text-gray-600">
@@ -122,18 +122,31 @@ export default function CartSummary() {
         ))}
       </div>
 
-      {/* RESUMEN DE PAGO (FIJO ABAJO) */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white p-6 border-t border-gray-100 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
+      <div
+        className="
+  fixed sm:relative 
+  bottom-0 left-0 
+  w-full max-w-md sm:max-w-none 
+  mx-auto 
+  bg-white 
+  p-4 sm:p-6 
+  border-t border-gray-100 
+  rounded-t-3xl sm:rounded-2xl 
+  shadow-[0_-10px_40px_rgba(0,0,0,0.08)] sm:shadow-none
+  sm:mt-auto
+"
+      >
         <div className="space-y-2 mb-4">
-          <div className="flex justify-between text-xl font-bold text-gray-800 pt-2 border-t border-dashed">
+          <div className="flex justify-between text-lg sm:text-xl font-bold text-gray-800 pt-2 border-t border-dashed">
             <span>Total</span>
             <span>${total.toLocaleString("es-CO")}</span>
           </div>
         </div>
-        <div className="flex gap-3 py-2 px-6">
+
+        <div className="flex flex-col sm:flex-row gap-3 py-2 sm:px-0">
           <button
             onClick={() => handleOrder("recoger")}
-            className="flex items-center justify-center gap-2 w-full bg-gray-200 text-gray-800 py-4 rounded-2xl font-bold text-lg active:scale-95 transition-transform"
+            className="flex items-center justify-center gap-2 w-full bg-gray-200 text-gray-800 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg active:scale-95 transition-transform"
           >
             <Store size={20} />
             Recoger
@@ -141,7 +154,7 @@ export default function CartSummary() {
 
           <button
             onClick={() => handleOrder("domicilio")}
-            className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
+            className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
           >
             <Bike size={20} />
             Domicilio

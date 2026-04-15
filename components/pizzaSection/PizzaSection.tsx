@@ -8,7 +8,7 @@ export default function PizzaSection({
   onSelectCategory: (category: string) => void;
 }) {
   return (
-    <div className="w-90 p-2">
+    <div className="w-90 p-2 bg-red-100">
       <div className="w-full max-w-4xl grid grid-cols-2 grid-rows-2 gap-4">
         <Link href="/pizza/mitades" className="col-span-2 block">
           <div className="bg-[#FFEEDB] h-40 rounded-3xl flex items-center justify-between px-8 relative overflow-hidden group cursor-pointer">

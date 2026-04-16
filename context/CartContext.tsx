@@ -26,12 +26,20 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   updateQuantity: (id: string, action: "plus" | "minus") => void;
+  orderType: "domicilio" | "recoger" | null;
+  setOrderType: (type: "domicilio" | "recoger") => void;
+  showOrder: boolean;
+  setShowOrder: (value: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [orderType, setOrderTypeState] = useState<
+    "domicilio" | "recoger" | null
+  >(null);
+  const [showOrder, setShowOrder] = useState(false);
 
   // Cargar carrito de localStorage al iniciar
   useEffect(() => {
@@ -88,9 +96,24 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
+  const setOrderType = (type: "domicilio" | "recoger") => {
+    setOrderTypeState(type);
+    setShowOrder(true);
+  };
+
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, clearCart, totalItems, updateQuantity }}
+      value={{
+        cart,
+        addToCart,
+        clearCart,
+        totalItems,
+        updateQuantity,
+        orderType,
+        setOrderType,
+        showOrder,
+        setShowOrder,
+      }}
     >
       {children}
     </CartContext.Provider>

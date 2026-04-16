@@ -8,13 +8,17 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/SideBar/SideBar";
 import ReportComponent from "@/components/report/ReportComponent";
 import CartSummary from "@/components/cartSummary/CartSummary";
+import Orders from "../orders/page";
+import OrderComponent from "@/components/order/Order";
+import OrderPage from "../pedido/[id]/page";
+import CheckoutUI from "../orders/checkout/page";
 
 export default function UserLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { cart } = useCart();
+  const { cart, showOrder } = useCart();
   const router = useRouter();
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -34,7 +38,7 @@ export default function UserLayout({
         </div>
         <main className="min-w-0 p-4 overflow-x-auto">{children}</main>
         <div className="h-screen overflow-y-auto border-l">
-          <CartSummary />
+          {!showOrder ? <Orders /> : <CheckoutUI />}
         </div>
       </div>
 

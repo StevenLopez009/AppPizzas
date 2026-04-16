@@ -16,7 +16,7 @@ export default function CheckoutUI() {
   );
   const [barrio, setBarrio] = useState("");
 
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, setShowOrder } = useCart();
   const supabase = createClient();
   const router = useRouter();
 
@@ -186,6 +186,14 @@ ${items}
     }
   };
 
+  const handleBack = () => {
+    if (window.innerWidth < 768) {
+      router.back();
+    } else {
+      setShowOrder(false);
+    }
+  };
+
   const cambio =
     form.pago === "efectivo" && form.montoEfectivo
       ? parseInt(form.montoEfectivo) - total
@@ -194,12 +202,12 @@ ${items}
   return (
     <div className="max-w-md mx-auto min-h-screen bg-gray-100 font-sans pb-32">
       <div className="flex items-center gap-4 p-6">
-        <Link
-          href="/orders"
+        <button
+          onClick={handleBack}
           className="w-10 h-10 rounded-full bg-white shadow flex items-center justify-center"
         >
           ←
-        </Link>
+        </button>
         <h1 className="text-lg font-bold text-gray-800">Checkout</h1>
       </div>
 
@@ -396,7 +404,20 @@ ${items}
       </div>
 
       {/* FOOTER TOTAL */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-3xl">
+      <div
+        className="
+    fixed md:relative 
+    bottom-0 md:bottom-auto 
+    left-1/2 md:left-auto 
+    -translate-x-1/2 md:translate-x-0 
+    w-full max-w-md md:max-w-none 
+    bg-white 
+    p-6 
+    shadow-[0_-10px_40px_rgba(0,0,0,0.08)] md:shadow-none
+    rounded-t-3xl md:rounded-none
+    md:mt-6
+  "
+      >
         <div className="flex justify-between mb-4 text-lg font-bold text-gray-800">
           <span>Total</span>
           <span>${Number(total).toLocaleString("es-CO")}</span>

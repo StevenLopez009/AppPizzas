@@ -43,10 +43,8 @@ export default function ProductUI({ product }: { product: any }) {
     setSelectedAdditionals((prev) => {
       const exists = prev.find((item) => item.name === additional.name);
       if (exists) {
-        // Si ya existe, lo quitamos
         return prev.filter((item) => item.name !== additional.name);
       } else {
-        // Si no existe, lo agregamos
         return [...prev, additional];
       }
     });

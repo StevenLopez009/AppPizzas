@@ -30,6 +30,11 @@ interface CartContextType {
   setOrderType: (type: "domicilio" | "recoger") => void;
   showOrder: boolean;
   setShowOrder: (value: boolean) => void;
+  showOrderPage: boolean;
+  setShowOrderPage: (value: boolean) => void;
+
+  currentOrderId: string | null;
+  setCurrentOrderId: (id: string | null) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -40,6 +45,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     "domicilio" | "recoger" | null
   >(null);
   const [showOrder, setShowOrder] = useState(false);
+  const [showOrderPage, setShowOrderPage] = useState(false);
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
 
   // Cargar carrito de localStorage al iniciar
   useEffect(() => {
@@ -113,6 +120,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         setOrderType,
         showOrder,
         setShowOrder,
+        showOrderPage,
+        setShowOrderPage,
+        currentOrderId,
+        setCurrentOrderId,
       }}
     >
       {children}

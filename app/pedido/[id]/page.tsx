@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useParams } from "next/navigation";
 import OrderTrackingTime from "@/components/orderTrackingTime/OrderTrackingTime";
+import { useCart } from "@/context/CartContext";
 
 export default function OrderPage() {
   const [orderType, setOrderType] = useState<
@@ -11,7 +12,8 @@ export default function OrderPage() {
   >(null);
   const supabase = createClient();
   const params = useParams();
-  const orderId = params.id as string;
+  const { currentOrderId } = useCart();
+  const orderId = (params?.id as string) || currentOrderId;
 
   const [status, setStatus] = useState<string | null>(null);
 
@@ -55,6 +57,10 @@ export default function OrderPage() {
       supabase.removeChannel(channel);
     };
   }, [orderId]);
+
+  if (!orderId) {
+    return <p className="p-10 text-center">Cargando pedido...</p>;
+  }
 
   if (status === "entregado" || status === "listo_para_recoger") {
     return (

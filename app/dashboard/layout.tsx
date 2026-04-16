@@ -1,24 +1,19 @@
 "use client";
 
 import BottomMenu from "@/components/bottomMenu/BottomMenu";
-import FoodHeader from "@/components/ui/header/FoodHeader";
 import { Home, Heart, ShoppingCart, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/SideBar/SideBar";
-import ReportComponent from "@/components/report/ReportComponent";
-import CartSummary from "@/components/cartSummary/CartSummary";
 import Orders from "../orders/page";
-import OrderComponent from "@/components/order/Order";
-import OrderPage from "../pedido/[id]/page";
 import CheckoutUI from "../orders/checkout/page";
-
+import OrderPage from "../pedido/[id]/page";
 export default function UserLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { cart, showOrder } = useCart();
+  const { cart, showOrder, showOrderPage } = useCart();
   const router = useRouter();
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -38,7 +33,9 @@ export default function UserLayout({
         </div>
         <main className="min-w-0 p-4 overflow-x-auto">{children}</main>
         <div className="h-screen overflow-y-auto border-l">
-          {!showOrder ? <Orders /> : <CheckoutUI />}
+          {showOrderPage && <OrderPage />}
+          {!showOrderPage && !showOrder && <Orders />}
+          {!showOrderPage && showOrder && <CheckoutUI />}
         </div>
       </div>
 

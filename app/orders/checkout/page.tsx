@@ -16,7 +16,8 @@ export default function CheckoutUI() {
   );
   const [barrio, setBarrio] = useState("");
 
-  const { cart, clearCart, setShowOrder } = useCart();
+  const { cart, clearCart, setShowOrder, setShowOrderPage, setCurrentOrderId } =
+    useCart();
   const supabase = createClient();
   const router = useRouter();
 
@@ -155,6 +156,7 @@ ${items}
         .single();
 
       if (error) throw error;
+      localStorage.setItem("last_order_id", order.id);
 
       const items = cart.map((item) => ({
         order_id: order.id,
@@ -175,9 +177,16 @@ ${items}
       if (itemsError) throw itemsError;
 
       sendToWhatsApp();
+
       clearCart();
 
-      router.push(`/pedido/${order.id}`);
+      if (window.innerWidth < 768) {
+        router.push(`/pedido/${order.id}`);
+      } else {
+        setCurrentOrderId(order.id);
+        setShowOrder(false);
+        setShowOrderPage(true);
+      }
     } catch (err) {
       console.log(err);
       alert("Error creando la orden");
@@ -200,7 +209,7 @@ ${items}
       : 0;
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-gray-100 font-sans pb-32">
+    <div className="max-w-md mx-auto max-h-screen bg-gray-100 font-sans pb-32">
       <div className="flex items-center gap-4 p-6">
         <button
           onClick={handleBack}

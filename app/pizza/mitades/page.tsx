@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   ChevronLeft,
+  CircleX,
   Heart,
   ShoppingBag,
   Star,
@@ -77,20 +78,42 @@ const saboresInfo: Record<string, string> = {
 
 export default function PizzaMitadesPage() {
   const { addToCart } = useCart();
-  const [borders, setBorders] = useState<string[]>([]);
+  const [borders, setBorders] = useState<string[]>(["", ""]);
   const [sabores, setSabores] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-
-  const sizes = [
-    { label: "Mediana", price: 35000 },
-    { label: "Personal", price: 19000 },
-  ];
+  const [selectedAdditionals, setSelectedAdditionals] = useState<any[]>([]);
   const [selectedSize, setSelectedSize] = useState<{
     label: string;
     price: number;
   } | null>(null);
 
+  const sizes = [
+    { label: "Mediana", price: 35000 },
+    { label: "Personal", price: 19000 },
+  ];
+
+  const additionalsPizzaList = [
+    { name: "Queso Mozarella", price: 5000 },
+    { name: "Jalapeños", price: 2000 },
+    { name: "Peperoni", price: 3000 },
+    { name: "Pollo", price: 4000 },
+    { name: "Carne Desmechada", price: 2000 },
+    { name: "Jamon", price: 2000 },
+  ];
+
   const router = useRouter();
+
+  const calcularPrecioTotal = () => {
+    if (!selectedSize) return 0;
+
+    const precioBase = selectedSize.price;
+    const precioAdicionales = selectedAdditionals.reduce(
+      (total, item) => total + item.price,
+      0,
+    );
+
+    return precioBase + precioAdicionales;
+  };
 
   useEffect(() => {
     if (selectedSize && sabores.filter(Boolean).length === 2) {
@@ -120,8 +143,28 @@ export default function PizzaMitadesPage() {
 
   const handleBorderSelect = (value: string, index: number) => {
     const nuevos = [...borders];
-    nuevos[index] = value;
+
+    if (index === 0) {
+      nuevos[0] = value;
+      nuevos[1] = value;
+    } else {
+      nuevos[1] = value;
+    }
+
     setBorders(nuevos);
+  };
+
+  const toggleAdditional = (additional: any) => {
+    setSelectedAdditionals((prev) => {
+      const exists = prev.find((item) => item.name === additional.name);
+      if (exists) {
+        // Si ya existe, lo quitamos
+        return prev.filter((item) => item.name !== additional.name);
+      } else {
+        // Si no existe, lo agregamos
+        return [...prev, additional];
+      }
+    });
   };
 
   const handleAddToCart = () => {
@@ -133,19 +176,28 @@ export default function PizzaMitadesPage() {
       setError("Por favor, elige los 2 sabores para las mitades.");
       return;
     }
-    if (!borders) {
-      setError("Por favor, elige un sabor para tu borde");
+    if (!borders[0] || !borders[1]) {
+      setError("Por favor, elige los bordes para tu pizza");
       return;
     }
 
+    const precioTotal = calcularPrecioTotal();
+
+    // Crear texto de adicionales para mostrar en el extra
+    const adicionalesTexto =
+      selectedAdditionals.length > 0
+        ? ` | Adicionales: ${selectedAdditionals.map((a) => a.name).join(", ")}`
+        : "";
+
     const item = {
-      id: `mitades-${selectedSize.label}-${saboresSeleccionados.join("-")}`,
+      id: `mitades-${selectedSize.label}-${saboresSeleccionados.join("-")}-${selectedAdditionals.map((a) => a.name).join("-")}`,
       name: "Pizza por mitades",
-      price: selectedSize.price,
+      price: precioTotal, // Precio con adicionales incluidos
       size: selectedSize.label,
       image: ImagePizza.src,
-      extra: `Mitades: ${saboresSeleccionados.join(" / ")} | Borde: ${borders.join(" / ") || "Tradicional"}`,
+      extra: `Mitades: ${saboresSeleccionados.join(" / ")} | Bordes: ${borders[0]} / ${borders[1]}${adicionalesTexto}`,
       quantity: 1,
+      additionals: selectedAdditionals, // Guardar los adicionales en el item
     };
 
     addToCart(item);
@@ -260,6 +312,28 @@ export default function PizzaMitadesPage() {
               </select>
             ))}
           </div>
+          <h3 className="font-bold text-gray-800 mb-3">Bordes de la Pizza</h3>
+          <div className="flex gap-3 mb-4">
+            <select
+              className="w-full border rounded-xl p-3 bg-white"
+              value={borders[0]}
+              onChange={(e) => handleBorderSelect(e.target.value, 0)}
+            >
+              <option value="">Borde 1 (Mitad 1)</option>
+              <option value="queso">Queso Crema</option>
+              <option value="arequipe">arequipe</option>
+              <option value="bocadillo">bocadillo</option>
+              <option value="chocolate">chocolate</option>
+              <option value="chocolate blanco">chocolate blanco</option>
+              <option value="fresa">fresa</option>
+              <option value="frutos amarillos">frutos amarillos</option>
+              <option value="frutos rojos">frutos rojos</option>
+              <option value="melocoton">melocoton</option>
+              <option value="mora">mora</option>
+              <option value="nucita">nucita</option>
+              <option value="nutela">nutela</option>
+            </select>
+          </div>
 
           <h3 className="font-bold text-gray-800 mb-3">Sabores de sal</h3>
           <div className="flex gap-3 mb-4">
@@ -311,22 +385,82 @@ export default function PizzaMitadesPage() {
               </select>
             ))}
           </div>
-
           <h3 className="font-bold text-gray-800 mb-3">Bordes de la Pizza</h3>
-          {[0, 1].map((i) => (
+          <div className="flex gap-3 mb-4">
             <select
-              key={i}
-              className="w-full border rounded-xl p-3 bg-white mb-2"
-              value={borders[i] || ""}
-              onChange={(e) => handleBorderSelect(e.target.value, i)}
+              className="w-full border rounded-xl p-3 bg-white"
+              value={borders[1]}
+              onChange={(e) => handleBorderSelect(e.target.value, 1)}
             >
-              <option value="">Borde ${i + 1}</option>
-              <option value="tradicional">Tradicional</option>
-              <option value="queso">Queso</option>
-              <option value="chocolate">Chocolate</option>
-              <option value="arequipe">Arequipe</option>
+              <option value="">Borde 2 (Mitad 2)</option>
+              <option value="queso">Queso Crema</option>
+              <option value="arequipe">arequipe</option>
+              <option value="bocadillo">bocadillo</option>
+              <option value="chocolate">chocolate</option>
+              <option value="chocolate blanco">chocolate blanco</option>
+              <option value="fresa">fresa</option>
+              <option value="frutos amarillos">frutos amarillos</option>
+              <option value="frutos rojos">frutos rojos</option>
+              <option value="melocoton">melocoton</option>
+              <option value="mora">mora</option>
+              <option value="nucita">nucita</option>
+              <option value="nutela">nutela</option>
             </select>
-          ))}
+          </div>
+        </div>
+        <div className="mb-4">
+          <h3 className="font-bold text-gray-800 mb-3">
+            Ingredientes Adicionales (puedes seleccionar varios)
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            {additionalsPizzaList.map((additional) => {
+              const isSelected = selectedAdditionals.some(
+                (item) => item.name === additional.name,
+              );
+              return (
+                <button
+                  key={additional.name}
+                  onClick={() => toggleAdditional(additional)}
+                  className={`p-3 rounded-xl text-left transition-all active:scale-95
+                      ${
+                        isSelected
+                          ? "bg-orange-500 text-white shadow-md"
+                          : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+                      }
+                    `}
+                >
+                  <div className="font-medium text-sm">{additional.name}</div>
+                  <div className="text-xs mt-1 opacity-80">
+                    +${additional.price.toLocaleString("es-CO")}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {selectedAdditionals.length > 0 && (
+            <div className="mt-3 p-3 bg-orange-50 rounded-xl">
+              <div className="text-xs text-orange-600 font-medium mb-2">
+                Ingredientes seleccionados:
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {selectedAdditionals.map((item) => (
+                  <span
+                    key={item.name}
+                    className="inline-flex items-center gap-1 text-xs bg-white px-2 py-1 rounded-full shadow-sm"
+                  >
+                    {item.name}
+                    <button
+                      onClick={() => toggleAdditional(item)}
+                      className="hover:text-red-500"
+                    >
+                      <CircleX size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -334,7 +468,7 @@ export default function PizzaMitadesPage() {
         <div>
           <p className="text-gray-400 text-xs">Precio</p>
           <p className="text-2xl font-black text-gray-800">
-            ${selectedSize?.price?.toLocaleString("es-CO") || 0}
+            ${calcularPrecioTotal().toLocaleString("es-CO")}
           </p>
         </div>
         <button

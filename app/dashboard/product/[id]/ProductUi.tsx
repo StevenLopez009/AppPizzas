@@ -167,7 +167,7 @@ export default function ProductUI({ product }: { product: any }) {
                   className="w-full border border-gray-100 rounded-xl p-3 bg-gray-50 text-gray-600 outline-none focus:ring-2 focus:ring-orange-500/20"
                 >
                   <option value="">---</option>
-                  <option value="queso">Queso</option>
+                  <option value="queso">Queso Crema</option>
                   <option value="arequipe">arequipe</option>
                   <option value="bocadillo">bocadillo</option>
                   <option value="chocolate">chocolate</option>
@@ -179,7 +179,6 @@ export default function ProductUI({ product }: { product: any }) {
                   <option value="mora">mora</option>
                   <option value="nucita">nucita</option>
                   <option value="nutela">nutela</option>
-                  <option value="queso crema">queso crema</option>
                 </select>
               </div>
               <div className="mb-4">

@@ -165,8 +165,35 @@ export default function AdminDashboard() {
     }
   };
 
+  const filteredOrders = orders.filter((order) => {
+    if (!dateRange.from && !dateRange.to) return true;
+
+    const orderDate = new Date(order.created_at);
+
+    if (dateRange.from && orderDate < dateRange.from) return false;
+    if (dateRange.to) {
+      const end = new Date(dateRange.to);
+      end.setHours(23, 59, 59, 999);
+      if (orderDate > end) return false;
+    }
+
+    return true;
+  });
+
+  const totalSales = filteredOrders.reduce((acc, o) => acc + o.total, 0);
+  const totalOrders = filteredOrders.length;
+
+  const byType = filteredOrders.reduce(
+    (acc, o) => {
+      acc[o.order_type]++;
+      return acc;
+    },
+    { domicilio: 0, mesa: 0, recoger: 0 },
+  );
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-10">
+      <h1 className="text-2xl md:text-4xl font-bold mb-6">Pedidos</h1>
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -191,12 +218,77 @@ export default function AdminDashboard() {
           />
         </PopoverContent>
       </Popover>
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl md:text-4xl font-bold mb-6">Pedidos</h1>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-xl shadow">
+          <p className="text-sm text-gray-400">Ventas</p>
+          <p className="text-xl font-bold">
+            ${totalSales.toLocaleString("es-CO")}
+          </p>
+        </div>
 
+        <div className="bg-white p-4 rounded-xl shadow">
+          <p className="text-sm text-gray-400">Pedidos</p>
+          <p className="text-xl font-bold">{totalOrders}</p>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl shadow">
+          <p className="text-sm text-gray-400">Domicilios</p>
+          <p className="text-xl font-bold">{byType.domicilio}</p>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl shadow">
+          <p className="text-sm text-gray-400">Mesa/Recoger</p>
+          <p className="text-xl font-bold">{byType.mesa + byType.recoger}</p>
+        </div>
+      </div>
+      <div className="flex gap-2 mt-4 flex-wrap">
+        <button
+          onClick={() => {
+            const today = new Date();
+            setDateRange({ from: today, to: today });
+          }}
+          className="px-4 py-2 bg-gray-200 rounded-xl"
+        >
+          Hoy
+        </button>
+
+        <button
+          onClick={() => {
+            const today = new Date();
+            const firstDay = new Date(
+              today.setDate(today.getDate() - today.getDay()),
+            );
+            const lastDay = new Date();
+            setDateRange({ from: firstDay, to: lastDay });
+          }}
+          className="px-4 py-2 bg-gray-200 rounded-xl"
+        >
+          Esta semana
+        </button>
+
+        <button
+          onClick={() => {
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            setDateRange({ from: firstDay, to: lastDay });
+          }}
+          className="px-4 py-2 bg-gray-200 rounded-xl"
+        >
+          Este mes
+        </button>
+
+        <button
+          onClick={() => setDateRange({})}
+          className="px-4 py-2 bg-red-100 text-red-600 rounded-xl"
+        >
+          Limpiar
+        </button>
+      </div>
+      <div className="max-w-7xl mx-auto mt-6 mb-20">
         {/* GRID RESPONSIVE */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {orders.map((order) => (
+          {filteredOrders.map((order) => (
             <div
               key={order.id}
               className="bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between"

@@ -74,79 +74,89 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
   };
 
   return (
-    <div className="w-full h-full max-w-md  overflow-hidden shadow-2xl flex flex-col ">
-      <div
-        className="relative h-70 bg-cover bg-center rounded-[30px]"
-        style={{ backgroundImage: `url(${ImgLogin.src})` }}
-      >
-        <button className="absolute top-4 left-4 text-white text-sm flex items-center gap-1 bg-black/20 px-3 py-1 rounded-full backdrop-blur">
-          ← Back
-        </button>
-      </div>
-      <div className=" rounded-t-[30px] mt-5 p-6">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-orange-600">Iniciar Sesión</h1>
-          <p className="text-sm text-gray-400 mt-2">Accede para continuar</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md md:max-w-4xl bg-white shadow-2xl rounded-[30px] overflow-hidden md:flex">
+        {/* Imagen */}
+        <div
+          className="relative h-56 md:h-auto md:w-1/2 bg-cover bg-center"
+          style={{ backgroundImage: `url(${ImgLogin.src})` }}
+        >
+          <button className="absolute top-4 left-4 text-white text-sm flex items-center gap-1 bg-black/20 px-3 py-1 rounded-full backdrop-blur">
+            ← Back
+          </button>
         </div>
 
-        <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-500 text-sm">Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Enter your email"
-                      className="h-12 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-orange-400"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {/* Formulario */}
+        <div className="w-full md:w-1/2 p-6 md:p-10">
+          <div className="text-center mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-orange-600">
+              Iniciar Sesión
+            </h1>
+            <p className="text-sm text-gray-400 mt-2">Accede para continuar</p>
+          </div>
 
-            <FormField
-              control={control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-500 text-sm">
-                    Password
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="password"
-                      placeholder="Enter password"
-                      className="h-12 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-blue-400"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <button
-              type="submit"
-              className="w-full h-12 bg-orange-500 text-white rounded-xl font-semibold shadow-md hover:bg-orange-600 transition"
+          <Form {...form}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-500 text-sm">
+                      Email
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Enter your email"
+                        className="h-12 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-orange-400"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-500 text-sm">
+                      Password
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="password"
+                        placeholder="Enter password"
+                        className="h-12 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-blue-400"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <button
+                type="submit"
+                className="w-full h-12 bg-orange-500 text-white rounded-xl font-semibold shadow-md hover:bg-orange-600 transition"
+              >
+                {isLoading ? "Cargando..." : "Ingresar"}
+              </button>
+            </form>
+          </Form>
+
+          <p className="text-center text-sm text-gray-400 mt-6">
+            ¿No tienes cuenta?{" "}
+            <span
+              onClick={() => setTypeSelected("sign-up")}
+              className="text-orange-500 font-semibold cursor-pointer"
             >
-              {isLoading ? "Cargando..." : "Ingresar"}
-            </button>
-          </form>
-        </Form>
-
-        <p className="text-center text-sm text-gray-400 mt-6">
-          ¿No tienes cuenta?{" "}
-          <span
-            onClick={() => setTypeSelected("sign-up")}
-            className="text-orange-500 font-semibold cursor-pointer"
-          >
-            Regístrate
-          </span>
-        </p>
+              Regístrate
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );

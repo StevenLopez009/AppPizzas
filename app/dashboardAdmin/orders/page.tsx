@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { BookMinus, PrinterIcon, TrashIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
 
 interface OrderItem {
   id: string;
@@ -45,6 +53,10 @@ export default function AdminDashboard() {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<{
+    from?: Date;
+    to?: Date;
+  }>({});
 
   useEffect(() => {
     const getOrders = async () => {
@@ -155,6 +167,30 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-10">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full md:w-[300px] justify-start"
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {dateRange?.from
+              ? dateRange.to
+                ? `${dateRange.from.toLocaleDateString()} - ${dateRange.to.toLocaleDateString()}`
+                : dateRange.from.toLocaleDateString()
+              : "Seleccionar fechas"}
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent className="w-auto p-0">
+          <Calendar
+            mode="range"
+            selected={dateRange}
+            onSelect={(range) => setDateRange(range || {})}
+            numberOfMonths={2}
+          />
+        </PopoverContent>
+      </Popover>
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl md:text-4xl font-bold mb-6">Pedidos</h1>
 

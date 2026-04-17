@@ -7,7 +7,7 @@ export default function ProfilePage() {
   const [typeSelected, setTypeSelected] = useState("sign-in");
 
   return (
-    <main className="h-screen flex  justify-center p-4">
+    <main>
       {typeSelected === "sign-in" && (
         <SignInForm setTypeSelected={setTypeSelected} />
       )}

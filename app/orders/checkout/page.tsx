@@ -11,13 +11,17 @@ export default function CheckoutUI() {
     lat: number;
     lng: number;
   } | null>(null);
-  const [orderType, setOrderType] = useState<"domicilio" | "recoger">(
-    "domicilio",
-  );
+
   const [barrio, setBarrio] = useState("");
 
-  const { cart, clearCart, setShowOrder, setShowOrderPage, setCurrentOrderId } =
-    useCart();
+  const {
+    cart,
+    clearCart,
+    setShowOrder,
+    setShowOrderPage,
+    setCurrentOrderId,
+    orderType,
+  } = useCart();
   const supabase = createClient();
   const router = useRouter();
 
@@ -44,15 +48,6 @@ export default function CheckoutUI() {
     pago: "efectivo",
     montoEfectivo: "",
   });
-
-  useEffect(() => {
-    const type = localStorage.getItem("order_type") as
-      | "domicilio"
-      | "recoger"
-      | null;
-
-    if (type) setOrderType(type);
-  }, []);
 
   const getLocation = () => {
     navigator.geolocation.getCurrentPosition(

@@ -18,11 +18,16 @@ import toast from "react-hot-toast";
 import { AuthFormProps } from "./AuthForm";
 import { Input } from "../ui/input";
 import ImgLogin from "@/assets/images/loginImg.jpg";
+import { ro } from "date-fns/locale";
+import { Sign } from "node:crypto";
+import SignUpForm from "./SignUpForm";
+import Link from "next/link";
 
 const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
   const supabase = createClient();
   const router = useRouter();
   const [isLoading, setisLoading] = useState<boolean>(false);
+  const [isRegistering, setIsRegistering] = useState<boolean>(false);
 
   const formSchema = z.object({
     email: z
@@ -73,6 +78,14 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
     }
   };
 
+  const handleRegister = () => {
+    setIsRegistering(true);
+  };
+
+  if (isRegistering) {
+    return <SignUpForm setTypeSelected={setTypeSelected} />;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md md:max-w-4xl bg-white shadow-2xl rounded-[30px] overflow-hidden md:flex">
@@ -81,9 +94,12 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
           className="relative h-56 md:h-auto md:w-1/2 bg-cover bg-center"
           style={{ backgroundImage: `url(${ImgLogin.src})` }}
         >
-          <button className="absolute top-4 left-4 text-white text-sm flex items-center gap-1 bg-black/20 px-3 py-1 rounded-full backdrop-blur">
+          <Link
+            href="/dashboard"
+            className="absolute top-4 left-4 text-white text-sm flex items-center gap-1 bg-black/20 px-3 py-1 rounded-full backdrop-blur"
+          >
             ← Back
-          </button>
+          </Link>
         </div>
 
         {/* Formulario */}
@@ -150,7 +166,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
           <p className="text-center text-sm text-gray-400 mt-6">
             ¿No tienes cuenta?{" "}
             <span
-              onClick={() => setTypeSelected("sign-up")}
+              onClick={handleRegister}
               className="text-orange-500 font-semibold cursor-pointer"
             >
               Regístrate

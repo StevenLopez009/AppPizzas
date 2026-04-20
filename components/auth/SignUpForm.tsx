@@ -1,195 +1,139 @@
 "use client";
-import { createClient } from "../../lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 
-import * as z from "zod";
+import { createClient } from "../../lib/supabase/client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import * as z from "zod";
 import { useState } from "react";
-import { LoaderCircle } from "lucide-react";
 import toast from "react-hot-toast";
-import { AuthFormProps } from "./AuthForm";
+import { LoaderCircle } from "lucide-react";
+import { useRouter } from "next/router";
 
-const SignUpForm = ({ setTypeSelected }: AuthFormProps) => {
+const SignUpForm = () => {
+  const router = useRouter();
   const supabase = createClient();
-  const [isLoading, setisLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // ============ Form ============
+  // ============ Schema ============
   const formSchema = z.object({
-    name: z
-      .string()
-      .min(4, "El nombre debe tener al menos 4 caracteres")
-      .max(20, "El nombre no puede tener más de 20 caracteres")
-      .regex(
-        /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
-        "El nombre solo puede contener letras",
-      ),
-
-    email: z
-      .email("Por favor ingresa un correo válido. Ejemplo: user@mail.com")
-      .min(1, {
-        message: "Este campo es requerido",
-      }),
-    password: z.string().min(6, {
-      message: "La contraseña debe tener al menos 6 caracteres",
-    }),
+    name: z.string().min(4).max(20),
+    email: z.string().email(),
+    phone: z.string().min(7, "Número inválido").max(15, "Máximo 15 dígitos"),
   });
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  type FormData = z.infer<typeof formSchema>;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-    },
   });
 
-  const { handleSubmit, formState, control } = form;
-  const { errors } = formState;
-
-  // ============ Sign Up ===========
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setisLoading(true);
+  // ============ Submit ============
+  const onSubmit = async (values: FormData) => {
+    setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.from("clients").insert({
+        name: values.name,
         email: values.email,
-        password: values.password,
-        options: {
-          data: {
-            full_name: values.name,
-          },
-        },
+        phone: values.phone,
       });
 
       if (error) throw error;
 
-      if (data.user) {
-        toast.success("¡Cuenta creada! Revisa tu correo de confirmación.");
-        // Si quieres mandarlo al login automáticamente:
-        // setTypeSelected('sign-in');
-      }
+      toast.success("Cliente guardado correctamente");
+      router.push("/dashboard");
+      reset();
     } catch (error: any) {
-      // Tu manejo de errores (que ya estaba muy bien)
-      toast.error(error.message || "Ocurrió un error en el registro");
+      toast.error(error.message || "Error al guardar");
     } finally {
-      setisLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div>
-      <div className="w-full backdrop-blur-xl rounded-4xl pb-4">
-        <div className="text-center">
-          <h1 className="lg:text-5xl md:text-4xl text-3xl font-semibold text-center my-4">
-            Crear Cuenta
-          </h1>
-
-          <p className="text-sm text-muted-foreground mb-8">
-            Crea una cuenta para acceder a todo el contenido
-          </p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-6 md:p-8">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h1>Nuevo Cliente</h1>
+          <p className="text-sm text-gray-400 mt-2">Registrate como cliente</p>
         </div>
 
-        <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className="mx-4">
-            <div className="grid gap-2">
-              {/* ========== Name ========= */}
-              <FormField
-                control={control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem className="mb-3">
-                    <FormLabel>Nombre</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        id="name"
-                        placeholder="John"
-                        type="text"
-                        autoComplete="name"
-                        maxLength={20}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        {/* Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Nombre */}
+          <div>
+            <label className="text-sm text-gray-500">Nombre</label>
+            <input
+              {...register("name")}
+              type="text"
+              placeholder="Juan Pérez"
+              disabled={isLoading}
+              className="w-full mt-1 h-12 px-4 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-orange-400 outline-none"
+            />
+            {errors.name && (
+              <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+            )}
+          </div>
 
-              {/* ========== Email ========= */}
-              <FormField
-                control={control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="mb-3">
-                    <FormLabel>Correo</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        id="email"
-                        placeholder="name@example.com"
-                        type="email"
-                        autoComplete="email"
-                        maxLength={50}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {/* Email */}
+          <div>
+            <label className="text-sm text-gray-500">Correo</label>
+            <input
+              {...register("email")}
+              type="email"
+              placeholder="correo@email.com"
+              disabled={isLoading}
+              className="w-full mt-1 h-12 px-4 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-orange-400 outline-none"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
 
-              {/* ========== Password ========= */}
-              <FormField
-                control={control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem className="mb-3">
-                    <FormLabel>Contraseña</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        id="password"
-                        placeholder="*****"
-                        type="password"
-                        maxLength={50}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {/* phone */}
+          <div>
+            <label className="text-sm text-gray-500">Teléfono</label>
+            <input
+              {...register("phone")}
+              type="text"
+              placeholder="3001234567"
+              disabled={isLoading}
+              className="w-full mt-1 h-12 px-4 rounded-xl bg-gray-100"
+            />
+            {errors.phone && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.phone.message}
+              </p>
+            )}
+          </div>
 
-              {/* ========== Submit ========= */}
-              <Button className="mt-6" type="submit" disabled={isLoading}>
-                {isLoading && (
-                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Crear cuenta
-              </Button>
-            </div>
-          </form>
-        </Form>
-
-        {/* ========== Sign In ========= */}
-        <p className="text-center text-sm mt-6 text-white">
-          ¿Ya tienes una cuenta?{" "}
-          <span
-            onClick={() => !isLoading && setTypeSelected("sign-in")}
-            className="underline underline-offset-4 hover:text-primary cursor-pointer"
+          {/* Button */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-12 bg-orange-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-orange-600 transition"
           >
-            Inicia Sesión
+            {isLoading && <LoaderCircle className="w-4 h-4 animate-spin" />}
+            Crear cuenta
+          </button>
+        </form>
+
+        {/* Footer */}
+        <p className="text-center text-sm text-gray-400 mt-6">
+          ¿Ya tienes cuenta?{" "}
+          <span
+            onClick={() => !isLoading}
+            className="text-orange-500 font-semibold cursor-pointer"
+          >
+            Inicia sesión
           </span>
         </p>
       </div>

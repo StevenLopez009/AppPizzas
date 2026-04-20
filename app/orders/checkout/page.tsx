@@ -5,6 +5,7 @@ import { useCart } from "@/context/CartContext";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import imgDelivery from "@/assets/images/bannerDelivery.png";
+import imgPickup from "@/assets/images/image.jpg";
 
 export default function CheckoutUI() {
   const [location, setLocation] = useState<{
@@ -64,6 +65,16 @@ export default function CheckoutUI() {
         alert("No se pudo obtener la ubicación");
       },
     );
+  };
+
+  const restaurantLocation = {
+    lat: 4.7305116,
+    lng: -74.2783364,
+  };
+
+  const sendLocation = () => {
+    const url = `https://www.google.com/maps?q=${restaurantLocation.lat},${restaurantLocation.lng}`;
+    window.open(url, "_blank");
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -255,8 +266,40 @@ ${items}
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full">
-              <p>Recoger</p>
+            <div
+              className="relative h-full w-full flex items-center"
+              style={{
+                backgroundImage: `
+                    linear-gradient(to right, #fde7d8 1%, transparent),
+                    url(${imgPickup.src})
+                  `,
+                backgroundSize: "100% 100%, contain",
+                backgroundPosition: "left, right center",
+                backgroundRepeat: "no-repeat",
+              }}
+            >
+              <div className="relative z-10 flex flex-col items-start justify-center gap-3 px-5 text-white max-w-[70%]">
+                {!location ? (
+                  <>
+                    <p className="text-sm font-semibold leading-tight text-black">
+                      Recoge tu pedido en nuestro restaurante
+                    </p>
+
+                    <button
+                      onClick={sendLocation}
+                      className="bg-orange-600 px-2 py-2 rounded-xl text-sm font-semibold shadow-md active:scale-95 transition"
+                    >
+                      📍 Nuestra ubicación
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-lg text-black font-semibold">
+                      Ubicación <br /> compartida
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -74,7 +74,7 @@ export default function AdminLayout({
           highlightColor="orange-500"
         />
       </div>
-      <main className="w-full md:w-[60%] md:p-4">{children}</main>
+      <main className="w-full md:p-4">{children}</main>
       <div className="hidden md:block md:w-[20%]">
         <ReportComponent />
       </div>

@@ -63,7 +63,7 @@ export default function FoodHeader() {
         <h1 className="text-lg font-semibold text-gray-700">La Carreta</h1>
         <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-300"></div>
       </div>
-      <div className="mt-2 flex flex-col lg:flex-row gap-6">
+      <div className="mt-2 flex flex-col lg:flex-row gap-6 rounded-3xl overflow-hidden">
         <div className="w-full lg:w-[60%]">
           <Swiper
             modules={[Autoplay]}

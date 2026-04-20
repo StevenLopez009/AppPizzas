@@ -305,7 +305,7 @@ export default function ProductUI({ product }: { product: any }) {
             value={observations}
             onChange={(e) => setObservations(e.target.value)}
             placeholder="Quieres eliminar algo del pedido? Ej: Sin cebolla, etc..."
-            className="w-full mt-2 p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-700 placeholder-gray-400 
+            className="mb-10 w-full mt-2 p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-700 placeholder-gray-400 
             outline-none resize-none transition-all duration-200
             focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
           />
@@ -334,7 +334,7 @@ export default function ProductUI({ product }: { product: any }) {
       </div>
 
       {/* BARRA INFERIOR DE COMPRA - Solo visible en móvil (fija en la parte inferior) */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:hidden bg-white/90 backdrop-blur-md p-6 border-t border-gray-100 flex justify-between items-center rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+      <div className="z-10 fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:hidden bg-white/90 backdrop-blur-md p-6 border-t border-gray-100 flex justify-between items-center rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
         <div>
           <p className="text-gray-400 text-xs">Precio</p>
           <p className="text-2xl font-black text-gray-800">

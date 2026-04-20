@@ -39,6 +39,7 @@ interface Order {
   status: string;
   order_type: "domicilio" | "mesa" | "recoger";
   order_items: OrderItem[];
+  discount_percentage: number;
 }
 
 const ORDER_FLOW = {
@@ -57,6 +58,8 @@ export default function AdminDashboard() {
     from?: Date;
     to?: Date;
   }>({});
+  const [activeDiscount, setActiveDiscount] = useState<string | null>(null);
+  const [discounts, setDiscounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const getOrders = async () => {
@@ -86,7 +89,8 @@ export default function AdminDashboard() {
             extra,
             observations,
             additionals
-          )
+          ),
+          discount_percentage
         `,
         )
         .order("created_at", { ascending: false });
@@ -180,8 +184,35 @@ export default function AdminDashboard() {
     return true;
   });
 
-  const totalSales = filteredOrders.reduce((acc, o) => acc + o.total, 0);
+  const totalSales = filteredOrders.reduce((acc, o) => {
+    const final = o.total - (o.total * (o.discount_percentage || 0)) / 100;
+
+    return acc + final;
+  }, 0);
   const totalOrders = filteredOrders.length;
+
+  const applyDiscount = async (order: Order) => {
+    const discount = discounts[order.id];
+
+    if (discount === undefined || discount < 0 || discount > 100) {
+      return alert("Descuento inválido");
+    }
+
+    const { error } = await supabase
+      .from("orders")
+      .update({ discount_percentage: discount })
+      .eq("id", order.id);
+
+    if (!error) {
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === order.id ? { ...o, discount_percentage: discount } : o,
+        ),
+      );
+
+      setActiveDiscount(null);
+    }
+  };
 
   const byType = filteredOrders.reduce(
     (acc, o) => {
@@ -288,122 +319,168 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto mt-6 mb-20">
         {/* GRID RESPONSIVE */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredOrders.map((order) => (
-            <div
-              key={order.id}
-              className="bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between"
-            >
-              {/* HEADER */}
-              <div className="flex justify-between items-start mb-4">
-                <div className="space-y-1">
-                  <p className="font-bold text-lg">{order.customer_name}</p>
+          {filteredOrders.map((order) => {
+            const finalTotal =
+              order.total -
+              (order.total * (order.discount_percentage || 0)) / 100;
 
-                  <p className="text-sm text-gray-500">
-                    📞 {order.customer_phone}
-                  </p>
+            return (
+              <div
+                key={order.id}
+                className="bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between"
+              >
+                {/* HEADER */}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="space-y-1">
+                    <p className="font-bold text-lg">{order.customer_name}</p>
 
-                  <p className="text-sm text-gray-500">
-                    📍 {order.customer_address}
-                  </p>
+                    <p className="text-sm text-gray-500">
+                      📞 {order.customer_phone}
+                    </p>
 
-                  <p className="text-sm text-gray-400">
-                    💳 {order.payment_method}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    {order.cash_amount
-                      ? `Paga con $${order.cash_amount.toLocaleString("es-CO")}`
-                      : "No especificado"}
-                  </p>
+                    <p className="text-sm text-gray-500">
+                      📍 {order.customer_address}
+                    </p>
 
-                  {order.order_type === "domicilio" && (
                     <p className="text-sm text-gray-400">
-                      {order.neighborhood}
+                      💳 {order.payment_method}
                     </p>
-                  )}
+                    <p className="text-sm text-gray-400">
+                      {order.cash_amount
+                        ? `Paga con $${order.cash_amount.toLocaleString("es-CO")}`
+                        : "No especificado"}
+                    </p>
 
-                  {order.lat && order.lng && (
-                    <a
-                      href={`https://www.google.com/maps?q=${order.lat},${order.lng}`}
-                      target="_blank"
-                      className="text-blue-500 text-sm underline"
-                    >
-                      📍 Ver ubicación en mapa
-                    </a>
-                  )}
-                </div>
-
-                <div className="text-right">
-                  <p className="text-xl font-bold">
-                    ${Number(order.total).toLocaleString("es-CO")}
-                  </p>
-
-                  <span className="text-xs bg-orange-100 text-orange-600 px-3 py-1 rounded-full">
-                    {order.status}
-                  </span>
-                </div>
-              </div>
-
-              {/* ITEMS */}
-              <div className="border-t pt-3 pb-3 space-y-2">
-                {order.order_items?.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <div>
-                      🍕{item.quantity} {item.size}
-                      <p className="text-md">
-                        {item.product_name} •{" "}
-                        {item.extra ? `borde ${item.extra}` : "sin borde"}
+                    {order.order_type === "domicilio" && (
+                      <p className="text-sm text-gray-400">
+                        {order.neighborhood}
                       </p>
-                      {item.observations && (
-                        <p className="text-sm">{item.observations}</p>
-                      )}
-                      {item.additionals && (
-                        <p className="text-gray-500 text-xs mt-1">
-                          Adicional: {item.additionals?.[0]?.name} (+$
-                          {item.additionals?.[0]?.price.toLocaleString("es-CO")}
-                          )
-                        </p>
-                      )}
-                    </div>
-                    <p className="font-semibold">
-                      $
-                      {Number(item.price * item.quantity).toLocaleString(
-                        "es-CO",
-                      )}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-4 mt-4">
-                <div className="flex flex-row gap-3">
-                  <button
-                    onClick={() => deleteOrder(order.id, order.customer_name)}
-                    className="w-full  hover:bg-red-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-red-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => openKitchenOrder(order.id)}
-                    className="w-full hover:bg-green-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-green-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    <PrinterIcon className="w-5 h-5" />
-                  </button>
+                    )}
 
+                    {order.lat && order.lng && (
+                      <a
+                        href={`https://www.google.com/maps?q=${order.lat},${order.lng}`}
+                        target="_blank"
+                        className="text-blue-500 text-sm underline"
+                      >
+                        📍 Ver ubicación en mapa
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="text-right">
+                    {order.discount_percentage > 0 && (
+                      <p className="text-sm line-through text-gray-400">
+                        ${order.total.toLocaleString("es-CO")}
+                      </p>
+                    )}
+
+                    <p className="text-xl font-bold text-green-600">
+                      ${finalTotal.toLocaleString("es-CO")}
+                    </p>
+                    <span className="text-xs bg-orange-100 text-orange-600 px-3 py-1 rounded-full">
+                      {order.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* ITEMS */}
+                <div className="border-t pt-3 pb-3 space-y-2">
+                  {order.order_items?.map((item) => (
+                    <div key={item.id} className="flex justify-between text-sm">
+                      <div>
+                        🍕{item.quantity} {item.size}
+                        <p className="text-md">
+                          {item.product_name} •{" "}
+                          {item.extra ? `borde ${item.extra}` : "sin borde"}
+                        </p>
+                        {item.observations && (
+                          <p className="text-sm">{item.observations}</p>
+                        )}
+                        {item.additionals && (
+                          <p className="text-gray-500 text-xs mt-1">
+                            Adicional: {item.additionals?.[0]?.name} (+$
+                            {item.additionals?.[0]?.price.toLocaleString(
+                              "es-CO",
+                            )}
+                            )
+                          </p>
+                        )}
+                      </div>
+                      <p className="font-semibold">
+                        $
+                        {Number(item.price * item.quantity).toLocaleString(
+                          "es-CO",
+                        )}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t pt-3 space-y-4 mt-4">
+                  <div className="flex flex-row gap-3">
+                    {activeDiscount !== order.id ? (
+                      <>
+                        <button
+                          onClick={() =>
+                            deleteOrder(order.id, order.customer_name)
+                          }
+                          className="w-full  hover:bg-red-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-red-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          <TrashIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => openKitchenOrder(order.id)}
+                          className="w-full hover:bg-green-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-green-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          <BookMinus className="w-5 h-5" />
+                        </button>
+
+                        <button
+                          onClick={() => openInvoice(order.id)}
+                          className="w-full  hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          <PrinterIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => setActiveDiscount(order.id)}
+                          className="w-full  hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          %
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <input
+                          type="number"
+                          placeholder="%"
+                          value={discounts[order.id] || ""}
+                          onChange={(e) =>
+                            setDiscounts({
+                              ...discounts,
+                              [order.id]: Number(e.target.value),
+                            })
+                          }
+                          className="w-full border border-gray-300 rounded-2xl px-3 py-2"
+                        />
+                        <button
+                          onClick={() => applyDiscount(order)}
+                          className="w-full  hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          Aplicar
+                        </button>
+                      </>
+                    )}
+                  </div>
                   <button
-                    onClick={() => openInvoice(order.id)}
-                    className="w-full  hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                    onClick={() => changeStatus(order)}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-5 rounded-3xl font-bold text-lg shadow-lg hover:shadow-xl shadow-orange-900/30 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
                   >
-                    <BookMinus className="w-5 h-5" />
+                    Cambiar estado
                   </button>
                 </div>
-                <button
-                  onClick={() => changeStatus(order)}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-5 rounded-3xl font-bold text-lg shadow-lg hover:shadow-xl shadow-orange-900/30 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
-                >
-                  Cambiar estado
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

@@ -6,12 +6,65 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Bike, Store } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function Orders() {
+  const [isInRestaurant, setIsInRestaurant] = useState(false);
   const { cart, updateQuantity, setOrderType } = useCart();
   const router = useRouter();
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+  const getDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ) => {
+    const R = 6371e3; // metros
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  };
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+
+        // Coordenadas de tu restaurante
+        const restaurantLat = 4.7305116;
+        const restaurantLng = -74.2782851;
+
+        const distance = getDistance(
+          userLat,
+          userLng,
+          restaurantLat,
+          restaurantLng,
+        );
+
+        // si está a menos de 50 metros → está en el local
+        if (distance < 10) {
+          setIsInRestaurant(true);
+        }
+      },
+      (error) => {
+        console.log("Error obteniendo ubicación", error);
+      },
+    );
+  }, []);
 
   if (cart.length === 0) {
     return (
@@ -147,21 +200,32 @@ export default function Orders() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 py-2 sm:px-0">
-          <button
-            onClick={() => handleOrder("recoger")}
-            className="flex items-center justify-center gap-2 w-full bg-gray-200 text-gray-800 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg active:scale-95 transition-transform"
-          >
-            <Store size={20} />
-            Recoger
-          </button>
+          {isInRestaurant ? (
+            <button
+              onClick={() => handleOrder("recoger")}
+              className="w-full bg-orange-600 text-white py-4 rounded-2xl font-bold"
+            >
+              Pedir en el local
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => handleOrder("recoger")}
+                className="flex items-center justify-center gap-2 w-full bg-gray-200 text-gray-800 py-3 rounded-2xl font-bold"
+              >
+                <Store size={20} />
+                Recoger
+              </button>
 
-          <button
-            onClick={() => handleOrder("domicilio")}
-            className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
-          >
-            <Bike size={20} />
-            Domicilio
-          </button>
+              <button
+                onClick={() => handleOrder("domicilio")}
+                className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 rounded-2xl font-bold"
+              >
+                <Bike size={20} />
+                Domicilio
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

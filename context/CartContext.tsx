@@ -26,8 +26,8 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   updateQuantity: (id: string, action: "plus" | "minus") => void;
-  orderType: "domicilio" | "recoger" | null;
-  setOrderType: (type: "domicilio" | "recoger") => void;
+  orderType: "domicilio" | "recoger" | "mesa" | null;
+  setOrderType: (type: "domicilio" | "recoger" | "mesa") => void;
   showOrder: boolean;
   setShowOrder: (value: boolean) => void;
   showOrderPage: boolean;
@@ -42,7 +42,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderType, setOrderTypeState] = useState<
-    "domicilio" | "recoger" | null
+    "domicilio" | "recoger" | "mesa" | null
   >(null);
   const [showOrder, setShowOrder] = useState(false);
   const [showOrderPage, setShowOrderPage] = useState(false);
@@ -103,7 +103,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  const setOrderType = (type: "domicilio" | "recoger") => {
+  const setOrderType = (type: "domicilio" | "recoger" | "mesa") => {
     setOrderTypeState(type);
     setShowOrder(true);
   };

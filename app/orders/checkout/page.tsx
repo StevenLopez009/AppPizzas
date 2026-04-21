@@ -14,6 +14,7 @@ export default function CheckoutUI() {
   } | null>(null);
 
   const [barrio, setBarrio] = useState("");
+  const [mesa, setMesa] = useState("");
 
   const {
     cart,
@@ -100,21 +101,22 @@ export default function CheckoutUI() {
     return `
 🧾 *Nuevo Pedido*
 
-👤 Cliente: ${form.nombre}
-📞 Tel: ${form.telefono}
-${orderType === "domicilio" ? `📍 Dirección: ${form.direccion}` : ""}
-${orderType === "domicilio" ? `🏘️ Barrio: ${barrio}` : ""}
-${location ? `📍 Ubicación: https://www.google.com/maps?q=${location.lat},${location.lng}` : ""}
+  ${orderType !== "mesa" ? `👤 Cliente: ${form.nombre}` : ""}
+  ${orderType !== "mesa" ? `📞 Tel: ${form.telefono}` : ""}
+  ${orderType === "mesa" ? `🍽️ Mesa: ${mesa}` : ""}
+  ${orderType === "domicilio" ? `📍 Dirección: ${form.direccion}` : ""}
+  ${orderType === "domicilio" ? `🏘️ Barrio: ${barrio}` : ""}
+  ${location ? `📍 Ubicación: https://www.google.com/maps?q=${location.lat},${location.lng}` : ""}
 
-🛵 Tipo: ${orderType}
-💳 Pago: ${form.pago}${montoEfectivoTexto}
+  🛵 Tipo: ${orderType}
+  💳 Pago: ${form.pago}${montoEfectivoTexto}
 
-📦 Pedido:
-${items}
+  📦 Pedido:
+  ${items}
 
-🚚 Domicilio: $${domicilio.toLocaleString("es-CO")}
-💰 Total: $${total.toLocaleString("es-CO")}
-`;
+  🚚 Domicilio: $${domicilio.toLocaleString("es-CO")}
+  💰 Total: $${total.toLocaleString("es-CO")}
+  `;
   };
 
   const sendToWhatsApp = () => {
@@ -125,17 +127,34 @@ ${items}
   };
 
   const handleSubmit = async () => {
-    if (
-      !form.nombre ||
-      !form.telefono ||
-      (orderType === "domicilio" && (!form.direccion || !barrio))
-    ) {
-      alert("Completa todos los datos");
-      return;
+    if (orderType === "domicilio") {
+      if (!form.nombre || !form.telefono || !form.direccion || !barrio) {
+        alert("Completa todos los datos");
+        return;
+      }
+    }
+
+    if (orderType === "recoger") {
+      if (!form.nombre || !form.telefono) {
+        alert("Completa todos los datos");
+        return;
+      }
+    }
+
+    if (orderType === "mesa") {
+      if (!mesa) {
+        alert("Selecciona tu mesa");
+        return;
+      }
     }
 
     if (cart.length === 0) {
       alert("Tu carrito está vacío");
+      return;
+    }
+
+    if (orderType === "mesa" && !mesa) {
+      alert("Selecciona tu mesa");
       return;
     }
 
@@ -146,9 +165,10 @@ ${items}
           order_type: orderType,
           lat: location?.lat || null,
           lng: location?.lng || null,
-          customer_name: form.nombre,
-          customer_phone: form.telefono,
+          customer_name: orderType === "mesa" ? null : form.nombre,
+          customer_phone: orderType === "mesa" ? null : form.telefono,
           customer_address: orderType === "domicilio" ? form.direccion : null,
+          table_number: orderType === "mesa" ? Number(mesa) : null,
           payment_method: form.pago,
           cash_amount:
             form.pago === "efectivo" ? parseInt(form.montoEfectivo) : null,
@@ -303,44 +323,68 @@ ${items}
             </div>
           )}
         </div>
+        {orderType === "mesa" && (
+          <div className="flex items-center justify-between p-4">
+            <div className="flex gap-3 items-center w-full">
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                🍽️
+              </div>
+
+              <select
+                value={mesa}
+                onChange={(e) => setMesa(e.target.value)}
+                className="w-full outline-none font-semibold text-gray-800"
+              >
+                <option value="">Selecciona tu mesa</option>
+                {[...Array(10)].map((_, i) => (
+                  <option key={i} value={i + 1}>
+                    Mesa {i + 1}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ADDRESS CARD */}
       <div className="px-6 mt-4">
         <div className="bg-white rounded-3xl shadow-sm divide-y">
-          {/* NOMBRE */}
-          <div className="flex items-center justify-between p-4">
-            <div className="flex gap-3 items-center w-full">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                🏠
+          {(orderType === "domicilio" || orderType === "recoger") && (
+            <>
+              <div className="flex items-center justify-between p-4">
+                <div className="flex gap-3 items-center w-full">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    🏠
+                  </div>
+
+                  <input
+                    name="nombre"
+                    value={form.nombre}
+                    onChange={handleChange}
+                    placeholder="Nombre"
+                    className="w-full outline-none font-semibold text-gray-800"
+                  />
+                </div>
               </div>
 
-              <input
-                name="nombre"
-                value={form.nombre}
-                onChange={handleChange}
-                placeholder="Nombre"
-                className="w-full outline-none font-semibold text-gray-800"
-              />
-            </div>
-          </div>
+              <div className="flex items-center justify-between p-4">
+                <div className="flex gap-3 items-center w-full">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    📞
+                  </div>
 
-          {/* TELEFONO */}
-          <div className="flex items-center justify-between p-4">
-            <div className="flex gap-3 items-center w-full">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                📞
+                  <input
+                    name="telefono"
+                    value={form.telefono}
+                    onChange={handleChange}
+                    placeholder="Telefono"
+                    className="w-full outline-none font-semibold text-gray-800"
+                  />
+                </div>
               </div>
-
-              <input
-                name="telefono"
-                value={form.telefono}
-                onChange={handleChange}
-                placeholder="Telefono"
-                className="w-full outline-none font-semibold text-gray-800"
-              />
-            </div>
-          </div>
+            </>
+          )}
 
           {/* DIRECCION */}
           {orderType === "domicilio" && (

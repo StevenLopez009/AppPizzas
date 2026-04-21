@@ -56,7 +56,7 @@ export default function Orders() {
         );
 
         // si está a menos de 50 metros → está en el local
-        if (distance < 10) {
+        if (distance < 50) {
           setIsInRestaurant(true);
         }
       },
@@ -88,9 +88,8 @@ export default function Orders() {
     );
   }
 
-  const handleOrder = (type: "domicilio" | "recoger") => {
+  const handleOrder = (type: "domicilio" | "recoger" | "mesa") => {
     setOrderType(type);
-
     if (window.innerWidth < 768) {
       router.push("/orders/checkout");
     }
@@ -180,17 +179,17 @@ export default function Orders() {
 
       <div
         className="
-  fixed sm:relative 
-  bottom-0 left-0 
-  w-full max-w-md sm:max-w-none 
-  mx-auto 
-  bg-white 
-  p-4 sm:p-6 
-  border-t border-gray-100 
-  rounded-t-3xl sm:rounded-2xl 
-  shadow-[0_-10px_40px_rgba(0,0,0,0.08)] sm:shadow-none
-  sm:mt-auto
-"
+          fixed sm:relative 
+          bottom-0 left-0 
+          w-full max-w-md sm:max-w-none 
+          mx-auto 
+          bg-white 
+          p-4 sm:p-6 
+          border-t border-gray-100 
+          rounded-t-3xl sm:rounded-2xl 
+          shadow-[0_-10px_40px_rgba(0,0,0,0.08)] sm:shadow-none
+          sm:mt-auto
+        "
       >
         <div className="space-y-2 mb-4">
           <div className="flex justify-between text-lg sm:text-xl font-bold text-gray-800 pt-2 border-t border-dashed">
@@ -202,10 +201,10 @@ export default function Orders() {
         <div className="flex flex-col sm:flex-row gap-3 py-2 sm:px-0">
           {isInRestaurant ? (
             <button
-              onClick={() => handleOrder("recoger")}
+              onClick={() => handleOrder("mesa")}
               className="w-full bg-orange-600 text-white py-4 rounded-2xl font-bold"
             >
-              Pedir en el local
+              Pedir
             </button>
           ) : (
             <>

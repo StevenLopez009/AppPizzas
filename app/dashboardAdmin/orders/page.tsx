@@ -37,6 +37,7 @@ interface Order {
   lng?: number | null;
   total: number;
   status: string;
+  table_number?: number | null;
   order_type: "domicilio" | "mesa" | "recoger";
   order_items: OrderItem[];
   discount_percentage: number;
@@ -73,6 +74,7 @@ export default function AdminDashboard() {
           customer_phone,
           customer_address,
           payment_method,
+          table_number,
           total,
           order_type,
           status,
@@ -99,6 +101,7 @@ export default function AdminDashboard() {
         console.log(error);
       } else {
         setOrders(data as Order[]);
+        console.log(data);
       }
 
       setLoading(false);
@@ -332,15 +335,25 @@ export default function AdminDashboard() {
                 {/* HEADER */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="space-y-1">
-                    <p className="font-bold text-lg">{order.customer_name}</p>
+                    {order.order_type === "mesa" && (
+                      <p className="font-bold text-lg">
+                        Mesa {order.table_number}
+                      </p>
+                    )}
+                    {order.order_type !== "mesa" && (
+                      <>
+                        <p className="font-bold text-lg">
+                          {order.customer_name}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          📞 {order.customer_phone}
+                        </p>
 
-                    <p className="text-sm text-gray-500">
-                      📞 {order.customer_phone}
-                    </p>
-
-                    <p className="text-sm text-gray-500">
-                      📍 {order.customer_address}
-                    </p>
+                        <p className="text-sm text-gray-500">
+                          📍 {order.customer_address}
+                        </p>
+                      </>
+                    )}
 
                     <p className="text-sm text-gray-400">
                       💳 {order.payment_method}

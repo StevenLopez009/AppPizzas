@@ -61,6 +61,9 @@ export default function AdminDashboard() {
   }>({});
   const [activeDiscount, setActiveDiscount] = useState<string | null>(null);
   const [discounts, setDiscounts] = useState<Record<string, number>>({});
+  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const [extraName, setExtraName] = useState("");
+  const [extraPrice, setExtraPrice] = useState("");
 
   useEffect(() => {
     const getOrders = async () => {
@@ -224,6 +227,69 @@ export default function AdminDashboard() {
     { domicilio: 0, mesa: 0, recoger: 0 },
   );
 
+  const tipeOrder = (order: Order) => {
+    console.log(order.order_type);
+  };
+  const updateOrderTotal = async (orderId: string) => {
+    const { data: items } = await supabase
+      .from("order_items")
+      .select("price, quantity")
+      .eq("order_id", orderId);
+
+    const newTotal =
+      items?.reduce((acc, item) => acc + item.price * item.quantity, 0) || 0;
+
+    await supabase.from("orders").update({ total: newTotal }).eq("id", orderId);
+
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, total: newTotal } : o)),
+    );
+  };
+
+  const handleAddExtra = async () => {
+    if (!extraName || !extraPrice) {
+      return alert("Completa los campos");
+    }
+
+    const price = Number(extraPrice);
+
+    const { data, error } = await supabase
+      .from("order_items")
+      .insert([
+        {
+          order_id: selectedOrder,
+          product_name: extraName,
+          quantity: 1,
+          price: price,
+          size: "extra",
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setOrders((prev) =>
+      prev.map((order) => {
+        if (order.id === selectedOrder) {
+          return {
+            ...order,
+            order_items: [...order.order_items, data],
+          };
+        }
+        return order;
+      }),
+    );
+
+    await updateOrderTotal(selectedOrder!);
+
+    setExtraName("");
+    setExtraPrice("");
+    setSelectedOrder(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-10">
       <h1 className="text-2xl md:text-4xl font-bold mb-6">Pedidos</h1>
@@ -231,9 +297,15 @@ export default function AdminDashboard() {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="w-full md:w-[300px] justify-start"
+            className="
+        w-full md:w-[300px] justify-start
+        rounded-2xl border-gray-200 bg-white
+        shadow-sm hover:shadow-md
+        transition-all duration-200
+        text-gray-700 font-medium
+      "
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <CalendarIcon className="mr-2 h-4 w-4 text-orange-500" />
             {dateRange?.from
               ? dateRange.to
                 ? `${dateRange.from.toLocaleDateString()} - ${dateRange.to.toLocaleDateString()}`
@@ -242,13 +314,23 @@ export default function AdminDashboard() {
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-auto p-0">
-          <Calendar
-            mode="range"
-            selected={dateRange}
-            onSelect={(range) => setDateRange(range || {})}
-            numberOfMonths={2}
-          />
+        <PopoverContent
+          className="
+      w-auto p-4
+      rounded-2xl border border-gray-200
+      shadow-xl
+      bg-white
+    "
+        >
+          <div className="rounded-xl overflow-hidden">
+            <Calendar
+              mode="range"
+              selected={dateRange}
+              onSelect={(range) => setDateRange(range || {})}
+              numberOfMonths={2}
+              className="p-2"
+            />
+          </div>
         </PopoverContent>
       </Popover>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 mt-6">
@@ -259,19 +341,19 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow ">
-          <p className="text-sm text-gray-400">Pedidos</p>
-          <p className="text-xl font-bold">{totalOrders}</p>
-        </div>
-
         <div className="bg-white p-4 rounded-xl shadow">
           <p className="text-sm text-gray-400">Domicilios</p>
           <p className="text-xl font-bold">{byType.domicilio}</p>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-sm text-gray-400">Mesa/Recoger</p>
-          <p className="text-xl font-bold">{byType.mesa + byType.recoger}</p>
+          <p className="text-sm text-gray-400">Mesa</p>
+          <p className="text-xl font-bold">{byType.mesa}</p>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl shadow">
+          <p className="text-sm text-gray-400">Recoger</p>
+          <p className="text-xl font-bold">{byType.recoger}</p>
         </div>
       </div>
       <div className="flex gap-2 mt-4 flex-wrap">
@@ -399,10 +481,10 @@ export default function AdminDashboard() {
                   {order.order_items?.map((item) => (
                     <div key={item.id} className="flex justify-between text-sm">
                       <div>
-                        🍕{item.quantity} {item.size}
+                        {item.quantity} {item.size}
                         <p className="text-md">
                           {item.product_name} •{" "}
-                          {item.extra ? `borde ${item.extra}` : "sin borde"}
+                          {item.extra ? `borde ${item.extra}` : ""}
                         </p>
                         {item.observations && (
                           <p className="text-sm">{item.observations}</p>
@@ -481,8 +563,16 @@ export default function AdminDashboard() {
                       </>
                     )}
                   </div>
+
                   <div className="flex gap-2">
-                    <button className="basis-[30%] hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order.id);
+                        setExtraName("");
+                        setExtraPrice("");
+                      }}
+                      className="basis-[30%] hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                    >
                       +
                     </button>
 
@@ -499,6 +589,45 @@ export default function AdminDashboard() {
           })}
         </div>
       </div>
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl w-[300px] space-y-4">
+            <h2 className="text-lg font-bold">Agregar producto extra</h2>
+
+            <input
+              type="text"
+              placeholder="Nombre"
+              value={extraName}
+              onChange={(e) => setExtraName(e.target.value)}
+              className="w-full border rounded-xl px-3 py-2"
+            />
+
+            <input
+              type="number"
+              placeholder="Precio"
+              value={extraPrice}
+              onChange={(e) => setExtraPrice(e.target.value)}
+              className="w-full border rounded-xl px-3 py-2"
+            />
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="w-full bg-gray-200 py-2 rounded-xl"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={handleAddExtra}
+                className="w-full bg-green-500 text-white py-2 rounded-xl"
+              >
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

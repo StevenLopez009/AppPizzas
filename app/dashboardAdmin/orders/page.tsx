@@ -101,7 +101,6 @@ export default function AdminDashboard() {
         console.log(error);
       } else {
         setOrders(data as Order[]);
-        console.log(data);
       }
 
       setLoading(false);
@@ -252,7 +251,7 @@ export default function AdminDashboard() {
           />
         </PopoverContent>
       </Popover>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 mt-6">
         <div className="bg-white p-4 rounded-xl shadow">
           <p className="text-sm text-gray-400">Ventas</p>
           <p className="text-xl font-bold">
@@ -260,7 +259,7 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow">
+        <div className="bg-white p-4 rounded-xl shadow ">
           <p className="text-sm text-gray-400">Pedidos</p>
           <p className="text-xl font-bold">{totalOrders}</p>
         </div>
@@ -336,9 +335,7 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-start mb-4">
                   <div className="space-y-1">
                     {order.order_type === "mesa" && (
-                      <p className="font-bold text-lg">
-                        Mesa {order.table_number}
-                      </p>
+                      <p className="font-bold text-lg">{order.table_number}</p>
                     )}
                     {order.order_type !== "mesa" && (
                       <>
@@ -411,7 +408,7 @@ export default function AdminDashboard() {
                           <p className="text-sm">{item.observations}</p>
                         )}
                         {item.additionals && (
-                          <p className="text-gray-500 text-xs mt-1">
+                          <p className="text-orange-500 text-xs mt-1">
                             Adicional: {item.additionals?.[0]?.name} (+$
                             {item.additionals?.[0]?.price.toLocaleString(
                               "es-CO",
@@ -484,12 +481,18 @@ export default function AdminDashboard() {
                       </>
                     )}
                   </div>
-                  <button
-                    onClick={() => changeStatus(order)}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-5 rounded-3xl font-bold text-lg shadow-lg hover:shadow-xl shadow-orange-900/30 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    Cambiar estado
-                  </button>
+                  <div className="flex gap-2">
+                    <button className="basis-[30%] hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+                      +
+                    </button>
+
+                    <button
+                      onClick={() => changeStatus(order)}
+                      className="basis-[70%] bg-orange-500 hover:bg-orange-600 text-white py-5 rounded-3xl font-bold text-lg shadow-lg hover:shadow-xl shadow-orange-900/30 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      Cambiar estado
+                    </button>
+                  </div>
                 </div>
               </div>
             );

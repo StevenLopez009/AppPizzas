@@ -7,7 +7,7 @@ import * as z from "zod";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { LoaderCircle } from "lucide-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const SignUpForm = () => {
   const router = useRouter();

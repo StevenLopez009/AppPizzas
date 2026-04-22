@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { useParams } from "next/navigation";
 import OrderTrackingTime from "@/components/orderTrackingTime/OrderTrackingTime";
 import { useCart } from "@/context/CartContext";
+import { ShoppingBasket } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function OrderPage() {
   const [orderType, setOrderType] = useState<
@@ -14,6 +16,7 @@ export default function OrderPage() {
   const params = useParams();
   const { currentOrderId } = useCart();
   const orderId = (params?.id as string) || currentOrderId;
+  const router = useRouter();
 
   const [status, setStatus] = useState<string | null>(null);
 
@@ -64,11 +67,20 @@ export default function OrderPage() {
 
   if (status === "entregado" || status === "listo_para_recoger") {
     return (
-      <div className="p-10 text-center">
-        <h1 className="text-2xl font-bold">Pedido finalizado ✅</h1>
-        <p className="mt-4 text-gray-500">
-          Tu pedido ya fue entregado. ¡Gracias por tu compra!
-        </p>
+      <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
+        <div className="bg-gray-100 p-6 rounded-full mb-4">
+          <ShoppingBasket size={48} className="text-gray-400" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-800">
+          No tienes pedidos activos
+        </h2>
+        <p className="text-gray-500 mt-2 mb-6">Añade una pizza deliciosa.</p>
+        <button
+          onClick={() => router.push("/")}
+          className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-orange-200"
+        >
+          Ver Menú
+        </button>
       </div>
     );
   }

@@ -89,33 +89,33 @@ export default function CheckoutUI() {
     const items = cart
       .map(
         (item) =>
-          `🍕 ${item.quantity}x ${item.name} (${item.size}) - ${item.extra || "sin extra"} - ${item.observations ? `📝 ${item.observations}` : ""} - $${(item.price * item.quantity).toLocaleString("es-CO")}`,
+          `${item.quantity} (${item.size}) ${item.name}  - ${item.extra || "sin extra"} - ${item.observations ? `${item.observations}` : ""} - $${(item.price * item.quantity).toLocaleString("es-CO")}`,
       )
       .join("\n");
 
     const montoEfectivoTexto =
       form.pago === "efectivo" && form.montoEfectivo
-        ? `\n💵 Paga con: $${parseInt(form.montoEfectivo).toLocaleString("es-CO")}\n🔄 Cambio: $${(parseInt(form.montoEfectivo) - total).toLocaleString("es-CO")}`
+        ? `\n Paga con: $${parseInt(form.montoEfectivo).toLocaleString("es-CO")}\nCambio: $${(parseInt(form.montoEfectivo) - total).toLocaleString("es-CO")}`
         : "";
 
     return `
-🧾 *Nuevo Pedido*
+*Nuevo Pedido*
 
-  ${orderType !== "mesa" ? `👤 Cliente: ${form.nombre}` : ""}
-  ${orderType !== "mesa" ? `📞 Tel: ${form.telefono}` : ""}
-  ${orderType === "mesa" ? `🍽️ Mesa: ${mesa}` : ""}
-  ${orderType === "domicilio" ? `📍 Dirección: ${form.direccion}` : ""}
-  ${orderType === "domicilio" ? `🏘️ Barrio: ${barrio}` : ""}
-  ${location ? `📍 Ubicación: https://www.google.com/maps?q=${location.lat},${location.lng}` : ""}
+  ${orderType !== "mesa" ? `Cliente: ${form.nombre}` : ""}
+  ${orderType !== "mesa" ? `Tel: ${form.telefono}` : ""}
+  ${orderType === "mesa" ? `Mesa: ${mesa}` : ""}
+  ${orderType === "domicilio" ? ` Dirección: ${form.direccion}` : ""}
+  ${orderType === "domicilio" ? `Barrio: ${barrio}` : ""}
+  ${location ? `Ubicación: https://www.google.com/maps?q=${location.lat},${location.lng}` : ""}
 
-  🛵 Tipo: ${orderType}
-  💳 Pago: ${form.pago}${montoEfectivoTexto}
+  Tipo: ${orderType}
+  Pago: ${form.pago}${montoEfectivoTexto}
 
-  📦 Pedido:
+  Pedido:
   ${items}
 
-  🚚 Domicilio: $${domicilio.toLocaleString("es-CO")}
-  💰 Total: $${total.toLocaleString("es-CO")}
+  Domicilio: $${domicilio.toLocaleString("es-CO")}
+  Total: $${total.toLocaleString("es-CO")}
   `;
   };
 
@@ -168,7 +168,7 @@ export default function CheckoutUI() {
           customer_name: orderType === "mesa" ? null : form.nombre,
           customer_phone: orderType === "mesa" ? null : form.telefono,
           customer_address: orderType === "domicilio" ? form.direccion : null,
-          table_number: orderType === "mesa" ? Number(mesa) : null,
+          table_number: orderType === "mesa" ? mesa : null,
           payment_method: form.pago,
           cash_amount:
             form.pago === "efectivo" ? parseInt(form.montoEfectivo) : null,
@@ -335,12 +335,32 @@ export default function CheckoutUI() {
                 onChange={(e) => setMesa(e.target.value)}
                 className="w-full outline-none font-semibold text-gray-800"
               >
-                <option value="">Selecciona tu mesa</option>
-                {[...Array(10)].map((_, i) => (
-                  <option key={i} value={i + 1}>
-                    Mesa {i + 1}
-                  </option>
-                ))}
+                <option value="">Selecciona</option>
+
+                <optgroup label="Mesas">
+                  {[...Array(7)].map((_, i) => (
+                    <option key={`mesa-${i}`} value={`Mesa ${i + 1}`}>
+                      Mesa {i + 1}
+                    </option>
+                  ))}
+                </optgroup>
+
+                <optgroup label="Barra">
+                  {[...Array(3)].map((_, i) => (
+                    <option key={`barra-${i}`} value={`Barra ${i + 1}`}>
+                      Barra {i + 1}
+                    </option>
+                  ))}
+                </optgroup>
+
+                <optgroup label="VIP">
+                  {[...Array(3)].map((_, i) => (
+                    <option key={`vip-${i}`} value={`VIP ${i + 1}`}>
+                      VIP {i + 1}
+                    </option>
+                  ))}
+                  <option value="Terraza">Terraza</option>
+                </optgroup>
               </select>
             </div>
           </div>
@@ -350,7 +370,7 @@ export default function CheckoutUI() {
       {/* ADDRESS CARD */}
       <div className="px-6 mt-4">
         <div className="bg-white rounded-3xl shadow-sm divide-y">
-          {(orderType === "domicilio" || orderType === "recoger") && (
+          {orderType !== "mesa" && (
             <>
               <div className="flex items-center justify-between p-4">
                 <div className="flex gap-3 items-center w-full">
@@ -497,17 +517,17 @@ export default function CheckoutUI() {
       {/* FOOTER TOTAL */}
       <div
         className="
-    fixed md:relative 
-    bottom-0 md:bottom-auto 
-    left-1/2 md:left-auto 
-    -translate-x-1/2 md:translate-x-0 
-    w-full max-w-md md:max-w-none 
-    bg-white 
-    p-6 
-    shadow-[0_-10px_40px_rgba(0,0,0,0.08)] md:shadow-none
-    rounded-t-3xl md:rounded-none
-    md:mt-6
-  "
+          fixed md:relative 
+          bottom-0 md:bottom-auto 
+          left-1/2 md:left-auto 
+          -translate-x-1/2 md:translate-x-0 
+          w-full max-w-md md:max-w-none 
+          bg-white 
+          p-6 
+          shadow-[0_-10px_40px_rgba(0,0,0,0.08)] md:shadow-none
+          rounded-t-3xl md:rounded-none
+          md:mt-6
+        "
       >
         <div className="flex justify-between mb-4 text-lg font-bold text-gray-800">
           <span>Total</span>

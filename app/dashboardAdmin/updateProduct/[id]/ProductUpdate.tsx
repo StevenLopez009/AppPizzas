@@ -14,6 +14,8 @@ export default function ProductUpdate({ product }: { product: any }) {
   const [editablePrices, setEditablePrices] = useState(
     () => product?.prices || [],
   );
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -25,13 +27,59 @@ export default function ProductUpdate({ product }: { product: any }) {
     product.category?.toLowerCase().includes("pizza") &&
     product.prices?.length > 1;
 
+  const handleFileChange = (e: any) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPreview(URL.createObjectURL(selectedFile));
+    }
+  };
+
   const handleUpdateProduct = async () => {
+    let imageUrl = product.image_url;
+
+    if (file) {
+      const fileName = `products/${Date.now()}-${file.name}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("products")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) {
+        console.error(uploadError);
+        alert("Error subiendo imagen");
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("products")
+        .getPublicUrl(fileName);
+
+      imageUrl = publicUrlData.publicUrl;
+
+      if (product.image_url) {
+        const oldPath = product.image_url.split("/products/")[1];
+
+        if (oldPath) {
+          await supabase.storage.from("products").remove([oldPath]);
+        }
+      }
+    }
+
     await supabase
       .from("products")
-      .update({ name: title, description: description, prices: editablePrices })
+      .update({
+        name: title,
+        description,
+        prices: editablePrices,
+        image_url: imageUrl,
+      })
       .eq("id", product.id);
 
     setIsEditing(false);
+    setFile(null);
+    setPreview(null);
+
     router.refresh();
   };
 
@@ -66,7 +114,7 @@ export default function ProductUpdate({ product }: { product: any }) {
     <div className="max-w-md mx-auto bg-white min-h-screen pb-24 relative font-sans">
       <div className="relative h-[350px] w-full bg-gray-100">
         <Image
-          src={product.image_url || "/placeholder-pizza.jpg"}
+          src={preview || product.image_url || "/placeholder-pizza.jpg"}
           alt={product.name}
           fill
           className="object-cover"
@@ -89,6 +137,16 @@ export default function ProductUpdate({ product }: { product: any }) {
             </button>
           </div>
         </div>
+        {isEditing && (
+          <div className="absolute bottom-4 left-4 right-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full bg-white p-2 rounded-xl"
+            />
+          </div>
+        )}
       </div>
 
       <div className="px-6 pt-6">

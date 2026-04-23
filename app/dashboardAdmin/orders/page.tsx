@@ -483,7 +483,7 @@ export default function AdminDashboard() {
                       <div>
                         {item.quantity} {item.size}
                         <p className="text-md">
-                          {item.product_name} •{" "}
+                          {item.product_name}
                           {item.extra ? `borde ${item.extra}` : ""}
                         </p>
                         {item.observations && (

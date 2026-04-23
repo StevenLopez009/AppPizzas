@@ -306,8 +306,8 @@ export default function ProductUI({ product }: { product: any }) {
             onChange={(e) => setObservations(e.target.value)}
             placeholder="Quieres eliminar algo del pedido? Ej: Sin cebolla, etc..."
             className="w-full mt-2 mb-10 md:mb-0 p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-700 placeholder-gray-400 
-outline-none resize-none transition-all duration-200
-focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
+              outline-none resize-none transition-all duration-200
+              focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
           />
 
           {/* BARRA DE COMPRA - Solo visible en tablet/PC (dentro del flujo, debajo del textarea) */}

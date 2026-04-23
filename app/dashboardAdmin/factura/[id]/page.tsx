@@ -34,6 +34,7 @@ interface Order {
   order_items: OrderItem[];
   delivery_fee?: number;
   subtotal?: number;
+  discount_percentage: number;
 }
 
 export default function FacturaPage() {
@@ -64,6 +65,7 @@ export default function FacturaPage() {
           cash_amount,
           delivery_fee,
           subtotal,
+          discount_percentage,
           order_items (
             id,
             product_name,

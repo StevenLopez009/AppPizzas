@@ -41,6 +41,7 @@ interface Order {
   order_type: "domicilio" | "mesa" | "recoger";
   order_items: OrderItem[];
   discount_percentage: number;
+  delivery_fee?: number;
 }
 
 const ORDER_FLOW = {
@@ -80,6 +81,7 @@ export default function AdminDashboard() {
           table_number,
           total,
           order_type,
+          delivery_fee,
           status,
           neighborhood,
           lat,
@@ -100,16 +102,30 @@ export default function AdminDashboard() {
         )
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.log(error);
-      } else {
-        setOrders(data as Order[]);
-      }
-
+      if (!error) setOrders(data as Order[]);
       setLoading(false);
     };
 
     getOrders();
+
+    const channel = supabase
+      .channel("orders-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "orders",
+        },
+        () => {
+          getOrders();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const openInvoice = (orderId: string) => {
@@ -180,11 +196,7 @@ export default function AdminDashboard() {
     const orderDate = new Date(order.created_at);
 
     if (dateRange.from && orderDate < dateRange.from) return false;
-    if (dateRange.to) {
-      const end = new Date(dateRange.to);
-      end.setHours(23, 59, 59, 999);
-      if (orderDate > end) return false;
-    }
+    if (dateRange.to && orderDate > dateRange.to) return false;
 
     return true;
   });
@@ -360,7 +372,14 @@ export default function AdminDashboard() {
         <button
           onClick={() => {
             const today = new Date();
-            setDateRange({ from: today, to: today });
+
+            const start = new Date(today);
+            start.setHours(0, 0, 0, 0);
+
+            const end = new Date(today);
+            end.setHours(23, 59, 59, 999);
+
+            setDateRange({ from: start, to: end });
           }}
           className="px-4 py-2 bg-gray-200 rounded-xl"
         >
@@ -461,6 +480,11 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="text-right">
+                    {order.order_type === "domicilio" && order.delivery_fee && (
+                      <p className="text-sm text-gray-500">
+                        Domicilio: ${order.delivery_fee.toLocaleString("es-CO")}
+                      </p>
+                    )}
                     {order.discount_percentage > 0 && (
                       <p className="text-sm line-through text-gray-400">
                         ${order.total.toLocaleString("es-CO")}

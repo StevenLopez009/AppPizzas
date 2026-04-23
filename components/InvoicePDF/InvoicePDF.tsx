@@ -26,6 +26,7 @@ interface Order {
   order_type: "domicilio" | "mesa" | "recoger";
   order_items: OrderItem[];
   delivery_fee?: number;
+  discount_percentage?: number;
   subtotal?: number;
 }
 
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 9,
-    width: 70,
+    width: 80,
     textAlign: "right",
     marginRight: 10,
   },
@@ -233,11 +234,42 @@ const styles = StyleSheet.create({
   },
 });
 
+// Función para calcular el total de un item incluyendo additionals
+const calculateItemTotal = (item: OrderItem): number => {
+  return item.price * item.quantity;
+};
+
+// Función para calcular el subtotal total incluyendo todos los additionals
+const calculateSubtotal = (order: Order): number => {
+  return order.order_items.reduce((sum, item) => {
+    return sum + calculateItemTotal(item);
+  }, 0);
+};
+
 export const InvoicePDF = ({ order }: { order: Order }) => {
+  // Calcular el cambio si aplica
   const cambio =
     order.cash_amount && order.cash_amount > order.total
       ? order.cash_amount - order.total
       : 0;
+
+  // Calcular el subtotal incluyendo additionals
+  const subtotal = calculateSubtotal(order);
+
+  // Obtener el delivery fee (solo para domicilios)
+  const deliveryFee =
+    order.order_type === "domicilio" ? order.delivery_fee || 0 : 0;
+
+  // Calcular la base para el descuento (subtotal + domicilio)
+  const baseParaDescuento = subtotal + deliveryFee;
+
+  // Calcular el descuento sobre la base (subtotal + domicilio)
+  const discountValue = order.discount_percentage
+    ? (baseParaDescuento * order.discount_percentage) / 100
+    : 0;
+
+  // Calcular el total final
+  const totalWithDiscount = baseParaDescuento - discountValue;
 
   return (
     <Document>
@@ -280,65 +312,93 @@ export const InvoicePDF = ({ order }: { order: Order }) => {
             <Text style={[styles.headerText, styles.colTotal]}>Total</Text>
           </View>
 
-          {order.order_items?.map((item, index) => (
-            <View key={index} style={styles.productRow}>
-              <Text style={styles.colCant}>
-                {item.quantity}
-                {item.size === "grande" ? "g" : "p"}
-              </Text>
-              <View style={styles.colProducto}>
-                <Text style={styles.productName}>
-                  {item.product_name}
-                  {item.extra &&
-                    item.extra !== "sin extra" &&
-                    ` (${item.extra})`}
+          {order.order_items?.map((item, index) => {
+            const itemTotal = calculateItemTotal(item);
+            return (
+              <View key={index} style={styles.productRow}>
+                <Text style={styles.colCant}>
+                  {item.quantity}
+                  {item.size === "grande" ? "g" : "p"}
                 </Text>
-                {item.observations && (
-                  <Text style={styles.productObs}>📝 {item.observations}</Text>
-                )}
-                {item.additionals && item.additionals.length > 0 && (
-                  <Text style={styles.productObs}>
-                    + {item.additionals.map((a) => a.name).join(", ")}
+                <View style={styles.colProducto}>
+                  <Text style={styles.productName}>
+                    {item.product_name}
+                    {item.extra &&
+                      item.extra !== "sin extra" &&
+                      ` (${item.extra})`}
                   </Text>
-                )}
+                  {item.observations && (
+                    <Text style={styles.productObs}>
+                      📝 {item.observations}
+                    </Text>
+                  )}
+                  {item.additionals && item.additionals.length > 0 && (
+                    <Text style={styles.productObs}>
+                      + Extras:{" "}
+                      {item.additionals
+                        .map((a) => `${a.name} ($${a.price})`)
+                        .join(", ")}
+                    </Text>
+                  )}
+                </View>
+                <Text style={styles.colPrecio}>
+                  ${item.price.toLocaleString("es-CO")}
+                </Text>
+                <Text style={styles.colTotal}>
+                  ${itemTotal.toLocaleString("es-CO")}
+                </Text>
               </View>
-              <Text style={styles.colPrecio}>
-                ${item.price.toLocaleString("es-CO")}
-              </Text>
-              <Text style={styles.colTotal}>
-                ${(item.price * item.quantity).toLocaleString("es-CO")}
-              </Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         <View style={styles.separator} />
 
         {/* TOTALES */}
         <View style={styles.totalsSection}>
+          {/* Subtotal */}
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Subtotal:</Text>
             <Text style={styles.totalValue}>
-              $
-              {(
-                order.subtotal || order.total - (order.delivery_fee || 0)
-              ).toLocaleString("es-CO")}
+              ${subtotal.toLocaleString("es-CO")}
             </Text>
           </View>
-          {order.order_type === "domicilio" &&
-            order.delivery_fee &&
-            order.delivery_fee > 0 && (
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Domicilio:</Text>
-                <Text style={styles.totalValue}>
-                  ${order.delivery_fee.toLocaleString("es-CO")}
-                </Text>
-              </View>
-            )}
+
+          {/* Delivery Fee (solo para domicilios) */}
+          {order.order_type === "domicilio" && deliveryFee > 0 && (
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Domicilio:</Text>
+              <Text style={styles.totalValue}>
+                +${deliveryFee.toLocaleString("es-CO")}
+              </Text>
+            </View>
+          )}
+
+          {/* Base para descuento (subtotal + domicilio) */}
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Base sin descuento:</Text>
+            <Text style={styles.totalValue}>
+              ${baseParaDescuento.toLocaleString("es-CO")}
+            </Text>
+          </View>
+
+          {/* Descuento (si aplica) */}
+          {order.discount_percentage && order.discount_percentage > 0 && (
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>
+                Descuento ({order.discount_percentage}%):
+              </Text>
+              <Text style={styles.totalValue}>
+                -${discountValue.toLocaleString("es-CO")}
+              </Text>
+            </View>
+          )}
+
+          {/* Total final */}
           <View style={[styles.totalRow, styles.grandTotal]}>
             <Text style={styles.totalLabel}>TOTAL:</Text>
             <Text style={styles.totalValue}>
-              ${order.total.toLocaleString("es-CO")}
+              ${totalWithDiscount.toLocaleString("es-CO")}
             </Text>
           </View>
         </View>
@@ -355,14 +415,7 @@ export const InvoicePDF = ({ order }: { order: Order }) => {
                 : "NEQUI/TARJETA"}
             </Text>
           </View>
-          {order.payment_method === "efectivo" && order.cash_amount && (
-            <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Efectivo recibido:</Text>
-              <Text style={styles.paymentValue}>
-                ${order.cash_amount.toLocaleString("es-CO")}
-              </Text>
-            </View>
-          )}
+
           {cambio > 0 && (
             <View style={styles.paymentRow}>
               <Text style={styles.paymentLabel}>Cambio:</Text>
@@ -390,6 +443,9 @@ export const InvoicePDF = ({ order }: { order: Order }) => {
           )}
           {order.order_type === "recoger" && (
             <Text style={styles.clientRow}>Tipo: Recoger en tienda</Text>
+          )}
+          {order.order_type === "mesa" && (
+            <Text style={styles.clientRow}>Tipo: Consumo en mesa</Text>
           )}
         </View>
       </Page>

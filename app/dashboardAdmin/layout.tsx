@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
   PackagePlus,
   ShoppingCart,
-  BarChart3,
+  Motorbike,
   Home,
   ChefHat,
   Pizza,
@@ -45,10 +45,10 @@ export default function AdminLayout({
       path: "/dashboardAdmin/orders",
     },
     {
-      id: "sales",
-      label: "Ventas",
-      icon: BarChart3,
-      path: "/sales",
+      id: "delivery",
+      label: "Domicilios",
+      icon: Motorbike,
+      path: "/dashboardAdmin/delivery",
     },
   ];
 

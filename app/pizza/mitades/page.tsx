@@ -202,6 +202,7 @@ export default function PizzaMitadesPage() {
 
     addToCart(item);
     setError(null);
+    router.push("/");
   };
 
   return (

@@ -56,7 +56,7 @@ export default function Orders() {
         );
 
         // si está a menos de 50 metros → está en el local
-        if (distance < 50) {
+        if (distance < 10) {
           setIsInRestaurant(true);
         }
       },

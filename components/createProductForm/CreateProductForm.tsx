@@ -21,6 +21,8 @@ export default function CreateProductForm() {
   const isPizza =
     form.category === "Pizza Dulce" || form.category === "Pizza Sal";
 
+  const isComidaRapida = form.category === "Com. Rapidas";
+
   const handleChange = (e: any) => {
     setForm({
       ...form,
@@ -150,12 +152,12 @@ export default function CreateProductForm() {
         ))}
       </select>
 
-      {isPizza ? (
+      {isPizza || isComidaRapida ? (
         <div className="flex gap-3">
           <input
             type="number"
             name="pricePersonal"
-            placeholder="Precio Personal"
+            placeholder="Precio Personal o Sencilla"
             value={form.pricePersonal}
             onChange={handleChange}
             className="w-full border p-3 rounded-xl"
@@ -165,7 +167,7 @@ export default function CreateProductForm() {
           <input
             type="number"
             name="priceMediana"
-            placeholder="Precio Mediana"
+            placeholder="Precio Mediana o Doble"
             value={form.priceMediana}
             onChange={handleChange}
             className="w-full border p-3 rounded-xl"

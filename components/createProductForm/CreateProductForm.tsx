@@ -21,7 +21,8 @@ export default function CreateProductForm() {
   const isPizza =
     form.category === "Pizza Dulce" || form.category === "Pizza Sal";
 
-  const isComidaRapida = form.category === "Com. Rapidas";
+  const category = form.category.toLowerCase();
+  const isComidaRapida = category.includes("rapida");
 
   const handleChange = (e: any) => {
     setForm({
@@ -66,22 +67,16 @@ export default function CreateProductForm() {
 
     if (isPizza) {
       prices = [
-        {
-          label: "Personal",
-          price: Number(form.pricePersonal),
-        },
-        {
-          label: "Mediana",
-          price: Number(form.priceMediana),
-        },
+        { label: "Personal", price: Number(form.pricePersonal) },
+        { label: "Mediana", price: Number(form.priceMediana) },
+      ];
+    } else if (isComidaRapida) {
+      prices = [
+        { label: "Sencillo", price: Number(form.pricePersonal) },
+        { label: "Doble", price: Number(form.priceMediana) },
       ];
     } else {
-      prices = [
-        {
-          label: "",
-          price: Number(form.price),
-        },
-      ];
+      prices = [{ label: "", price: Number(form.price) }];
     }
 
     const { error } = await supabase.from("products").insert([
@@ -157,7 +152,13 @@ export default function CreateProductForm() {
           <input
             type="number"
             name="pricePersonal"
-            placeholder="Precio Personal o Sencilla"
+            placeholder={
+              isPizza
+                ? "Precio Personal"
+                : isComidaRapida
+                  ? "Precio Sencillo"
+                  : ""
+            }
             value={form.pricePersonal}
             onChange={handleChange}
             className="w-full border p-3 rounded-xl"
@@ -167,7 +168,9 @@ export default function CreateProductForm() {
           <input
             type="number"
             name="priceMediana"
-            placeholder="Precio Mediana o Doble"
+            placeholder={
+              isPizza ? "Precio Mediana" : isComidaRapida ? "Precio Doble" : ""
+            }
             value={form.priceMediana}
             onChange={handleChange}
             className="w-full border p-3 rounded-xl"

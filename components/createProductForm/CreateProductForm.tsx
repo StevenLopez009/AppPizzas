@@ -121,7 +121,7 @@ export default function CreateProductForm() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-black/40 flex items-end p-6">
+        <div className="absolute inset-0 flex items-end p-6">
           <h2 className="text-white text-2xl font-bold">
             Crea un nuevo producto
           </h2>

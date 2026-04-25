@@ -65,6 +65,7 @@ export default function AdminDashboard() {
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [extraName, setExtraName] = useState("");
   const [extraPrice, setExtraPrice] = useState("");
+  const [search, setSearch] = useState("");
 
   const STATUS_STYLES: Record<string, string> = {
     recibido: "bg-gray-500 text-gray-700",
@@ -199,12 +200,19 @@ export default function AdminDashboard() {
   };
 
   const filteredOrders = orders.filter((order) => {
-    if (!dateRange.from && !dateRange.to) return true;
-
     const orderDate = new Date(order.created_at);
 
+    // filtro por fecha
     if (dateRange.from && orderDate < dateRange.from) return false;
     if (dateRange.to && orderDate > dateRange.to) return false;
+
+    // filtro por nombre (seguro contra null)
+    if (
+      search &&
+      !(order.customer_name || "").toLowerCase().includes(search.toLowerCase())
+    ) {
+      return false;
+    }
 
     return true;
   });
@@ -353,6 +361,13 @@ export default function AdminDashboard() {
           </div>
         </PopoverContent>
       </Popover>
+      <input
+        type="text"
+        placeholder="Buscar cliente..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full md:w-[300px] mt-4 px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+      />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 mt-6">
         <div className="bg-white p-4 rounded-xl shadow">
           <p className="text-sm text-gray-400">Ventas</p>

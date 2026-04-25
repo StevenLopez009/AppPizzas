@@ -153,6 +153,7 @@ export default function FoodHeader() {
               size={"--"}
               price={food.price}
               category={food.category}
+              description={food.description}
             />
           ))
         )}

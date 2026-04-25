@@ -66,6 +66,14 @@ export default function AdminDashboard() {
   const [extraName, setExtraName] = useState("");
   const [extraPrice, setExtraPrice] = useState("");
 
+  const STATUS_STYLES: Record<string, string> = {
+    recibido: "bg-gray-500 text-gray-700",
+    cocinando: "bg-yellow-500 text-yellow-800",
+    enviado: "bg-blue-500 text-blue-800",
+    entregado: "bg-green-500 text-green-800",
+    listo_para_recoger: "bg-green-500 text-purple-800",
+  };
+
   useEffect(() => {
     const getOrders = async () => {
       const { data, error } = await supabase
@@ -494,7 +502,12 @@ export default function AdminDashboard() {
                     <p className="text-xl font-bold text-green-600">
                       ${finalTotal.toLocaleString("es-CO")}
                     </p>
-                    <span className="text-xs bg-orange-100 text-orange-600 px-3 py-1 rounded-full">
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                        STATUS_STYLES[order.status] ||
+                        "bg-gray-100 text-gray-600"
+                      }`}
+                    >
                       {order.status}
                     </span>
                   </div>
@@ -602,7 +615,9 @@ export default function AdminDashboard() {
 
                     <button
                       onClick={() => changeStatus(order)}
-                      className="basis-[70%] bg-orange-500 hover:bg-orange-600 text-white py-5 rounded-3xl font-bold text-lg shadow-lg hover:shadow-xl shadow-orange-900/30 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                      className={`basis-[70%] text-white py-5 rounded-3xl font-bold text-lg shadow-lg transition-all duration-200 active:scale-95 flex items-center justify-center gap-2
+                        ${STATUS_STYLES[order.status] || "bg-gray-500 hover:bg-gray-600"}
+                      `}
                     >
                       Cambiar estado
                     </button>

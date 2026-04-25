@@ -126,22 +126,18 @@ export default function Page() {
       </div>
 
       <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {selectedCategory === "Pizza" && !pizzaCategory ? (
-          <PizzaSection onSelectCategory={setPizzaCategory} />
-        ) : (
-          shuffledFoods.map((food) => (
-            <FoodCard
-              key={food.id}
-              id={food.id}
-              image={food.image_url}
-              title={food.name}
-              size={"--"}
-              price={food.price}
-              category={food.category}
-              isAdmin={isAdmin}
-            />
-          ))
-        )}
+        {shuffledFoods.map((food) => (
+          <FoodCard
+            key={food.id}
+            id={food.id}
+            image={food.image_url}
+            title={food.name}
+            size={"--"}
+            price={food.price}
+            category={food.category}
+            isAdmin={isAdmin}
+          />
+        ))}
       </div>
     </div>
   );

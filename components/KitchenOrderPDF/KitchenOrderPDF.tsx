@@ -27,135 +27,79 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     fontFamily: "Helvetica",
   },
-  // Encabezado
-  header: {
-    textAlign: "center",
-    marginBottom: 15,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-    letterSpacing: 1,
-  },
-  subtitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginBottom: 3,
-    color: "#d35400",
-  },
-  orderInfo: {
-    fontSize: 9,
-    color: "#555",
-    marginBottom: 2,
-  },
-  separator: {
-    borderBottomWidth: 2,
-    borderBottomColor: "#000",
-    marginVertical: 8,
-  },
-  separatorDashed: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#999",
-    borderStyle: "dashed",
-    marginVertical: 6,
-  },
   // Información del pedido
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 4,
-    paddingHorizontal: 2,
   },
   infoLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "bold",
   },
   infoValue: {
-    fontSize: 9,
+    fontSize: 10,
   },
-  // Tabla de productos
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#f0f0f0",
-    paddingVertical: 4,
-    paddingHorizontal: 4,
-    marginTop: 2,
-    marginBottom: 2,
+  separatorDashed: {
     borderBottomWidth: 1,
     borderBottomColor: "#000",
+    borderStyle: "dashed",
+    marginVertical: 8,
   },
-  headerText: {
-    fontSize: 10,
+  // Estructura de Columna Única
+  itemContainer: {
+    marginBottom: 10,
+    paddingBottom: 5,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ddd",
+  },
+  productHeader: {
+    flexDirection: "row",
+    gap: 5,
+    marginBottom: 2,
+  },
+  quantityText: {
+    fontSize: 11,
     fontWeight: "bold",
-    margin: 10,
+    backgroundColor: "#f0f0f0",
+    paddingHorizontal: 3,
   },
-  productRow: {
-    flexDirection: "row",
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#ddd",
-  },
-  productRowAlt: {
-    flexDirection: "row",
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#ddd",
-    backgroundColor: "#fafafa",
-  },
-  colCant: { width: "12%", fontSize: 10 },
-  colProducto: { width: "58%", fontSize: 10 },
-  colObs: { width: "30%", fontSize: 9 },
-  // Producto con detalles
   productName: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "bold",
+    textTransform: "uppercase",
   },
-  productDetails: {
+  detailText: {
     fontSize: 9,
-    color: "#666",
-    marginTop: 2,
+    color: "#444",
+    marginLeft: 20, // Alineado debajo del nombre, dejando espacio a la cantidad
+    marginTop: 1,
+  },
+  observationBox: {
+    marginTop: 4,
+    marginLeft: 20,
+    padding: 4,
+    backgroundColor: "#fff4e5",
+    borderLeftWidth: 2,
+    borderLeftColor: "#d35400",
   },
   observationText: {
     fontSize: 9,
-    color: "#888",
-    fontStyle: "italic",
-  },
-  // Footer
-  footer: {
-    marginTop: 20,
-    textAlign: "center",
-  },
-  footerText: {
-    fontSize: 8,
-    color: "#999",
-    marginTop: 5,
-  },
-  urgent: {
-    fontSize: 10,
+    color: "#d35400",
     fontWeight: "bold",
-    color: "#ff0000",
-    textAlign: "center",
-    marginTop: 10,
-    padding: 5,
-    borderWidth: 1,
-    borderColor: "#ff0000",
   },
 });
 
 export const KitchenOrderPDF = ({ order }: { order: Order }) => {
   return (
     <Document>
-      <Page size={[210, 297]} style={styles.page}>
-        {/* INFORMACIÓN BÁSICA */}
+      {/* Ajusté el tamaño a un ancho de ticket típico (80mm aprox) o puedes dejarlo A4 */}
+      <Page size="A4" style={styles.page}>
+        {/* ENCABEZADO */}
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Fecha:</Text>
+          <Text style={styles.infoLabel}>ORDEN: #{order.id.slice(-4)}</Text>
           <Text style={styles.infoValue}>
             {new Date(order.created_at).toLocaleString("es-CO", {
-              day: "2-digit",
-              month: "2-digit",
               hour: "2-digit",
               minute: "2-digit",
             })}
@@ -167,69 +111,52 @@ export const KitchenOrderPDF = ({ order }: { order: Order }) => {
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Tipo:</Text>
-          <Text style={styles.infoValue}>
-            {order.order_type === "domicilio"
-              ? "DOMICILIO"
-              : order.order_type === "recoger"
-                ? "RECOGER"
-                : "MESA"}
+          <Text style={[styles.infoValue, { fontWeight: "bold" }]}>
+            {order.order_type.toUpperCase()}
           </Text>
         </View>
 
         <View style={styles.separatorDashed} />
 
-        {/* TABLA DE PRODUCTOS */}
-        <View style={styles.tableHeader}>
-          <Text style={[styles.headerText, styles.colCant]}>Cant</Text>
-          <Text style={[styles.headerText, styles.colProducto]}>Producto</Text>
-          <Text style={[styles.headerText, styles.colObs]}>Observaciones</Text>
-        </View>
-
+        {/* LISTA DE PRODUCTOS EN UNA COLUMNA */}
         {order.order_items?.map((item, index) => (
-          <View
-            key={index}
-            style={index % 2 === 0 ? styles.productRow : styles.productRowAlt}
-          >
-            <Text style={styles.colCant}>
-              {item.quantity}
-              {item.size}
-            </Text>
-            <View style={styles.colProducto}>
-              <Text style={styles.productName}>{item.product_name}</Text>
-              {item.extra && item.extra !== "sin extra" && (
-                <Text style={styles.productDetails}>Borde: {item.extra}</Text>
-              )}
-              {item.additionals && item.additionals.length > 0 && (
-                <Text style={styles.productDetails}>
-                  +{item.additionals.map((a) => a.name).join(", ")}
-                </Text>
-              )}
+          <View key={index} style={styles.itemContainer}>
+            {/* Línea principal: Cantidad y Nombre */}
+            <View style={styles.productHeader}>
+              <Text style={styles.quantityText}>{item.quantity}x</Text>
+              <Text style={styles.productName}>
+                {item.product_name} ({item.size})
+              </Text>
             </View>
-            <Text style={styles.colObs}>
-              {item.observations ? ` ${item.observations}` : "-"}
-            </Text>
+
+            {/* Detalles de Extras */}
+            {item.extra && item.extra !== "sin extra" && (
+              <Text style={styles.detailText}>•(b) {item.extra}</Text>
+            )}
+
+            {/* Detalles de Adicionales */}
+            {item.additionals && item.additionals.length > 0 && (
+              <Text style={styles.detailText}>
+                • Adic: {item.additionals.map((a) => a.name).join(", ")}
+              </Text>
+            )}
+
+            {/* Observaciones destacadas */}
+            {item.observations && (
+              <View style={styles.observationBox}>
+                <Text style={styles.observationText}>
+                  NOTA: {item.observations}
+                </Text>
+              </View>
+            )}
           </View>
         ))}
 
-        {/* NOTAS ADICIONALES */}
-        {order.order_items?.some((item) => item.observations) && (
-          <View>
-            <Text style={{ fontSize: 9, fontWeight: "bold", marginTop: 10 }}>
-              Notas importantes:
-            </Text>
-            {order.order_items.map(
-              (item, idx) =>
-                item.observations && (
-                  <Text
-                    key={idx}
-                    style={{ fontSize: 8, marginTop: 3, color: "#d35400" }}
-                  >
-                    • {item.product_name}: {item.observations}
-                  </Text>
-                ),
-            )}
-          </View>
-        )}
+        <View style={styles.separatorDashed} />
+
+        <Text style={{ textAlign: "center", fontSize: 8, marginTop: 10 }}>
+          --- Fin de Comanda ---
+        </Text>
       </Page>
     </Document>
   );

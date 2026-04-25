@@ -10,9 +10,16 @@ type FoodCardProps = {
   price: number;
   category: string;
   isAdmin?: boolean;
+  description?: string;
 };
 
-export default function FoodCard({ id, image, title, isAdmin }: FoodCardProps) {
+export default function FoodCard({
+  id,
+  image,
+  title,
+  isAdmin,
+  description,
+}: FoodCardProps) {
   const href = isAdmin
     ? `/dashboardAdmin/updateProduct/${id}`
     : `/dashboard/product/${id}`;
@@ -36,8 +43,9 @@ export default function FoodCard({ id, image, title, isAdmin }: FoodCardProps) {
               {title}
             </h3>
 
-            <p className="text-gray-400 text-[11px] sm:text-xs mt-1 leading-tight line-clamp-2">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
+            <p className="text-gray-400 text-[11px] sm:text-xs mt-1 leading-tight">
+              {(description ?? "").slice(0, 60)}
+              {(description ?? "").length > 60 && "..."}
             </p>
           </div>
 

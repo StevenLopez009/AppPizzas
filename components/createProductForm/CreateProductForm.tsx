@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { CATEGORIES } from "@/lib/categories";
+import Image from "next/image";
+import imgProduct from "@/assets/images/createProduct.jpg";
 
 export default function CreateProductForm() {
   const supabase = createClient();
@@ -109,99 +111,124 @@ export default function CreateProductForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-lg bg-white p-6 rounded-2xl shadow-md space-y-4"
+      className="w-full mt-10 max-w-5xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden grid md:grid-cols-2"
     >
-      <h2 className="text-xl font-semibold">Crear Producto</h2>
-
-      <input
-        type="text"
-        name="name"
-        placeholder="Nombre"
-        value={form.name}
-        onChange={handleChange}
-        className="w-full border p-3 rounded-xl"
-        required
-      />
-
-      <textarea
-        name="description"
-        placeholder="Descripción"
-        value={form.description}
-        onChange={handleChange}
-        className="w-full border p-3 rounded-xl"
-      />
-
-      <select
-        name="category"
-        value={form.category}
-        onChange={handleChange}
-        className="w-full border p-3 rounded-xl"
-        required
-      >
-        <option value="">Selecciona una categoría</option>
-
-        {CATEGORIES.map((cat) => (
-          <option key={cat} value={cat}>
-            {cat}
-          </option>
-        ))}
-      </select>
-
-      {isPizza || isComidaRapida ? (
-        <div className="flex gap-3">
-          <input
-            type="number"
-            name="pricePersonal"
-            placeholder={
-              isPizza
-                ? "Precio Personal"
-                : isComidaRapida
-                  ? "Precio Sencillo"
-                  : ""
-            }
-            value={form.pricePersonal}
-            onChange={handleChange}
-            className="w-full border p-3 rounded-xl"
-            required
-          />
-
-          <input
-            type="number"
-            name="priceMediana"
-            placeholder={
-              isPizza ? "Precio Mediana" : isComidaRapida ? "Precio Doble" : ""
-            }
-            value={form.priceMediana}
-            onChange={handleChange}
-            className="w-full border p-3 rounded-xl"
-            required
-          />
+      <div className="hidden md:block relative">
+        <Image
+          src={imgProduct}
+          alt="Producto"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/40 flex items-end p-6">
+          <h2 className="text-white text-2xl font-bold">
+            Crea un nuevo producto
+          </h2>
         </div>
-      ) : (
+      </div>
+
+      <div className="p-6 md:p-10 space-y-5">
+        <h2 className="text-2xl font-bold text-gray-800 md:hidden">
+          Crear Producto
+        </h2>
+
         <input
-          type="number"
-          name="price"
-          placeholder="Precio"
-          value={form.price}
+          type="text"
+          name="name"
+          placeholder="Nombre del producto"
+          value={form.name}
           onChange={handleChange}
-          className="w-full border p-3 rounded-xl"
+          className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
           required
         />
-      )}
 
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="w-full border p-3 rounded-xl"
-      />
+        <textarea
+          name="description"
+          placeholder="Descripción"
+          value={form.description}
+          onChange={handleChange}
+          className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition resize-none"
+        />
 
-      <button
-        type="submit"
-        className="w-full bg-orange-500 text-white py-3 rounded-xl"
-      >
-        Guardar Producto
-      </button>
+        <select
+          name="category"
+          value={form.category}
+          onChange={handleChange}
+          className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
+          required
+        >
+          <option value="">Selecciona una categoría</option>
+          {CATEGORIES.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+
+        {isPizza || isComidaRapida ? (
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              type="number"
+              name="pricePersonal"
+              placeholder={
+                isPizza
+                  ? "Precio Personal"
+                  : isComidaRapida
+                    ? "Precio Sencillo"
+                    : ""
+              }
+              value={form.pricePersonal}
+              onChange={handleChange}
+              className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
+              required
+            />
+
+            <input
+              type="number"
+              name="priceMediana"
+              placeholder={
+                isPizza
+                  ? "Precio Mediana"
+                  : isComidaRapida
+                    ? "Precio Doble"
+                    : ""
+              }
+              value={form.priceMediana}
+              onChange={handleChange}
+              className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
+              required
+            />
+          </div>
+        ) : (
+          <input
+            type="number"
+            name="price"
+            placeholder="Precio"
+            value={form.price}
+            onChange={handleChange}
+            className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
+            required
+          />
+        )}
+
+        <label className="block">
+          <span className="text-sm text-gray-500">Imagen del producto</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="w-full mt-1 border border-dashed border-gray-300 p-3 rounded-xl cursor-pointer hover:border-orange-400 transition"
+          />
+        </label>
+
+        <button
+          type="submit"
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95"
+        >
+          Guardar Producto
+        </button>
+      </div>
     </form>
   );
 }

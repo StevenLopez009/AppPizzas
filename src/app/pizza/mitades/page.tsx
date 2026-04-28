@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import ImagePizza from "../../../assets/images/pizza2.jpg";
+import ImagePizza from "@/assets/images/pizza2.jpg";
 import { useCart } from "@/context/CartContext";
 
 const saboresInfo: Record<string, string> = {

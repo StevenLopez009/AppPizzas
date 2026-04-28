@@ -1,7 +1,3 @@
-"use client";
-
-import { usePathname, useRouter } from "next/navigation";
-
 type MenuItem = {
   id: string;
   label: string;
@@ -11,22 +7,23 @@ type MenuItem = {
 
 interface SidebarProps {
   menu: MenuItem[];
+  activePath: string;
+  onNavigate: (path: string) => void;
   title?: string;
-  highlightColor?: string; // opcional (ej: orange-500)
+  highlightColor?: string;
 }
 
 export default function Sidebar({
   menu,
+  activePath,
+  onNavigate,
   title = "Mi App",
   highlightColor = "orange-500",
 }: SidebarProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-
   return (
-    <aside className="fixed md:static top-0 left-0 h-screen w-[260px] bg-white rounded-r-3xl p-6 shadow-md z-50 transition-transform duration-300">
+    <aside className="h-screen w-[260px] bg-white rounded-r-3xl p-6 shadow-md">
       {/* Header */}
-      <div className="flex items-center justify-between mb-10">
+      <div className="mb-10">
         <h1 className="text-xl font-semibold text-gray-700">
           {title.split(" ")[0]}{" "}
           <span className={`text-${highlightColor}`}>
@@ -39,12 +36,12 @@ export default function Sidebar({
       <nav className="flex flex-col gap-3">
         {menu.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.path;
+          const isActive = activePath === item.path;
 
           return (
             <button
               key={item.id}
-              onClick={() => router.push(item.path)}
+              onClick={() => onNavigate(item.path)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all
                 ${
                   isActive

@@ -180,11 +180,8 @@ export default function AdminDashboard() {
 
   const changeStatus = async (order: Order) => {
     const flow = ORDER_FLOW[order.order_type];
-
     const index = flow.indexOf(order.status);
-
     const nextStatus = flow[index + 1];
-
     if (!nextStatus) return;
 
     const { error } = await supabase

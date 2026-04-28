@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import Sidebar from "@/components/SideBar/SideBar";
+import SidebarContainer from "@/src/features/layout/components/SideBarContainer";
 import ReportComponent from "@/components/report/ReportComponent";
 import {
   LayoutDashboard,
@@ -68,11 +68,7 @@ export default function AdminLayout({
   return (
     <div className="md:flex w-full min-h-screen">
       <div className="hidden md:block md:w-[20%]">
-        <Sidebar
-          menu={adminMenu}
-          title="Pizzas La Carreta"
-          highlightColor="orange-500"
-        />
+        <SidebarContainer menu={adminMenu} />
       </div>
       <main className="w-full md:p-4">{children}</main>
       <div className="hidden md:block md:w-[20%]">

@@ -1,18 +1,22 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, CircleX, Heart, ShoppingBag, Star } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
+import {} from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ProductUI({ product }: { product: any }) {
   const { addToCart } = useCart();
   const [selectedSize, setSelectedSize] = useState(product.prices[0]);
   const [selectedBorder, setSelectedBorder] = useState("");
   const [selectedAdditionals, setSelectedAdditionals] = useState<any[]>([]);
+  const [additionals, setAdditionals] = useState<any[]>([]);
   const [observations, setObservations] = useState("");
 
   const router = useRouter();
+  const supabase = createClient();
 
   const hasMultiplePrices = product.prices?.length > 1;
   const isPizza = product.category?.toLowerCase().includes("pizza");
@@ -21,26 +25,41 @@ export default function ProductUI({ product }: { product: any }) {
     .includes("lasaña spaguetti");
   const isComidaRapida = product.category?.toLowerCase().includes("com");
 
-  const additionalsPizzaList = [
-    { name: "Queso Mozarella", price: 5000 },
-    { name: "Jalapeños", price: 2000 },
-    { name: "Peperoni", price: 3000 },
-    { name: "Pollo", price: 4000 },
-    { name: "Carne Desmechada", price: 2000 },
-    { name: "Jamon", price: 2000 },
-  ];
-  const additionalsLasagnaList = [
-    { name: "Pan de ajo", price: 3000 },
-    { name: "Cubiertos", price: 1000 },
-  ];
+  useEffect(() => {
+    async function getAdditionals() {
+      const category = product.category?.toLowerCase() || "";
 
-  const additionalsComidaRap = [
-    { name: "Papas francesas", price: 6000 },
-    { name: "Huevos de codorniz", price: 5000 },
-    { name: "Piña en trozos", price: 3000 },
-    { name: "Jalapeños", price: 2000 },
-    { name: "Queso tajado", price: 2000 },
-  ];
+      let dbCategory = "";
+
+      if (category.includes("pizza")) {
+        dbCategory = "pizza";
+      } else if (category.includes("lasagna") || category.includes("lasaña")) {
+        dbCategory = "lasagna";
+      } else if (category.includes("com")) {
+        dbCategory = "Com. Rapidas";
+      }
+
+      if (!dbCategory) return;
+
+      const { data, error } = await supabase
+        .from("additionals")
+        .select("*")
+        .eq("category", dbCategory)
+        .eq("active", true);
+
+      console.log("DATA:", data);
+      console.log("ERROR:", error);
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      setAdditionals(data || []);
+    }
+
+    getAdditionals();
+  }, [product.category]);
 
   const additionalsTotalPrice = selectedAdditionals.reduce(
     (total, item) => total + item.price,
@@ -193,7 +212,7 @@ export default function ProductUI({ product }: { product: any }) {
                   Ingredientes Adicionales (puedes seleccionar varios)
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {additionalsPizzaList.map((additional) => {
+                  {additionals.map((additional) => {
                     const isSelected = selectedAdditionals.some(
                       (item) => item.name === additional.name,
                     );
@@ -255,7 +274,7 @@ export default function ProductUI({ product }: { product: any }) {
                   Ingredientes Adicionales (puedes seleccionar varios)
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {additionalsLasagnaList.map((additional) => {
+                  {additionals.map((additional) => {
                     const isSelected = selectedAdditionals.some(
                       (item) => item.name === additional.name,
                     );
@@ -315,7 +334,7 @@ export default function ProductUI({ product }: { product: any }) {
                   Ingredientes Adicionales (puedes seleccionar varios)
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {additionalsComidaRap.map((additional) => {
+                  {additionals.map((additional) => {
                     const isSelected = selectedAdditionals.some(
                       (item) => item.name === additional.name,
                     );

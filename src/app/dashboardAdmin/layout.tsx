@@ -8,11 +8,11 @@ import {
   LayoutDashboard,
   PackagePlus,
   ShoppingCart,
-  Motorbike,
   Home,
   ChefHat,
   Pizza,
   User,
+  HandPlatter,
 } from "lucide-react";
 import BottomMenu from "@/components/bottomMenu/BottomMenu";
 import { usePathname } from "next/navigation";
@@ -39,16 +39,16 @@ export default function AdminLayout({
       path: "/dashboardAdmin/create",
     },
     {
+      id: "adittionals",
+      label: "Adicionales",
+      icon: HandPlatter,
+      path: "/dashboardAdmin/adittionals",
+    },
+    {
       id: "orders",
       label: "Pedidos",
       icon: ShoppingCart,
       path: "/dashboardAdmin/orders",
-    },
-    {
-      id: "delivery",
-      label: "Domicilios",
-      icon: Motorbike,
-      path: "/dashboardAdmin/delivery",
     },
   ];
 

@@ -111,14 +111,14 @@ export default function CreateProductForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full mt-10 max-w-5xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden grid md:grid-cols-2"
+      className="w-full mt-10 mx-auto bg-white rounded-3xl shadow-xl overflow-hidden grid md:grid-cols-2"
     >
-      <div className="hidden md:block relative">
+      <div className="relative h-60 md:h-auto">
         <Image
           src={imgProduct}
           alt="Producto"
           fill
-          className="object-cover"
+          className="object-cover object-top md:object-center"
           priority
         />
         <div className="absolute inset-0 flex items-end p-6">

@@ -208,7 +208,7 @@ export default function AdditionalsForm() {
       </form>
 
       {/* LISTADO */}
-      <div className="bg-white rounded-3xl shadow-xl p-6 ">
+      <div className="bg-white rounded-3xl shadow-xl p-6 mb-20">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Adicionales</h2>
 
         <div className="space-y-4 max-h-[700px] overflow-y-auto pr-2">

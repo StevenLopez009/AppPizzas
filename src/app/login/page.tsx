@@ -16,7 +16,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center px-4 py-10">
       {user ? (
         <div className="flex flex-col items-center gap-4">
           <button

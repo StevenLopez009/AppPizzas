@@ -18,7 +18,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       } = await supabase.auth.getUser();
 
       setUser(user);
-      console.log(user);
     };
 
     getUser();

@@ -82,6 +82,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
       return [...prevCart, newItem];
     });
+
+    // Volver al carrito cuando se añade un producto
+    setShowOrder(false);
+    setShowOrderPage(false);
   };
 
   const updateQuantity = (id: string, action: "plus" | "minus") => {

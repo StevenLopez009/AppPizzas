@@ -113,7 +113,7 @@ export function useCheckout() {
       } else {
         setCurrentOrderId(order.id);
         setShowOrder(false);
-        setShowOrderPage(true);
+        setShowOrderPage(false);
       }
     } catch (error) {
       console.error(error);

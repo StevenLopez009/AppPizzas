@@ -561,14 +561,18 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
                         {item.observations && (
                           <p className="text-sm">{item.observations}</p>
                         )}
-                        {item.additionals && (
-                          <p className="text-orange-500 text-xs mt-1">
-                            Adicional: {item.additionals?.[0]?.name} (+$
-                            {item.additionals?.[0]?.price.toLocaleString(
-                              "es-CO",
-                            )}
-                            )
-                          </p>
+                        {item.additionals && item.additionals.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {item.additionals.map((additional, index) => (
+                              <span
+                                key={index}
+                                className="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-full"
+                              >
+                                + {additional.name} ($
+                                {additional.price.toLocaleString("es-CO")})
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </div>
                       <p className="font-semibold">

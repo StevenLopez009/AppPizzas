@@ -116,7 +116,7 @@ export default function ProductUpdate({ product }: { product: any }) {
 
         <div className="px-6 pt-6 md:px-0 md:pt-0 md:pb-8">
           <div className="flex justify-between items-start mb-1">
-            <span className="text-orange-500 font-medium text-sm">
+            <span className="text-brand font-medium text-sm">
               {product.category || "General"}
             </span>
             <div className="flex items-center gap-1">

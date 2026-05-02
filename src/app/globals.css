@@ -1,2 +1,28 @@
 @import "tailwindcss";
 
+/* Naranja histórico; el layout inyecta valores desde BD / ThemeBrandSync */
+:root {
+  --app-brand: #f97316;
+  --app-brand-hover: #d45a0f;
+  --app-brand-active: #a8470c;
+  --app-brand-foreground: #ffffff;
+  --app-brand-surface: #fff7ed;
+  --app-brand-surface-muted: #ffedd5;
+  --app-brand-ring: #fb923c;
+  --app-brand-text: #ea580c;
+  --app-brand-text-strong: #c2410c;
+}
+
+@theme inline {
+  --color-brand: var(--app-brand);
+  --color-brand-hover: var(--app-brand-hover);
+  --color-brand-active: var(--app-brand-active);
+  --color-brand-foreground: var(--app-brand-foreground);
+  --color-brand-surface: var(--app-brand-surface);
+  --color-brand-surface-muted: var(--app-brand-surface-muted);
+  --color-brand-ring: var(--app-brand-ring);
+  --color-brand-text: var(--app-brand-text);
+  --color-brand-text-strong: var(--app-brand-text-strong);
+  --color-primary: var(--app-brand);
+  --color-primary-foreground: var(--app-brand-foreground);
+}

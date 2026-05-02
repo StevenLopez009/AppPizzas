@@ -14,6 +14,7 @@ import {
 
 interface Order {
   total: number;
+  discount_percentage: number;
   created_at: string;
   payment_method: string;
   order_type: string;
@@ -22,6 +23,9 @@ interface Order {
     quantity: number;
   }[];
 }
+
+const finalTotal = (o: Order) =>
+  o.total - (o.total * (o.discount_percentage || 0)) / 100;
 
 interface Props {
   orders: Order[];
@@ -36,8 +40,7 @@ export default function SalesStats({ orders }: Props) {
 
   orders.forEach((order) => {
     const day = new Date(order.created_at).toLocaleDateString("es-CO");
-
-    salesByDayMap[day] = (salesByDayMap[day] || 0) + Number(order.total);
+    salesByDayMap[day] = (salesByDayMap[day] || 0) + finalTotal(order);
   });
 
   const salesByDay = Object.entries(salesByDayMap).map(([day, total]) => ({
@@ -82,7 +85,9 @@ export default function SalesStats({ orders }: Props) {
   // =========================
 
   const averageTicket =
-    orders.reduce((acc, o) => acc + o.total, 0) / orders.length;
+    orders.length > 0
+      ? orders.reduce((acc, o) => acc + finalTotal(o), 0) / orders.length
+      : 0;
 
   return (
     <div className="space-y-4">
@@ -101,7 +106,7 @@ export default function SalesStats({ orders }: Props) {
           <h2 className="text-lg font-bold text-gray-800 mt-1">
             $
             {orders
-              .reduce((acc, o) => acc + o.total, 0)
+              .reduce((acc, o) => acc + finalTotal(o), 0)
               .toLocaleString("es-CO")}
           </h2>
         </div>

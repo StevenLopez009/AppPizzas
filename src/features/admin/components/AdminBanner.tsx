@@ -72,7 +72,7 @@ export default function AdminBanner() {
         <button
           onClick={handleUpload}
           disabled={loading}
-          className="mt-4 bg-orange-500 text-white px-5 py-2 rounded-xl"
+          className="mt-4 bg-brand text-white px-5 py-2 rounded-xl"
         >
           {loading ? "Subiendo..." : "Subir banner"}
         </button>

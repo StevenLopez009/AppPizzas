@@ -7,7 +7,6 @@ import {
   Store,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 
 export default function OrdersView({
   cart,
@@ -16,6 +15,8 @@ export default function OrdersView({
   updateQuantity,
   onOrder,
   onGoHome,
+  onBack,
+  showBackArrow = true,
 }: any) {
   if (cart.length === 0) {
     return (
@@ -31,7 +32,7 @@ export default function OrdersView({
         </p>
         <button
           onClick={onGoHome}
-          className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-orange-200"
+          className="bg-brand text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-brand/30"
         >
           Ver Menú
         </button>
@@ -43,9 +44,18 @@ export default function OrdersView({
     <div className="max-w-md mx-auto bg-white min-h-screen flex flex-col">
       {/* HEADER */}
       <div className="p-6 flex items-center gap-4">
-        <Link href="/" className="p-2 bg-gray-50 rounded-full text-gray-600">
-          <ChevronLeft size={20} />
-        </Link>
+        {showBackArrow ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="p-2 bg-gray-50 rounded-full text-gray-600 hover:bg-gray-100 transition cursor-pointer"
+            aria-label="Volver al menú"
+          >
+            <ChevronLeft size={20} />
+          </button>
+        ) : (
+          <span className="w-10 shrink-0" aria-hidden />
+        )}
         <h1 className="text-2xl font-bold text-gray-800">Mi Pedido</h1>
       </div>
 
@@ -68,7 +78,7 @@ export default function OrdersView({
                 {item.size} {item.extra ? `• ${item.extra}` : ""}
               </p>
 
-              <p className="text-orange-600 font-bold">
+              <p className="text-brand-text font-bold">
                 ${(item.price * item.quantity).toLocaleString("es-CO")}
               </p>
             </div>
@@ -96,7 +106,7 @@ export default function OrdersView({
         <div className="flex gap-3 mt-4">
           {isInRestaurant ? (
             <button
-              className="w-full bg-orange-600 text-white py-4 rounded-2xl font-bold"
+              className="w-full bg-brand-hover text-white py-4 rounded-2xl font-bold"
               onClick={() => onOrder("mesa")}
             >
               Pedir
@@ -111,7 +121,7 @@ export default function OrdersView({
               </button>
 
               <button
-                className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 rounded-2xl font-bold"
+                className="flex items-center justify-center gap-2 w-full bg-brand-hover text-white py-3 rounded-2xl font-bold"
                 onClick={() => onOrder("domicilio")}
               >
                 <Bike /> Domicilio

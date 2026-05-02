@@ -19,7 +19,7 @@ export default function ProfilePage() {
           <h2 className="text-2xl font-bold mb-4 text-black-600">Registro</h2>
           <button
             onClick={() => setTypeSelected("sign-in")}
-            className="text-orange-600 font-bold underline"
+            className="text-brand-text font-bold underline"
           >
             Volver al Login
           </button>

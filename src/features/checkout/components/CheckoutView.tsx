@@ -13,7 +13,11 @@ export default function CheckoutView(props: any) {
         <CheckoutLocationCard
           orderType={props.orderType}
           location={props.location}
+          locating={props.locating}
+          savedLocation={props.savedLocation}
           getLocation={props.getLocation}
+          saveLocation={props.saveLocation}
+          clearSavedLocation={props.clearSavedLocation}
           sendRestaurantLocation={props.sendRestaurantLocation}
         />
 
@@ -22,7 +26,7 @@ export default function CheckoutView(props: any) {
         <PaymentSection {...props} />
       </div>
 
-      <CheckoutFooter total={props.total} onSubmit={props.handleSubmit} />
+      <CheckoutFooter total={props.total} subtotal={props.subtotal} domicilio={props.domicilio} onSubmit={props.handleSubmit} />
     </div>
   );
 }

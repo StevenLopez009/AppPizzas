@@ -9,6 +9,7 @@ import SidebarContainer from "./SideBarContainer";
 export default function DesktopLayout({
   children,
   menu,
+  title,
   showOrder,
   showOrderPage,
 }: any) {
@@ -16,7 +17,7 @@ export default function DesktopLayout({
     <div className="hidden md:grid w-full grid-cols-[250px_1fr_350px] overflow-hidden">
       {/* Sidebar */}
       <div className="h-screen border-r">
-        <SidebarContainer menu={menu} />
+        <SidebarContainer menu={menu} title={title} />
       </div>
 
       {/* Main */}

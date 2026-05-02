@@ -90,7 +90,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
 
         <div className="w-full md:w-1/2 p-6 md:p-10">
           <div className="text-center mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-orange-600">
+            <h1 className="text-2xl md:text-3xl font-bold text-brand-text">
               Iniciar Sesión
             </h1>
             <p className="text-sm text-gray-400 mt-2">Accede para continuar</p>
@@ -108,7 +108,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
                       <Input
                         {...field}
                         placeholder="Enter your email"
-                        className="h-12 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-orange-400"
+                        className="h-12 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-brand-ring"
                       />
                     </FormControl>
                     <FormMessage />
@@ -139,7 +139,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
 
               <button
                 type="submit"
-                className="w-full h-12 bg-orange-500 text-white rounded-xl font-semibold shadow-md hover:bg-orange-600 transition"
+                className="w-full h-12 bg-brand text-white rounded-xl font-semibold shadow-md hover:bg-brand-hover transition"
               >
                 {isLoading ? "Cargando..." : "Ingresar"}
               </button>
@@ -150,7 +150,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
             ¿No tienes cuenta?{" "}
             <span
               onClick={() => setIsRegistering(true)}
-              className="text-orange-500 font-semibold cursor-pointer"
+              className="text-brand font-semibold cursor-pointer"
             >
               Regístrate
             </span>

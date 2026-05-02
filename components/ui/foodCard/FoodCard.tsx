@@ -25,19 +25,18 @@ export default function FoodCard({
     : `/dashboard/product/${id}`;
 
   return (
-    <Link href={href} className="w-full">
-      <div className="relative w-full h-50 lg:h-[40%] bg-[#F5F5F5] rounded-[24px] sm:rounded-[28px] p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
-        <div className="flex justify-center mt-1 sm:mt-2">
+    <Link href={href} className="w-full h-full">
+      <div className="flex flex-col w-full h-full bg-[#F5F5F5] rounded-[24px] sm:rounded-[28px] p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
+        <div className="relative w-full h-[120px] sm:h-[140px]">
           <Image
             src={image}
             alt={title}
-            width={140}
-            height={140}
-            className="object-contain drop-shadow-lg w-[90px] sm:w-[120px]"
+            fill
+            className="object-contain drop-shadow-lg"
           />
         </div>
 
-        <div className="mt-2 sm:mt-3 flex justify-between items-start gap-2">
+        <div className="mt-2 sm:mt-3 flex justify-between items-start gap-2 flex-1">
           <div className="flex-1">
             <h3 className="text-gray-800 font-semibold text-sm sm:text-base leading-tight">
               {title}
@@ -49,7 +48,7 @@ export default function FoodCard({
             </p>
           </div>
 
-          <div className="mt-1 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-orange-400 flex items-center justify-center shadow-lg hover:bg-orange-500 transition shrink-0">
+          <div className="mt-1 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-ring flex items-center justify-center shadow-lg hover:bg-brand-hover transition shrink-0">
             <Plus size={16} className="text-white sm:w-[18px] sm:h-[18px]" />
           </div>
         </div>

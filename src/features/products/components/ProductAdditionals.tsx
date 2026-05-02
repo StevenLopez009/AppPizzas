@@ -32,7 +32,7 @@ export default function ProductAdditionals({
                 p-3 rounded-xl text-left transition-all active:scale-95
                 ${
                   isSelected
-                    ? "bg-orange-500 text-white shadow-md"
+                    ? "bg-brand text-white shadow-md"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }
               `}
@@ -49,8 +49,8 @@ export default function ProductAdditionals({
       </div>
 
       {selectedAdditionals.length > 0 && (
-        <div className="mt-4 p-3 bg-orange-50 rounded-2xl">
-          <p className="text-xs font-semibold text-orange-600 mb-2">
+        <div className="mt-4 p-3 bg-brand-surface rounded-2xl">
+          <p className="text-xs font-semibold text-brand-text mb-2">
             Ingredientes seleccionados
           </p>
 

@@ -77,7 +77,7 @@ const SignUpForm = (_: Partial<AuthFormProps>) => {
               type="text"
               placeholder="Juan Pérez"
               disabled={isLoading}
-              className="w-full mt-1 h-12 px-4 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-orange-400 outline-none"
+              className="w-full mt-1 h-12 px-4 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-brand-ring outline-none"
             />
             {errors.name && (
               <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
@@ -91,7 +91,7 @@ const SignUpForm = (_: Partial<AuthFormProps>) => {
               type="email"
               placeholder="correo@email.com"
               disabled={isLoading}
-              className="w-full mt-1 h-12 px-4 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-orange-400 outline-none"
+              className="w-full mt-1 h-12 px-4 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-brand-ring outline-none"
             />
             {errors.email && (
               <p className="text-red-500 text-xs mt-1">
@@ -135,7 +135,7 @@ const SignUpForm = (_: Partial<AuthFormProps>) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 bg-orange-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-orange-600 transition"
+            className="w-full h-12 bg-brand text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-brand-hover transition"
           >
             {isLoading && <LoaderCircle className="w-4 h-4 animate-spin" />}
             Crear cuenta

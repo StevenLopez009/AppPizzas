@@ -207,280 +207,279 @@ export default function PizzaMitadesPage() {
     router.push("/");
   };
 
+  const borderOptions = (
+    <>
+      <option value="queso">Queso Crema</option>
+      <option value="arequipe">Arequipe</option>
+      <option value="bocadillo">Bocadillo</option>
+      <option value="chocolate">Chocolate</option>
+      <option value="chocolate blanco">Chocolate blanco</option>
+      <option value="fresa">Fresa</option>
+      <option value="frutos amarillos">Frutos amarillos</option>
+      <option value="frutos rojos">Frutos rojos</option>
+      <option value="melocoton">Melocotón</option>
+      <option value="mora">Mora</option>
+      <option value="nucita">Nucita</option>
+      <option value="nutela">Nutella</option>
+    </>
+  );
+
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen pb-24 relative font-sans">
-      <div className="relative h-[300px] w-full">
-        <Image
-          src={ImagePizza}
-          alt="Chocolate Cake"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
-          <button
-            onClick={() => router.back()}
-            className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm active:scale-95 transition"
-          >
-            <ChevronLeft size={20} className="text-gray-700" />
-          </button>
-          <div className="flex gap-2">
+    <div className="bg-white min-h-screen font-sans">
+      <div className="max-w-5xl mx-auto md:grid md:grid-cols-[1fr_1fr] md:min-h-screen">
+
+        {/* Left column: image (sticky on md+) */}
+        <div className="relative h-[300px] md:h-auto md:sticky md:top-0 md:self-start md:min-h-screen">
+          <Image
+            src={ImagePizza}
+            alt="Pizza por mitades"
+            fill
+            className="object-cover md:rounded-none"
+            priority
+          />
+          <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
+            <button
+              onClick={() => router.back()}
+              className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm active:scale-95 transition"
+            >
+              <ChevronLeft size={20} className="text-gray-700" />
+            </button>
             <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm">
               <Heart size={20} className="text-gray-700" />
             </button>
           </div>
         </div>
-      </div>
-      <div className="px-6 pt-6">
-        <div className="flex justify-between items-start mb-1">
-          <span className="text-gray-400 text-sm">Pizza</span>
-          <div className="flex items-center gap-1">
-            <Star size={16} className="fill-yellow-400 text-yellow-400" />
-            <span className="font-bold text-sm">4.9</span>
-          </div>
-        </div>
 
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">
+        {/* Right column: options */}
+        <div className="px-6 pt-6 pb-32 md:pb-8 md:overflow-y-auto">
+          <div className="flex justify-between items-start mb-1">
+            <span className="text-gray-400 text-sm">Pizza</span>
+            <div className="flex items-center gap-1">
+              <Star size={16} className="fill-yellow-400 text-yellow-400" />
+              <span className="font-bold text-sm">4.9</span>
+            </div>
+          </div>
+
+          <h1 className="text-2xl font-bold text-gray-800 mb-3">
             Pizza por mitades
           </h1>
+
           {error && (
-            <div className="mb-6 flex items-center gap-2 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl animate-in fade-in slide-in-from-top-1">
+            <div className="mb-4 flex items-center gap-2 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
               <AlertCircle size={18} className="text-red-500 shrink-0" />
               <p className="text-red-700 text-sm font-medium">{error}</p>
             </div>
           )}
-        </div>
 
-        <div className="mb-8">
-          <h3 className="font-bold text-gray-800 mb-2">Description</h3>
-          <p className="text-black-500 leading-relaxed">
-            {descripcionDinamica}
-          </p>
-        </div>
-
-        <div className="mb-8">
-          <h3 className="font-bold text-gray-800 mb-3">
-            Seleccione un tamaño{" "}
-          </h3>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {sizes.map((s) => (
-              <button
-                key={s.label}
-                onClick={() => setSelectedSize(s)}
-                className={`px-6 py-3 rounded-2xl font-semibold whitespace-nowrap transition active:scale-95
-        ${
-          selectedSize?.label === s.label
-            ? "bg-orange-500 text-white shadow-lg"
-            : "bg-gray-100 text-gray-600"
-        }
-`}
-              >
-                {s.label}
-              </button>
-            ))}
+          <div className="mb-6">
+            <h3 className="font-bold text-gray-800 mb-2">Descripción</h3>
+            <p className="text-gray-500 leading-relaxed text-sm">
+              {descripcionDinamica}
+            </p>
           </div>
-        </div>
-        <div className="mb-8">
-          <h3 className="font-bold text-gray-800 mb-3">Sabores Dulces</h3>
-          <div className="flex gap-3 mb-4">
-            {[0, 1].map((i) => (
-              <select
-                key={i}
-                className="w-full border rounded-xl p-3 bg-white"
-                value={sabores[i] || ""}
-                onChange={(e) => handleSelect(e.target.value, i)}
-                disabled={disabled && !sabores[i]}
-              >
-                <option value="">Selecciona sabor</option>
 
-                <option value="banano_arequipe">Banano con arequipe</option>
-                <option value="choco_queso">Choco queso</option>
-                <option value="ciruela_tocineta">Ciruela con tocineta</option>
-                <option value="coco_miel">Coco miel</option>
-                <option value="durazno_pina">Durazno piña</option>
-                <option value="frutas">Frutas</option>
-                <option value="hawaiana_1">Hawaiana 1</option>
-                <option value="hawaiana_2">Hawaiana 2</option>
-                <option value="hawacoco">Hawacoco</option>
-                <option value="infantil_1">Infantil 1</option>
-                <option value="infantil_2">Infantil 2</option>
-                <option value="infantil_3">Infantil 3</option>
-                <option value="oreo_miel">Oreo miel</option>
-                <option value="platano_bocadillo">
-                  Plátano maduro con bocadillo
-                </option>
-                <option value="queso_bocadillo">Queso y bocadillo</option>
-                <option value="tropical">Tropical</option>
-              </select>
-            ))}
+          {/* Size */}
+          <div className="mb-6">
+            <h3 className="font-bold text-gray-800 mb-3">Seleccione un tamaño</h3>
+            <div className="flex gap-3">
+              {sizes.map((s) => (
+                <button
+                  key={s.label}
+                  onClick={() => setSelectedSize(s)}
+                  className={`px-6 py-3 rounded-2xl font-semibold whitespace-nowrap transition active:scale-95 ${
+                    selectedSize?.label === s.label
+                      ? "bg-brand text-white shadow-lg"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <h3 className="font-bold text-gray-800 mb-3">Bordes de la Pizza</h3>
-          <div className="flex gap-3 mb-4">
+
+          {/* Sweet flavors */}
+          <div className="mb-5">
+            <h3 className="font-bold text-gray-800 mb-3">Sabores Dulces</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {[0, 1].map((i) => (
+                <select
+                  key={i}
+                  className="w-full border rounded-xl p-3 bg-white text-sm"
+                  value={sabores[i] || ""}
+                  onChange={(e) => handleSelect(e.target.value, i)}
+                  disabled={disabled && !sabores[i]}
+                >
+                  <option value="">Mitad {i + 1}</option>
+                  <option value="banano_arequipe">Banano con arequipe</option>
+                  <option value="choco_queso">Choco queso</option>
+                  <option value="ciruela_tocineta">Ciruela con tocineta</option>
+                  <option value="coco_miel">Coco miel</option>
+                  <option value="durazno_pina">Durazno piña</option>
+                  <option value="frutas">Frutas</option>
+                  <option value="hawaiana_1">Hawaiana 1</option>
+                  <option value="hawaiana_2">Hawaiana 2</option>
+                  <option value="hawacoco">Hawacoco</option>
+                  <option value="infantil_1">Infantil 1</option>
+                  <option value="infantil_2">Infantil 2</option>
+                  <option value="infantil_3">Infantil 3</option>
+                  <option value="oreo_miel">Oreo miel</option>
+                  <option value="platano_bocadillo">Plátano con bocadillo</option>
+                  <option value="queso_bocadillo">Queso y bocadillo</option>
+                  <option value="tropical">Tropical</option>
+                </select>
+              ))}
+            </div>
+          </div>
+
+          {/* Sweet border */}
+          <div className="mb-6">
+            <h3 className="font-bold text-gray-800 mb-3">Borde mitad dulce</h3>
             <select
-              className="w-full border rounded-xl p-3 bg-white"
+              className="w-full border rounded-xl p-3 bg-white text-sm"
               value={borders[0]}
               onChange={(e) => handleBorderSelect(e.target.value, 0)}
             >
-              <option value="">Borde 1 (Mitad 1)</option>
-              <option value="queso">Queso Crema</option>
-              <option value="arequipe">arequipe</option>
-              <option value="bocadillo">bocadillo</option>
-              <option value="chocolate">chocolate</option>
-              <option value="chocolate blanco">chocolate blanco</option>
-              <option value="fresa">fresa</option>
-              <option value="frutos amarillos">frutos amarillos</option>
-              <option value="frutos rojos">frutos rojos</option>
-              <option value="melocoton">melocoton</option>
-              <option value="mora">mora</option>
-              <option value="nucita">nucita</option>
-              <option value="nutela">nutela</option>
+              <option value="">Selecciona borde</option>
+              {borderOptions}
             </select>
           </div>
 
-          <h3 className="font-bold text-gray-800 mb-3">Sabores de sal</h3>
-          <div className="flex gap-3 mb-4">
-            {[2, 3].map((i) => (
-              <select
-                key={i}
-                className="w-full border rounded-xl p-3 bg-white"
-                value={sabores[i] || ""}
-                onChange={(e) => handleSelect(e.target.value, i)}
-                disabled={disabled && !sabores[i]}
-              >
-                <option value="">Selecciona sabor</option>
-
-                <option value="aceitunas">Aceitunas</option>
-                <option value="acaballo">Acaballo</option>
-                <option value="atun_pollo">Atún pollo</option>
-                <option value="campesina">Campesina</option>
-                <option value="caprichosa">Caprichosa</option>
-                <option value="carne_champinon">
-                  Carne desmechada champiñones
-                </option>
-                <option value="carnes_1">Carnes 1</option>
-                <option value="carnes_2">Carnes 2</option>
-                <option value="carnes_3">Carnes 3</option>
-                <option value="carnes_4">Carnes 4</option>
-                <option value="carretazo">Carretazo</option>
-                <option value="criolla">Criolla</option>
-                <option value="cuatro_estaciones">Cuatro Estaciones</option>
-                <option value="deliciosa_especial">Deliciosa Especial</option>
-                <option value="especial">Especial</option>
-                <option value="guacapizza">Guacapizza</option>
-                <option value="mediterranea">Mediterránea</option>
-                <option value="mexicana">Mexicana</option>
-                <option value="montini">Montini</option>
-                <option value="napolitana">Napolitana</option>
-                <option value="paisa">Paisa</option>
-                <option value="pepperoni">Peperoni</option>
-                <option value="perla_negra">Perla negra</option>
-                <option value="pollo_champinon">Pollo champiñón</option>
-                <option value="pollo_cabano">Pollo cabano picado</option>
-                <option value="pollo_pepperoni">Pollo peperoni</option>
-                <option value="primavera">Primavera</option>
-                <option value="ranchera">Ranchera</option>
-                <option value="uva_pasa_tocineta">Uva pasa tocineta</option>
-                <option value="vegetariana_3">Vegetariana 3</option>
-                <option value="queso">Queso</option>
-                <option value="dlux">Dlux</option>
-                <option value="atun">Atún</option>
-              </select>
-            ))}
+          {/* Savory flavors */}
+          <div className="mb-5">
+            <h3 className="font-bold text-gray-800 mb-3">Sabores de sal</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {[2, 3].map((i) => (
+                <select
+                  key={i}
+                  className="w-full border rounded-xl p-3 bg-white text-sm"
+                  value={sabores[i] || ""}
+                  onChange={(e) => handleSelect(e.target.value, i)}
+                  disabled={disabled && !sabores[i]}
+                >
+                  <option value="">Mitad {i - 1}</option>
+                  <option value="aceitunas">Aceitunas</option>
+                  <option value="acaballo">Acaballo</option>
+                  <option value="atun_pollo">Atún pollo</option>
+                  <option value="campesina">Campesina</option>
+                  <option value="caprichosa">Caprichosa</option>
+                  <option value="carne_champinon">Carne desmechada champiñones</option>
+                  <option value="carnes_1">Carnes 1</option>
+                  <option value="carnes_2">Carnes 2</option>
+                  <option value="carnes_3">Carnes 3</option>
+                  <option value="carnes_4">Carnes 4</option>
+                  <option value="carretazo">Carretazo</option>
+                  <option value="criolla">Criolla</option>
+                  <option value="cuatro_estaciones">Cuatro Estaciones</option>
+                  <option value="deliciosa_especial">Deliciosa Especial</option>
+                  <option value="especial">Especial</option>
+                  <option value="guacapizza">Guacapizza</option>
+                  <option value="mediterranea">Mediterránea</option>
+                  <option value="mexicana">Mexicana</option>
+                  <option value="montini">Montini</option>
+                  <option value="napolitana">Napolitana</option>
+                  <option value="paisa">Paisa</option>
+                  <option value="pepperoni">Peperoni</option>
+                  <option value="perla_negra">Perla negra</option>
+                  <option value="pollo_champinon">Pollo champiñón</option>
+                  <option value="pollo_cabano">Pollo cabano picado</option>
+                  <option value="pollo_pepperoni">Pollo peperoni</option>
+                  <option value="primavera">Primavera</option>
+                  <option value="ranchera">Ranchera</option>
+                  <option value="uva_pasa_tocineta">Uva pasa tocineta</option>
+                  <option value="vegetariana_3">Vegetariana 3</option>
+                  <option value="queso">Queso</option>
+                  <option value="dlux">Dlux</option>
+                  <option value="atun">Atún</option>
+                </select>
+              ))}
+            </div>
           </div>
-          <h3 className="font-bold text-gray-800 mb-3">Bordes de la Pizza</h3>
-          <div className="flex gap-3 mb-4">
+
+          {/* Savory border */}
+          <div className="mb-6">
+            <h3 className="font-bold text-gray-800 mb-3">Borde mitad de sal</h3>
             <select
-              className="w-full border rounded-xl p-3 bg-white"
+              className="w-full border rounded-xl p-3 bg-white text-sm"
               value={borders[1]}
               onChange={(e) => handleBorderSelect(e.target.value, 1)}
             >
-              <option value="">Borde 2 (Mitad 2)</option>
-              <option value="queso">Queso Crema</option>
-              <option value="arequipe">arequipe</option>
-              <option value="bocadillo">bocadillo</option>
-              <option value="chocolate">chocolate</option>
-              <option value="chocolate blanco">chocolate blanco</option>
-              <option value="fresa">fresa</option>
-              <option value="frutos amarillos">frutos amarillos</option>
-              <option value="frutos rojos">frutos rojos</option>
-              <option value="melocoton">melocoton</option>
-              <option value="mora">mora</option>
-              <option value="nucita">nucita</option>
-              <option value="nutela">nutela</option>
+              <option value="">Selecciona borde</option>
+              {borderOptions}
             </select>
           </div>
-        </div>
-        <div className="mb-4">
-          <h3 className="font-bold text-gray-800 mb-3">
-            Ingredientes Adicionales (puedes seleccionar varios)
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            {additionalsPizzaList.map((additional) => {
-              const isSelected = selectedAdditionals.some(
-                (item) => item.name === additional.name,
-              );
-              return (
-                <button
-                  key={additional.name}
-                  onClick={() => toggleAdditional(additional)}
-                  className={`p-3 rounded-xl text-left transition-all active:scale-95
-                      ${
-                        isSelected
-                          ? "bg-orange-500 text-white shadow-md"
-                          : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
-                      }
-                    `}
-                >
-                  <div className="font-medium text-sm">{additional.name}</div>
-                  <div className="text-xs mt-1 opacity-80">
-                    +${additional.price.toLocaleString("es-CO")}
-                  </div>
-                </button>
-              );
-            })}
+
+          {/* Additionals */}
+          <div className="mb-6">
+            <h3 className="font-bold text-gray-800 mb-3">
+              Ingredientes adicionales
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {additionalsPizzaList.map((additional) => {
+                const isSelected = selectedAdditionals.some(
+                  (item) => item.name === additional.name,
+                );
+                return (
+                  <button
+                    key={additional.name}
+                    onClick={() => toggleAdditional(additional)}
+                    className={`p-3 rounded-xl text-left transition-all active:scale-95 ${
+                      isSelected
+                        ? "bg-brand text-white shadow-md"
+                        : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    <div className="font-medium text-sm">{additional.name}</div>
+                    <div className="text-xs mt-1 opacity-80">
+                      +${additional.price.toLocaleString("es-CO")}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {selectedAdditionals.length > 0 && (
+              <div className="mt-3 p-3 bg-brand-surface rounded-xl">
+                <div className="text-xs text-brand-text font-medium mb-2">
+                  Ingredientes seleccionados:
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedAdditionals.map((item) => (
+                    <span
+                      key={item.name}
+                      className="inline-flex items-center gap-1 text-xs bg-white px-2 py-1 rounded-full shadow-sm"
+                    >
+                      {item.name}
+                      <button
+                        onClick={() => toggleAdditional(item)}
+                        className="hover:text-red-500"
+                      >
+                        <CircleX size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {selectedAdditionals.length > 0 && (
-            <div className="mt-3 p-3 bg-orange-50 rounded-xl">
-              <div className="text-xs text-orange-600 font-medium mb-2">
-                Ingredientes seleccionados:
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {selectedAdditionals.map((item) => (
-                  <span
-                    key={item.name}
-                    className="inline-flex items-center gap-1 text-xs bg-white px-2 py-1 rounded-full shadow-sm"
-                  >
-                    {item.name}
-                    <button
-                      onClick={() => toggleAdditional(item)}
-                      className="hover:text-red-500"
-                    >
-                      <CircleX size={12} />
-                    </button>
-                  </span>
-                ))}
-              </div>
+          {/* Footer: fixed on mobile, inline on md+ */}
+          <div className="fixed md:static bottom-0 left-0 w-full md:w-auto md:rounded-2xl bg-white/90 md:bg-gray-50 backdrop-blur-md md:backdrop-blur-none p-6 border-t border-gray-100 md:border md:border-gray-200 flex justify-between items-center rounded-t-3xl shadow-2xl md:shadow-none">
+            <div>
+              <p className="text-gray-400 text-xs">Precio</p>
+              <p className="text-2xl font-black text-gray-800">
+                ${calcularPrecioTotal().toLocaleString("es-CO")}
+              </p>
             </div>
-          )}
+            <button
+              onClick={handleAddToCart}
+              className="bg-brand hover:bg-brand-hover text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-lg active:scale-95 transition-transform"
+            >
+              <ShoppingBag size={20} />
+              Agregar
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/80 backdrop-blur-md p-6 border-t border-gray-100 flex justify-between items-center rounded-t-3xl shadow-2xl">
-        <div>
-          <p className="text-gray-400 text-xs">Precio</p>
-          <p className="text-2xl font-black text-gray-800">
-            ${calcularPrecioTotal().toLocaleString("es-CO")}
-          </p>
-        </div>
-        <button
-          onClick={handleAddToCart}
-          className="bg-orange-600 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform"
-        >
-          <ShoppingBag size={20} />
-          Add to Cart
-        </button>
       </div>
     </div>
   );

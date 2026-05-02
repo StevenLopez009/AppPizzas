@@ -68,7 +68,7 @@ export default function FacturaPage() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto mb-4"></div>
           <p className="text-gray-600">Cargando factura...</p>
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function FacturaPage() {
           <p className="text-red-600 mb-4">No se encontró la orden</p>
           <button
             onClick={() => router.push("/dashboardAdmin/orders")}
-            className="bg-orange-500 text-white px-6 py-2 rounded-lg"
+            className="bg-brand text-white px-6 py-2 rounded-lg"
           >
             Volver al dashboard
           </button>

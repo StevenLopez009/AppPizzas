@@ -15,6 +15,7 @@ interface Additional {
 
 export default function AdditionalsForm() {
   const [additionals, setAdditionals] = useState<Additional[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
@@ -40,6 +41,9 @@ export default function AdditionalsForm() {
 
   useEffect(() => {
     refresh();
+    api.get<{ categories: { id: string; name: string }[] }>("/api/categories")
+      .then(({ categories }) => setCategories(categories.map((c) => c.name)))
+      .catch(() => {});
   }, []);
 
   const handleChange = (
@@ -138,7 +142,7 @@ export default function AdditionalsForm() {
           value={form.name}
           onChange={handleChange}
           required
-          className="w-full border border-gray-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400"
+          className="w-full border border-gray-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-brand-surface-muted focus:border-brand-ring"
         />
 
         <input
@@ -148,7 +152,7 @@ export default function AdditionalsForm() {
           value={form.price}
           onChange={handleChange}
           required
-          className="w-full border border-gray-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400"
+          className="w-full border border-gray-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-brand-surface-muted focus:border-brand-ring"
         />
 
         <select
@@ -156,18 +160,18 @@ export default function AdditionalsForm() {
           value={form.category}
           onChange={handleChange}
           required
-          className="w-full border border-gray-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400"
+          className="w-full border border-gray-200 p-3 rounded-xl outline-none focus:ring-2 focus:ring-brand-surface-muted focus:border-brand-ring"
         >
           <option value="">Selecciona categoría</option>
-          <option value="pizza">Pizza</option>
-          <option value="lasagna">Lasagna</option>
-          <option value="Com. Rapidas">Comidas rápidas</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
         </select>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition active:scale-95"
+          className="w-full bg-brand hover:bg-brand-hover text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition active:scale-95"
         >
           {editing ? <Save size={20} /> : <PlusCircle size={20} />}
 
@@ -195,7 +199,7 @@ export default function AdditionalsForm() {
 
                 <p className="text-sm text-gray-500">{additional.category}</p>
 
-                <p className="text-orange-500 font-bold mt-1">
+                <p className="text-brand font-bold mt-1">
                   ${Number(additional.price).toLocaleString("es-CO")}
                 </p>
               </div>

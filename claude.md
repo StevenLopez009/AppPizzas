@@ -14,7 +14,7 @@
 | **ws** | **8.x** | Servidor WebSocket dedicado |
 | **Cloudinary** | (externo) | Storage de imágenes (opcional) |
 | **Docker Compose** | — | Orquestación local |
-| Tailwind CSS | 4.x | Estilos |
+| Tailwind CSS | 4.x | Estilos con variables CSS (`--brand-*`) |
 | Shadcn/UI | 4.x | Componentes UI |
 | React Hot Toast | 2.x | Notificaciones (todas) |
 | React PDF | 4.x | Facturas y comandas |
@@ -92,9 +92,16 @@ docker compose down -v && docker compose up -d
 ```
 AppPizzas/
 ├── db/
-│   └── init/
-│       ├── 01_schema.sql          # tablas MySQL
-│       └── 02_seed_admin.sql      # usuario admin con bcrypt hash
+│   ├── init/
+│   │   ├── 01_schema.sql          # tablas MySQL (incluye categories, order_number)
+│   │   ├── 02_seed_admin.sql      # usuario admin con bcrypt hash
+│   │   ├── 03_order_items_product_id.sql
+│   │   ├── 04_app_settings.sql
+│   │   └── 05_order_number.sql    # migración: order_number AUTO_INCREMENT
+│   └── migrations/                # SQL para aplicar en DBs existentes
+│       ├── add_order_number.sql
+│       ├── add_categories.sql
+│       └── add_order_number.sql
 │
 ├── realtime-server/
 │   ├── server.js                  # WS + endpoint /notify interno
@@ -109,17 +116,6 @@ AppPizzas/
 │   ├── setup.ts                   # Vitest + Testing Library setup
 │   ├── helpers/api.ts             # stubFetch para mocks
 │   └── views/                     # 11 archivos, 31 tests
-│       ├── OrderTrackingTime.test.tsx
-│       ├── OrderPageView.test.tsx
-│       ├── DevSeedControl.test.tsx
-│       ├── BannerCarousel.test.tsx
-│       ├── AdminBanner.test.tsx
-│       ├── AdditionalsForm.test.tsx
-│       ├── CreateProductForm.test.tsx
-│       ├── SignInForm.test.tsx
-│       ├── SignUpForm.test.tsx
-│       ├── LoginPage.test.tsx
-│       └── useCheckout.test.tsx
 │
 ├── Dockerfile                     # Next.js standalone
 ├── docker-compose.yml
@@ -133,21 +129,39 @@ AppPizzas/
 │   │   ├── orders/{route.ts, [id]/route.ts, [id]/items/route.ts}
 │   │   ├── banners/{route.ts, [id]/route.ts}
 │   │   ├── additionals/{route.ts, [id]/route.ts}
+│   │   ├── categories/{route.ts, [id]/route.ts}   ← NUEVO
+│   │   ├── settings/route.ts                       ← themePrimary + businessName
 │   │   ├── clients/route.ts
-│   │   ├── upload/route.ts        # fallback local de imágenes
+│   │   ├── upload/route.ts
 │   │   └── dev/seed/route.ts
-│   ├── dashboard/...              # cliente
-│   ├── dashboardAdmin/...         # admin
+│   ├── dashboard/...              # cliente (menú)
+│   ├── my-orders/...              # cliente: historial de pedidos ← NUEVO
+│   ├── dashboardAdmin/
+│   │   ├── orders/page.tsx        # gestión de pedidos
+│   │   ├── categories/page.tsx    # CRUD categorías ← NUEVO
+│   │   ├── appearance/page.tsx    # color + nombre del negocio
+│   │   └── ...
 │   ├── login/page.tsx
 │   ├── pedido/...
 │   └── pizza/...
 │
-├── src/features/                  # módulos por dominio (UI + servicios cliente)
+├── src/features/
+│   ├── checkout/                  # flujo de compra (hooks, servicios, componentes)
+│   ├── layout/                    # sidebar, mobile nav, UserLayout
+│   ├── menu/                      # CategoryList (dinámica), FoodHeader, filtros
+│   └── orders/
+│       ├── components/
+│       │   ├── OrderHistoryView.tsx   ← NUEVO: historial cliente
+│       │   └── OrderPageView.tsx
+│       └── hooks/
+│           ├── useOrderHistory.ts     ← NUEVO
+│           └── useOrderTracking.ts
 │
 ├── lib/
 │   ├── db.ts                      # pool mysql2/promise
 │   ├── uuid.ts
 │   ├── api.ts                     # fetch helper + ApiError
+│   ├── orderHistory.ts            # localStorage helpers (historial cliente) ← NUEVO
 │   ├── auth/
 │   │   ├── password.ts            # bcryptjs
 │   │   ├── session.ts             # JWT (jose)
@@ -157,16 +171,24 @@ AppPizzas/
 │   │   └── client.ts              # useOrdersStream (cliente WS)
 │   ├── storage/
 │   │   └── cloudinary.ts          # Cloudinary o fallback /api/upload
+│   ├── theme/
+│   │   └── brandCssVars.ts        # applyBrandTheme() para CSS vars
 │   ├── repos/                     # acceso a datos (solo servidor)
 │   │   ├── products.ts
-│   │   ├── orders.ts
+│   │   ├── orders.ts              # incluye order_number
 │   │   ├── banners.ts
 │   │   ├── additionals.ts
+│   │   ├── categories.ts          ← NUEVO
+│   │   ├── appSettings.ts         # themePrimary + businessName
 │   │   ├── users.ts
 │   │   └── clients.ts
 │   └── dev/seedDevData.ts         # seed para modo dev
 │
-├── components/                    # componentes compartidos (shadcn, etc.)
+├── components/
+│   ├── KitchenOrderPDF/           # PDF comanda (bordes resaltados en naranja)
+│   ├── report/SalesStats.tsx      # estadísticas con descuentos aplicados
+│   └── ...
+│
 ├── context/
 │   ├── CartContext.tsx
 │   └── UserContext.tsx            # /api/auth/me
@@ -212,11 +234,13 @@ Definidas en `db/init/01_schema.sql`.
 |---|---|
 | `users` | Auth: `email`, `password_hash` (bcrypt), `role` (`user`/`admin`). |
 | `clients` | Registro público (sin password). |
-| `products` | `prices` JSON `[{label, price}]`. |
-| `orders` | Estados, totales, ubicación, descuento. |
+| `products` | `prices` JSON `[{label, price}]`. `category` referencia el nombre de la tabla `categories`. |
+| `categories` | Categorías de productos: `name`, `sort_order`. CRUD desde admin. |
+| `orders` | Estados, totales, ubicación, descuento. `order_number` AUTO_INCREMENT visible en cards. |
 | `order_items` | FK a `orders` (CASCADE). `additionals` JSON. |
 | `banners` | URL de imagen. |
 | `additionals` | Por categoría (`pizza`, `lasagna`, `Com. Rapidas`). |
+| `app_settings` | Singleton (id=1): `theme_primary` (#RRGGBB) + `business_name`. |
 
 ---
 
@@ -237,13 +261,44 @@ El usuario admin se crea automáticamente al inicializar MySQL (`db/init/02_seed
 
 Servidor independiente en `realtime-server/server.js`:
 
-- `ws://host:3001/orders` — todos los pedidos (admin).
+- `ws://host:3001/orders` — todos los pedidos (admin + estadísticas).
 - `ws://host:3001/orders/:id` — un pedido (tracking cliente).
 - `POST /notify` con header `X-Internal-Token` — uso interno.
 
 Las API routes que crean/actualizan/borran pedidos llaman `notifyRealtime(...)` (`lib/realtime/notify.ts`). El servidor WS reenvía a los clientes suscritos.
 
-En el navegador, el hook `useOrdersStream(orderId | null, handler)` (`lib/realtime/client.ts`) reconecta automáticamente.
+En el navegador, el hook `useOrdersStream(orderId | null, handler)` (`lib/realtime/client.ts`) reconecta automáticamente. El layout admin lo usa para mantener las estadísticas actualizadas en tiempo real.
+
+---
+
+## Historial de pedidos del cliente
+
+Los pedidos del cliente se almacenan en `localStorage["order_history"]` (ver `lib/orderHistory.ts`):
+
+- Al crear un pedido → `createOrder.ts` guarda un `StoredOrder` con id, order_number, tipo, estado, total, items_summary.
+- En `/my-orders` el hook `useOrderHistory` clasifica en **activos** (refresca estado vía API + WS) y **cerrados** (solo localStorage, sin llamadas al servidor).
+- Estados cerrados: `entregado`, `listo_para_recoger`.
+
+---
+
+## Apariencia y configuración
+
+`GET/PATCH /api/settings` gestiona:
+
+- `themePrimary`: color hex que se aplica como variable CSS `--brand-*` en todo el frontend.
+- `businessName`: nombre del negocio mostrado en el sidebar (admin y cliente). Se edita desde `/dashboardAdmin/appearance`.
+
+El `ensureAppSettingsTable()` en `lib/repos/appSettings.ts` crea la tabla y columnas si no existen (auto-migración al arranque).
+
+---
+
+## Categorías dinámicas
+
+Las categorías de productos se gestionan desde `/dashboardAdmin/categories`:
+
+- CRUD completo + reordenamiento por `sort_order`.
+- `CreateProductForm` y `CategoryList` (menú cliente) leen de `GET /api/categories`.
+- `CategoryList` agrupa categorías que contienen "pizza" bajo un único ítem "Pizza" en el menú, manteniendo la lógica del `PizzaSelector`.
 
 ---
 
@@ -252,15 +307,7 @@ En el navegador, el hook `useOrdersStream(orderId | null, handler)` (`lib/realti
 `lib/storage/cloudinary.ts` exporta `uploadImageToCloudinary(file)` con **doble estrategia**:
 
 1. **Cloudinary** (recomendado en prod): si `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` y `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` están definidos → upload directo a Cloudinary.
-
 2. **Fallback local**: si no están definidos → `POST /api/upload` que guarda en `public/uploads/` y devuelve URL relativa.
-
-```ts
-import { uploadImageToCloudinary } from "@/lib/storage/cloudinary";
-const url = await uploadImageToCloudinary(file); // transparente
-```
-
-El endpoint `/api/upload` requiere sesión admin, valida MIME (png/jpeg/webp/gif) y tamaño (≤5MB).
 
 > En producción multi-instancia **usa Cloudinary** (o S3/R2) porque el filesystem no se comparte entre réplicas.
 
@@ -272,7 +319,6 @@ El endpoint `/api/upload` requiere sesión admin, valida MIME (png/jpeg/webp/gif
 
 ```ts
 import toast from "react-hot-toast";
-
 toast.success("Producto creado");
 toast.error("Error al guardar");
 toast("No tienes pedidos activos", { icon: "📭" });
@@ -294,11 +340,7 @@ npm run test:ui    # UI de Vitest
 
 Resultado: **11 archivos · 31 tests**.
 
-Tests cubren:
-- Componentes: `OrderTrackingTime`, `OrderPageView`, `DevSeedControl`, `BannerCarousel`
-- Formularios: `SignInForm`, `SignUpForm`, `AdditionalsForm`, `CreateProductForm`
-- Vistas: `LoginPage`, `AdminBanner`
-- Hooks: `useCheckout`
+Tests cubren: `OrderTrackingTime`, `OrderPageView`, `DevSeedControl`, `BannerCarousel`, `SignInForm`, `SignUpForm`, `AdditionalsForm`, `CreateProductForm`, `LoginPage`, `AdminBanner`, `useCheckout`.
 
 Para mockear toasts en tests:
 
@@ -321,27 +363,7 @@ vi.mock("react-hot-toast", () => ({
 
 En `/dashboard` aparece un panel ámbar **"Solo dev"** con botón **"Sembrar productos y pedidos de prueba"**.
 
-Llama `POST /api/dev/seed` (devuelve **403** fuera de `NODE_ENV=development`). Crea:
-
-- **6 productos** con imágenes de [Lorem Picsum](https://picsum.photos/):
-  - Pizza Margarita, Pizza Pepperoni (Pizza Sal)
-  - Gaseosa 400ml (Bebidas)
-  - Hamburguesa clásica (Com. Rapidas)
-  - Lasaña bolognesa (Lasaña Spaguetti)
-  - Panzerotti jamón y queso (Panzerotti)
-
-- **10 pedidos** cubriendo todos los estados:
-  - 4× domicilio: `recibido → cocinando → enviado → entregado`
-  - 3× mesa: `recibido → cocinando → entregado`
-  - 3× recoger: `recibido → cocinando → listo_para_recoger`
-
-Para resembrar: vuelve a hacer click (purga lo previo y reinserta) o:
-
-```bash
-docker compose down -v && docker compose up -d mysql realtime
-npm run dev
-curl -X POST http://localhost:3000/api/dev/seed
-```
+Llama `POST /api/dev/seed` (devuelve **403** fuera de `NODE_ENV=development`). Crea 6 productos y 10 pedidos cubriendo todos los estados y tipos de orden.
 
 ---
 
@@ -366,6 +388,11 @@ curl -X POST http://localhost:3000/api/dev/seed
 | GET | `/api/additionals` | Listar (`?category=&active=1`) |
 | POST | `/api/additionals` | Crear (admin) |
 | PUT/DELETE | `/api/additionals/[id]` | Editar / borrar (admin) |
+| GET | `/api/categories` | Listar categorías |
+| POST | `/api/categories` | Crear categoría (admin) |
+| PUT/DELETE | `/api/categories/[id]` | Editar / borrar (admin) |
+| GET | `/api/settings` | Leer themePrimary + businessName |
+| PATCH | `/api/settings` | Actualizar (admin) |
 | POST | `/api/clients` | Registro público de cliente |
 | POST | `/api/upload` | Subir imagen (admin, fallback local) |
 | POST | `/api/dev/seed` | Solo dev: sembrar datos demo |
@@ -393,6 +420,10 @@ npm run docker:build
 npm run docker:up:detach
 npm run docker:down
 npm run docker:reset                  # purga volumen MySQL
+
+# Migraciones manuales (DB existente sin reset)
+docker exec -i apppizzas-mysql-1 mysql -u app -papp_password apppizzas < db/migrations/add_order_number.sql
+docker exec -i apppizzas-mysql-1 mysql -u app -papp_password apppizzas < db/migrations/add_categories.sql
 ```
 
 ---
@@ -405,6 +436,7 @@ npm run docker:reset                  # purga volumen MySQL
 │  · UserContext / CartContext                             │
 │  · api.* (/api/...)                                      │
 │  · useOrdersStream (WS → realtime:3001)                  │
+│  · localStorage["order_history"] (historial cliente)     │
 │  · uploadImageToCloudinary (Cloudinary o /api/upload)    │
 └──────────────┬─────────────────────────┬─────────────────┘
                │ HTTP /api/*             │ WS

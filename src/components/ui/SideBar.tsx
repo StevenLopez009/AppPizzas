@@ -1,3 +1,5 @@
+import { LogOut } from "lucide-react";
+
 type MenuItem = {
   id: string;
   label: string;
@@ -9,31 +11,29 @@ interface SidebarProps {
   menu: MenuItem[];
   activePath: string;
   onNavigate: (path: string) => void;
+  onLogout?: () => void;
   title?: string;
-  highlightColor?: string;
 }
 
 export default function Sidebar({
   menu,
   activePath,
   onNavigate,
+  onLogout,
   title = "Mi App",
-  highlightColor = "orange-500",
 }: SidebarProps) {
   return (
-    <aside className="h-screen w-[260px] bg-white rounded-r-3xl p-6 shadow-md">
+    <aside className="h-screen w-[260px] bg-white rounded-r-3xl p-6 shadow-md flex flex-col">
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-xl font-semibold text-gray-700">
           {title.split(" ")[0]}{" "}
-          <span className={`text-${highlightColor}`}>
-            {title.split(" ").slice(1).join(" ")}
-          </span>
+          <span className="text-brand">{title.split(" ").slice(1).join(" ")}</span>
         </h1>
       </div>
 
       {/* Menu */}
-      <nav className="flex flex-col gap-3">
+      <nav className="flex flex-col gap-3 flex-1">
         {menu.map((item) => {
           const Icon = item.icon;
           const isActive = activePath === item.path;
@@ -45,7 +45,7 @@ export default function Sidebar({
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all
                 ${
                   isActive
-                    ? "bg-white text-orange-500 shadow-sm"
+                    ? "bg-white text-brand shadow-sm"
                     : "text-gray-400 hover:bg-white hover:text-gray-600"
                 }`}
             >
@@ -55,6 +55,17 @@ export default function Sidebar({
           );
         })}
       </nav>
+
+      {/* Logout */}
+      {onLogout && (
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all mt-2"
+        >
+          <LogOut size={18} />
+          Cerrar sesión
+        </button>
+      )}
     </aside>
   );
 }

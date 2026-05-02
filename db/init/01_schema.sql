@@ -29,6 +29,15 @@ CREATE TABLE IF NOT EXISTS clients (
   INDEX idx_clients_email (email)
 ) ENGINE=InnoDB;
 
+-- ---------- Categorías ----------
+CREATE TABLE IF NOT EXISTS categories (
+  id         CHAR(36)     NOT NULL PRIMARY KEY,
+  name       VARCHAR(100) NOT NULL UNIQUE,
+  sort_order INT          NOT NULL DEFAULT 0,
+  created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_categories_sort (sort_order)
+) ENGINE=InnoDB;
+
 -- ---------- Productos ----------
 CREATE TABLE IF NOT EXISTS products (
   id          CHAR(36)      NOT NULL PRIMARY KEY,
@@ -62,6 +71,7 @@ CREATE TABLE IF NOT EXISTS additionals (
 -- ---------- Pedidos ----------
 CREATE TABLE IF NOT EXISTS orders (
   id                  CHAR(36)      NOT NULL PRIMARY KEY,
+  order_number        INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   order_type          ENUM('domicilio','mesa','recoger') NOT NULL,
   status              VARCHAR(40)   NOT NULL DEFAULT 'recibido',
   customer_name       VARCHAR(255)  NULL,
@@ -78,6 +88,7 @@ CREATE TABLE IF NOT EXISTS orders (
   lat                 DECIMAL(10,7) NULL,
   lng                 DECIMAL(10,7) NULL,
   created_at          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_order_number (order_number),
   INDEX idx_orders_status (status),
   INDEX idx_orders_created_at (created_at),
   INDEX idx_orders_order_type (order_type)

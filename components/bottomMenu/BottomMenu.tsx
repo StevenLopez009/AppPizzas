@@ -24,7 +24,7 @@ export default function BottomMenu({ items, defaultActive }: BottomMenuProps) {
       <div className="bg-gray-100 rounded-3xl px-6 py-4 shadow-xl flex justify-between items-center relative">
         {/* indicador */}
         <div
-          className="absolute bottom-2 h-1 w-10 bg-orange-500 rounded-full transition-all duration-300"
+          className="absolute bottom-2 h-1 w-10 bg-brand rounded-full transition-all duration-300"
           style={{
             left: `${items.findIndex((i) => i.id === active) * (100 / items.length)}%`,
             transform: "translateX(50%)",

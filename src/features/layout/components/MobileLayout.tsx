@@ -1,10 +1,9 @@
 import BottomMenu from "@/components/bottomMenu/BottomMenu";
-import { Heart, Home, ShoppingCart, User } from "lucide-react";
+import { Home, ShoppingCart, ClipboardList, User } from "lucide-react";
 
 export default function MobileLayout({
   children,
   cartCount,
-  goToLastOrder,
 }: any) {
   return (
     <div className="block md:hidden w-full">
@@ -14,8 +13,8 @@ export default function MobileLayout({
         <BottomMenu
           defaultActive="home"
           items={[
-            { id: "home", icon: Home, path: "/" },
-            { id: "fav", icon: Heart, onClick: goToLastOrder },
+            { id: "home", icon: Home, path: "/dashboard" },
+            { id: "my-orders", icon: ClipboardList, path: "/my-orders" },
             {
               id: "orders",
               icon: ShoppingCart,

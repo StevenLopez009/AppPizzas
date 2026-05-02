@@ -26,7 +26,7 @@ export default function OrderPageView({ status, orderType, onGoHome }: Props) {
         <p className="text-gray-500 mt-2 mb-6">Crea un pedido delicioso</p>
         <button
           onClick={onGoHome}
-          className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-orange-200"
+          className="bg-brand text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-brand/30"
         >
           Ver Menú
         </button>

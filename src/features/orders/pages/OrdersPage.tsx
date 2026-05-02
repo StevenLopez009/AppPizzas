@@ -1,15 +1,19 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useOrders } from "../hooks/useOrders";
 import { useUserLocation } from "../hooks/useUserLocation";
 import OrdersView from "../components/OrdersView";
 
 export default function OrdersPage() {
   const router = useRouter();
+  const pathname = usePathname();
 
   const { cart, total, updateQuantity, handleOrder } = useOrders();
   const { isInRestaurant } = useUserLocation();
+
+  const goMenu = () => router.push("/dashboard");
+  const showBackArrow = pathname !== "/dashboard";
 
   return (
     <OrdersView
@@ -18,7 +22,9 @@ export default function OrdersPage() {
       isInRestaurant={isInRestaurant}
       updateQuantity={updateQuantity}
       onOrder={handleOrder}
-      onGoHome={() => router.push("/dashboard")}
+      onGoHome={goMenu}
+      onBack={goMenu}
+      showBackArrow={showBackArrow}
     />
   );
 }

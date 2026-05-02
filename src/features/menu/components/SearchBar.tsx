@@ -23,7 +23,7 @@ export default function SearchBar({ value, onChange }: Props) {
           text-sm
           focus:outline-none
           focus:ring-2
-          focus:ring-orange-400
+          focus:ring-brand-ring
         "
       />
     </div>

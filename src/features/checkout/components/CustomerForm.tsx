@@ -1,3 +1,5 @@
+import { BARRIOS } from "../utils/barrios";
+
 interface Props {
   form: any;
   barrio: string;
@@ -57,9 +59,12 @@ export default function CustomerForm({
               onChange={(e) => setBarrio(e.target.value)}
               className="w-full p-4 outline-none"
             >
-              <option value="">Barrio</option>
-              <option value="prosperidad">Prosperidad</option>
-              <option value="parques">Parques</option>
+              <option value="">Selecciona tu barrio</option>
+              {BARRIOS.map((b) => (
+                <option key={b.value} value={b.value}>
+                  {b.label} — ${b.domicilio.toLocaleString("es-CO")} domicilio
+                </option>
+              ))}
             </select>
           </>
         )}

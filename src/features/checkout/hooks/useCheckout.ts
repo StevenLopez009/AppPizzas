@@ -10,6 +10,7 @@ import { useCheckoutLocation } from "./useCheckoutLocation";
 import { createOrder } from "../services/createOrder";
 import { createOrderItems } from "../services/createOrderItems";
 import { sendWhatsAppOrder } from "../services/sendWhatsAppOrder";
+import { getDomicilio } from "../utils/barrios";
 
 export function useCheckout() {
   const router = useRouter();
@@ -17,16 +18,13 @@ export function useCheckout() {
   const {
     cart,
     clearCart,
-    setShowOrder,
-    setShowOrderPage,
-    setCurrentOrderId,
     orderType,
   } = useCart();
 
   const { form, barrio, mesa, setBarrio, setMesa, handleChange } =
     useCheckoutForm();
 
-  const { location, getLocation, sendRestaurantLocation } =
+  const { location, locating, savedLocation, getLocation, saveLocation, clearSavedLocation, sendRestaurantLocation } =
     useCheckoutLocation();
 
   const subtotal = cart.reduce(
@@ -34,15 +32,7 @@ export function useCheckout() {
     0,
   );
 
-  const preciosBarrio: Record<string, number> = {
-    prosperidad: 4000,
-    parques: 6000,
-    opalo: 5000,
-    sociego: 3000,
-    otros: 6000,
-  };
-
-  const domicilio = orderType === "domicilio" ? preciosBarrio[barrio] || 0 : 0;
+  const domicilio = orderType === "domicilio" ? getDomicilio(barrio) : 0;
 
   const total = subtotal + domicilio;
 
@@ -91,30 +81,24 @@ export function useCheckout() {
 
       await createOrderItems(order.id, cart);
 
-      sendWhatsAppOrder({
-        cart,
-        form,
-        barrio,
-        mesa,
-        total,
-        domicilio,
-        location,
-        orderType,
-      });
-
       clearCart();
-
       localStorage.removeItem("order_type");
-
       toast.success("Pedido enviado");
 
-      if (window.innerWidth < 768) {
-        router.push(`/dashboard/pedido/${order.id}`);
-      } else {
-        setCurrentOrderId(order.id);
-        setShowOrder(false);
-        setShowOrderPage(false);
-      }
+      // Navigate first so the user stays in the app, then open WhatsApp on top
+      router.push("/my-orders");
+      setTimeout(() => {
+        sendWhatsAppOrder({
+          cart,
+          form,
+          barrio,
+          mesa,
+          total,
+          domicilio,
+          location,
+          orderType,
+        });
+      }, 300);
     } catch (error) {
       console.error(error);
       toast.error("Error creando la orden");
@@ -130,6 +114,8 @@ export function useCheckout() {
     subtotal,
     domicilio,
     location,
+    locating,
+    savedLocation,
     orderType,
 
     setBarrio,
@@ -137,6 +123,8 @@ export function useCheckout() {
 
     handleChange,
     getLocation,
+    saveLocation,
+    clearSavedLocation,
     sendRestaurantLocation,
 
     handleSubmit,

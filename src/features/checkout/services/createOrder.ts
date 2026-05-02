@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { saveOrderToHistory } from "@/lib/orderHistory";
 
 export async function createOrder({
   cart,
@@ -58,13 +59,36 @@ export async function createOrder({
     additionals: item.additionals || [],
   }));
 
-  const { order } = await api.post<{ order: { id: string } }>("/api/orders", {
-    order: orderInput,
-    items,
-  });
+  const { order } = await api.post<{
+    order: {
+      id: string;
+      order_number: number;
+      order_type: "domicilio" | "mesa" | "recoger";
+      status: string;
+      total: number;
+      created_at: string;
+      customer_name: string | null;
+      order_items: { product_name: string; quantity: number }[];
+    };
+  }>("/api/orders", { order: orderInput, items });
 
   if (typeof window !== "undefined") {
     localStorage.setItem("last_order_id", order.id);
+
+    const itemsSummary = (order.order_items ?? items)
+      .map((i) => `${i.product_name} x${i.quantity}`)
+      .join(", ");
+
+    saveOrderToHistory({
+      id: order.id,
+      order_number: order.order_number,
+      order_type: order.order_type ?? orderInput.order_type,
+      status: order.status ?? "recibido",
+      total: order.total ?? Number(total),
+      created_at: order.created_at ?? new Date().toISOString(),
+      customer_name: order.customer_name ?? null,
+      items_summary: itemsSummary,
+    });
   }
 
   return order;

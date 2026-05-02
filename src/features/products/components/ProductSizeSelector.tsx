@@ -23,7 +23,7 @@ export default function ProductSizeSelector({
             className={`px-6 py-3 rounded-2xl font-semibold transition
               ${
                 selectedSize?.label === size.label
-                  ? "bg-orange-500 text-white"
+                  ? "bg-brand text-white"
                   : "bg-gray-100 text-gray-700"
               }
             `}

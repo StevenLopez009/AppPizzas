@@ -6,7 +6,7 @@ export default function ProductInfo({ product }: Props) {
   return (
     <>
       <div className="flex justify-between items-start mb-1">
-        <span className="text-orange-500 font-medium text-sm">
+        <span className="text-brand font-medium text-sm">
           {product.category || "General"}
         </span>
 

@@ -20,6 +20,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  order_number: number;
   created_at: string;
   order_type: OrderType;
   status: string;
@@ -41,6 +42,7 @@ export interface Order {
 
 interface OrderRow extends RowDataPacket {
   id: string;
+  order_number: number;
   created_at: Date;
   order_type: OrderType;
   status: string;
@@ -109,6 +111,7 @@ function nullableCoord(v: unknown): number | null {
 function toOrder(row: OrderRow, items: OrderItemRow[]): Order {
   return {
     id: row.id,
+    order_number: row.order_number,
     created_at:
       row.created_at instanceof Date
         ? row.created_at.toISOString()

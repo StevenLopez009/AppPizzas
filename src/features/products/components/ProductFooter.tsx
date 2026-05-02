@@ -34,13 +34,13 @@ export default function ProductFooter({ price, onAdd }: Props) {
         <button
           onClick={onAdd}
           className="
-            bg-orange-600
+            bg-brand-hover
             text-white
             px-8 py-4
             rounded-2xl
             flex items-center gap-3
             font-bold
-            shadow-lg shadow-orange-900/20
+            shadow-lg shadow-brand/20
             active:scale-95
             transition-transform
           "
@@ -81,13 +81,13 @@ export default function ProductFooter({ price, onAdd }: Props) {
         <button
           onClick={onAdd}
           className="
-            bg-orange-600
+            bg-brand-hover
             text-white
             px-8 py-4
             rounded-2xl
             flex items-center gap-3
             font-bold
-            shadow-lg shadow-orange-900/20
+            shadow-lg shadow-brand/20
             active:scale-95
             transition-transform
           "

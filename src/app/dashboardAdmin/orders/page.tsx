@@ -28,6 +28,7 @@ interface OrderItem {
 
 interface Order {
   id: string;
+  order_number: number;
   created_at: string;
   customer_name: string;
   customer_phone: string;
@@ -66,6 +67,7 @@ export default function AdminDashboard() {
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [extraName, setExtraName] = useState("");
   const [extraPrice, setExtraPrice] = useState("");
+  const [pendingStatus, setPendingStatus] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
 
   const STATUS_STYLES: Record<string, string> = {
@@ -74,6 +76,14 @@ export default function AdminDashboard() {
     enviado: "bg-blue-500 text-blue-800",
     entregado: "bg-green-500 text-green-800",
     listo_para_recoger: "bg-green-500 text-purple-800",
+  };
+
+  const STATUS_BTN: Record<string, string> = {
+    recibido: "bg-gray-500 hover:bg-gray-600",
+    cocinando: "bg-yellow-500 hover:bg-yellow-600",
+    enviado: "bg-blue-500 hover:bg-blue-600",
+    entregado: "bg-green-500 hover:bg-green-600",
+    listo_para_recoger: "bg-green-500 hover:bg-green-600",
   };
 
   async function refreshOrders() {
@@ -137,46 +147,43 @@ export default function AdminDashboard() {
   if (orders.length === 0)
     return <p className="p-10 text-center">No hay pedidos</p>;
 
-  const changeStatus = async (order: Order) => {
+  const changeStatus = async (order: Order, targetStatus?: string) => {
     const flow = ORDER_FLOW[order.order_type];
-    const index = flow.indexOf(order.status);
-    const nextStatus = flow[index + 1];
-    if (!nextStatus) return;
+    const status = targetStatus ?? (() => {
+      const index = flow.indexOf(order.status);
+      return flow[index + 1];
+    })();
+    if (!status) return;
 
     try {
       const { order: updated } = await api.patch<{ order: Order }>(
         `/api/orders/${encodeURIComponent(order.id)}`,
-        { status: nextStatus },
+        { status },
       );
       setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
+      setPendingStatus((prev) => { const next = { ...prev }; delete next[order.id]; return next; });
     } catch (e) {
       console.error(e);
     }
   };
 
-  const formatPizza = (item: OrderItem) => {
-    if (!item.extra?.includes("Mitades:")) {
-      return `${item.quantity} pizza ${item.size}, ${item.product_name}${
-        item.extra ? `, borde ${item.extra}` : ""
-      }`;
+  const formatItem = (item: OrderItem) => {
+    // Pizza por mitades
+    if (item.extra?.includes("Mitades:")) {
+      const mitadesMatch = item.extra.match(/Mitades:\s*([^|]+)/);
+      const bordesMatch = item.extra.match(/Bordes:\s*([^|]+)/);
+      const adicionalesMatch = item.extra.match(/Adicionales:\s*(.*)/);
+      const sabores = mitadesMatch?.[1]?.split("/").map((s) => s.trim());
+      const bordes = bordesMatch?.[1]?.split("/").map((b) => b.trim());
+      const adicionales = adicionalesMatch?.[1]?.trim();
+      return `${item.quantity}x ${item.product_name} ${item.size ?? ""} — ${sabores?.[0] ?? ""} (borde ${bordes?.[0] ?? "normal"}) / ${sabores?.[1] ?? ""} (borde ${bordes?.[1] ?? "normal"})${adicionales ? `, adicionales: ${adicionales}` : ""}`.replace(/\s+/g, " ").trim();
     }
 
-    const mitadesMatch = item.extra.match(/Mitades:\s*([^|]+)/);
-    const bordesMatch = item.extra.match(/Bordes:\s*([^|]+)/);
-    const adicionalesMatch = item.extra.match(/Adicionales:\s*(.*)/);
-
-    const sabores = mitadesMatch?.[1]?.split("/").map((s) => s.trim());
-    const bordes = bordesMatch?.[1]?.split("/").map((b) => b.trim());
-    const adicionales = adicionalesMatch?.[1]?.trim();
-
-    return `
-${item.quantity} pizza ${item.size},
-${sabores?.[0] || ""}
-, borde ${bordes?.[0] || "normal"},
-${sabores?.[1] || ""}
-, borde ${bordes?.[1] || "normal"}
-${adicionales ? `, adicionales: ${adicionales}` : ""}
-  `.replace(/\s+/g, " ");
+    // Cualquier otro producto
+    const parts: string[] = [`${item.quantity}x ${item.product_name}`];
+    if (item.size && item.size !== "extra") parts.push(item.size);
+    if (item.extra) parts.push(item.extra);
+    return parts.join(", ");
   };
 
   const filteredOrders = orders.filter((order) => {
@@ -259,7 +266,7 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 md:p-10">
+    <div className="min-h-screen bg-white p-4 md:p-10">
       <h1 className="text-2xl md:text-4xl font-bold mb-6">Pedidos</h1>
       <Popover>
         <PopoverTrigger asChild>
@@ -273,7 +280,7 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
         text-gray-700 font-medium
       "
           >
-            <CalendarIcon className="mr-2 h-4 w-4 text-orange-500" />
+            <CalendarIcon className="mr-2 h-4 w-4 text-brand" />
             {dateRange?.from
               ? dateRange.to
                 ? `${dateRange.from.toLocaleDateString()} - ${dateRange.to.toLocaleDateString()}`
@@ -310,7 +317,7 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
         placeholder="Buscar cliente..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full md:w-[300px] mt-4 px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+        className="w-full md:w-[300px] mt-4 px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-ring"
       />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 mt-6">
         <div className="bg-white p-4 rounded-xl shadow">
@@ -345,7 +352,7 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
             end.setHours(23, 59, 59, 999);
             setDateRange({ from: start, to: end });
           }}
-          className="px-4 py-2 bg-gray-200 rounded-xl"
+          className="px-4 py-2 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md text-gray-700 font-medium transition-all duration-150 active:scale-95"
         >
           Hoy
         </button>
@@ -359,7 +366,7 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
             const lastDay = new Date();
             setDateRange({ from: firstDay, to: lastDay });
           }}
-          className="px-4 py-2 bg-gray-200 rounded-xl"
+          className="px-4 py-2 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md text-gray-700 font-medium transition-all duration-150 active:scale-95"
         >
           Esta semana
         </button>
@@ -371,14 +378,14 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
             const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
             setDateRange({ from: firstDay, to: lastDay });
           }}
-          className="px-4 py-2 bg-gray-200 rounded-xl"
+          className="px-4 py-2 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md text-gray-700 font-medium transition-all duration-150 active:scale-95"
         >
           Este mes
         </button>
 
         <button
           onClick={() => setDateRange({})}
-          className="px-4 py-2 bg-red-100 text-red-600 rounded-xl"
+          className="px-4 py-2 bg-white border border-red-100 rounded-xl shadow-sm hover:shadow-md text-red-500 font-medium transition-all duration-150 active:scale-95"
         >
           Limpiar
         </button>
@@ -393,8 +400,22 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
             return (
               <div
                 key={order.id}
-                className="bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between"
+                className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col justify-between"
               >
+                {/* Order number header */}
+                <div className="bg-gray-800 px-5 py-2 flex items-center justify-between">
+                  <span className="text-white font-extrabold text-lg tracking-wide">
+                    Pedido&nbsp;#{order.order_number}
+                  </span>
+                  <span className="text-xs text-gray-300">
+                    {new Date(order.created_at).toLocaleTimeString("es-CO", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+
+                <div className="p-5 flex flex-col flex-1 justify-between">
                 <div className="flex justify-between items-start mb-4">
                   <div className="space-y-1">
                     {order.order_type === "mesa" && (
@@ -472,12 +493,12 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
                   {order.order_items?.map((item) => (
                     <div key={item.id} className="flex justify-between text-sm">
                       <div>
-                        <p className="text-md">{formatPizza(item)}</p>
+                        <p className="text-md">{formatItem(item)}</p>
                         {item.observations && (
                           <p className="text-sm">{item.observations}</p>
                         )}
                         {item.additionals && item.additionals.length > 0 && (
-                          <p className="text-orange-500 text-xs mt-1">
+                          <p className="text-brand text-xs mt-1">
                             Adicional: {item.additionals[0]?.name} (+$
                             {item.additionals[0]?.price.toLocaleString("es-CO")}
                             )
@@ -561,16 +582,39 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
                       +
                     </button>
 
-                    <button
-                      onClick={() => changeStatus(order)}
-                      className={`basis-[70%] text-white py-5 rounded-3xl font-bold text-lg shadow-lg transition-all duration-200 active:scale-95 flex items-center justify-center gap-2
-                        ${STATUS_STYLES[order.status] || "bg-gray-500 hover:bg-gray-600"}
-                      `}
-                    >
-                      Cambiar estado
-                    </button>
+                    <div className="basis-[70%] flex gap-1">
+                      <select
+                        value={pendingStatus[order.id] ?? order.status}
+                        onChange={(e) =>
+                          setPendingStatus((prev) => ({
+                            ...prev,
+                            [order.id]: e.target.value,
+                          }))
+                        }
+                        className="flex-1 rounded-2xl border border-gray-200 px-2 py-2 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+                      >
+                        {ORDER_FLOW[order.order_type].map((s) => (
+                          <option key={s} value={s}>
+                            {s.replace(/_/g, " ")}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() =>
+                          changeStatus(order, pendingStatus[order.id])
+                        }
+                        disabled={
+                          (pendingStatus[order.id] ?? order.status) ===
+                          order.status
+                        }
+                        className={`px-3 py-2 rounded-2xl text-white font-bold text-sm shadow-md transition-all duration-200 active:scale-95 disabled:opacity-40 ${STATUS_BTN[order.status] ?? "bg-gray-500 hover:bg-gray-600"}`}
+                      >
+                        OK
+                      </button>
+                    </div>
                   </div>
                 </div>
+                </div>{/* /p-5 */}
               </div>
             );
           })}

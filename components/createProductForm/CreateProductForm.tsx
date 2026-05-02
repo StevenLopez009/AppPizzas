@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { CATEGORIES } from "@/lib/categories";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import imgProduct from "@/assets/images/createProduct.jpg";
@@ -20,9 +19,15 @@ export default function CreateProductForm() {
   });
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
 
-  const isPizza =
-    form.category === "Pizza Dulce" || form.category === "Pizza Sal";
+  useEffect(() => {
+    api.get<{ categories: { id: string; name: string }[] }>("/api/categories")
+      .then(({ categories }) => setCategories(categories.map((c) => c.name)))
+      .catch(() => {});
+  }, []);
+
+  const isPizza = form.category.toLowerCase().includes("pizza");
 
   const category = form.category.toLowerCase();
   const isComidaRapida = category.includes("rapida");
@@ -126,7 +131,7 @@ export default function CreateProductForm() {
           placeholder="Nombre del producto"
           value={form.name}
           onChange={handleChange}
-          className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
+          className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition"
           required
         />
 
@@ -135,18 +140,18 @@ export default function CreateProductForm() {
           placeholder="Descripción"
           value={form.description}
           onChange={handleChange}
-          className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition resize-none"
+          className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition resize-none"
         />
 
         <select
           name="category"
           value={form.category}
           onChange={handleChange}
-          className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
+          className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition"
           required
         >
           <option value="">Selecciona una categoría</option>
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <option key={cat} value={cat}>
               {cat}
             </option>
@@ -167,7 +172,7 @@ export default function CreateProductForm() {
               }
               value={form.pricePersonal}
               onChange={handleChange}
-              className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
+              className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition"
               required
             />
 
@@ -183,7 +188,7 @@ export default function CreateProductForm() {
               }
               value={form.priceMediana}
               onChange={handleChange}
-              className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
+              className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition"
               required
             />
           </div>
@@ -194,7 +199,7 @@ export default function CreateProductForm() {
             placeholder="Precio"
             value={form.price}
             onChange={handleChange}
-            className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
+            className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition"
             required
           />
         )}
@@ -205,14 +210,14 @@ export default function CreateProductForm() {
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="w-full mt-1 border border-dashed border-gray-300 p-3 rounded-xl cursor-pointer hover:border-orange-400 transition"
+            className="w-full mt-1 border border-dashed border-gray-300 p-3 rounded-xl cursor-pointer hover:border-brand-ring transition"
           />
         </label>
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-60"
+          className="w-full bg-brand hover:bg-brand-hover text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-60"
         >
           {submitting ? "Guardando…" : "Guardar Producto"}
         </button>

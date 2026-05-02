@@ -189,15 +189,17 @@ export default function PizzaMitadesPage() {
         ? ` | Adicionales: ${selectedAdditionals.map((a) => a.name).join(", ")}`
         : "";
 
+    const id = `mitades-${selectedSize.label}-${saboresSeleccionados.join("-")}-${selectedAdditionals.map((a) => a.name).join("-")}`;
     const item = {
-      id: `mitades-${selectedSize.label}-${saboresSeleccionados.join("-")}-${selectedAdditionals.map((a) => a.name).join("-")}`,
+      id,
+      product_id: id,
       name: "Pizza por mitades",
-      price: precioTotal, // Precio con adicionales incluidos
+      price: precioTotal,
       size: selectedSize.label,
       image: ImagePizza.src,
       extra: `Mitades: ${saboresSeleccionados.join(" / ")} | Bordes: ${borders[0]} / ${borders[1]}${adicionalesTexto}`,
       quantity: 1,
-      additionals: selectedAdditionals, // Guardar los adicionales en el item
+      additionals: selectedAdditionals,
     };
 
     addToCart(item);

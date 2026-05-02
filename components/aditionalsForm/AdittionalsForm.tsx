@@ -1,13 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { Pencil, Trash2, PlusCircle, XCircle, Save } from "lucide-react";
+import toast from "react-hot-toast";
+import { api } from "@/lib/api";
+
+interface Additional {
+  id: string;
+  name: string;
+  price: number;
+  category: string | null;
+  active: boolean;
+}
 
 export default function AdditionalsForm() {
-  const supabase = createClient();
-
-  const [additionals, setAdditionals] = useState<any[]>([]);
+  const [additionals, setAdditionals] = useState<Additional[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
@@ -20,125 +27,90 @@ export default function AdditionalsForm() {
 
   const [editing, setEditing] = useState(false);
 
-  async function getAdditionals() {
-    const { data, error } = await supabase
-      .from("additionals")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error(error);
-      return;
+  async function refresh() {
+    try {
+      const { additionals } = await api.get<{ additionals: Additional[] }>(
+        "/api/additionals",
+      );
+      setAdditionals(additionals);
+    } catch (e) {
+      console.error(e);
     }
-
-    setAdditionals(data || []);
   }
 
   useEffect(() => {
-    getAdditionals();
+    refresh();
   }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const resetForm = () => {
-    setForm({
-      id: "",
-      name: "",
-      price: "",
-      category: "",
-      active: true,
-    });
-
+    setForm({ id: "", name: "", price: "", category: "", active: true });
     setEditing(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setLoading(true);
 
-    if (editing) {
-      const { error } = await supabase
-        .from("additionals")
-        .update({
+    try {
+      if (editing) {
+        await api.put(`/api/additionals/${encodeURIComponent(form.id)}`, {
           name: form.name,
           price: Number(form.price),
           category: form.category,
           active: form.active,
-        })
-        .eq("id", form.id);
-
-      if (error) {
-        console.error(error);
-        alert("Error actualizando adicional");
+        });
+        toast.success("Adicional actualizado");
       } else {
-        alert("Adicional actualizado");
-      }
-    } else {
-      const { error } = await supabase.from("additionals").insert([
-        {
+        await api.post("/api/additionals", {
           name: form.name,
           price: Number(form.price),
           category: form.category,
           active: true,
-        },
-      ]);
-
-      if (error) {
-        console.error(error);
-        alert("Error creando adicional");
-      } else {
-        alert("Adicional creado");
+        });
+        toast.success("Adicional creado");
       }
+      resetForm();
+      await refresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Error guardando adicional");
+    } finally {
+      setLoading(false);
     }
-
-    resetForm();
-    getAdditionals();
-    setLoading(false);
   };
 
-  const handleEdit = (additional: any) => {
+  const handleEdit = (additional: Additional) => {
     setEditing(true);
-
     setForm({
       id: additional.id,
       name: additional.name,
-      price: additional.price,
-      category: additional.category,
+      price: String(additional.price),
+      category: additional.category ?? "",
       active: additional.active,
     });
   };
 
   const handleDelete = async (id: string) => {
-    const confirmDelete = confirm(
-      "¿Seguro que quieres eliminar este adicional?",
-    );
-
-    if (!confirmDelete) return;
-
-    const { error } = await supabase.from("additionals").delete().eq("id", id);
-
-    if (error) {
-      console.error(error);
-      alert("Error eliminando adicional");
-      return;
+    if (!confirm("¿Seguro que quieres eliminar este adicional?")) return;
+    try {
+      await api.delete(`/api/additionals/${encodeURIComponent(id)}`);
+      toast.success("Adicional eliminado");
+      await refresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Error eliminando adicional");
     }
-
-    getAdditionals();
   };
 
   return (
     <div className="max-w-6xl mx-auto mt-10 grid lg:grid-cols-2 gap-8">
-      {/* FORMULARIO */}
       <form
         onSubmit={handleSubmit}
         className="bg-white rounded-3xl shadow-xl p-8 space-y-5 h-fit"
@@ -207,7 +179,6 @@ export default function AdditionalsForm() {
         </button>
       </form>
 
-      {/* LISTADO */}
       <div className="bg-white rounded-3xl shadow-xl p-6 mb-20">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Adicionales</h2>
 

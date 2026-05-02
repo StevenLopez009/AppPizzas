@@ -1,26 +1,37 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { api } from "@/lib/api";
 
-type UserContextType = User | null;
+export interface AppUser {
+  id: string;
+  email: string;
+  name: string | null;
+  phone: string | null;
+  role: "user" | "admin";
+}
+
+type UserContextType = AppUser | null;
 const UserContext = createContext<UserContextType>(null);
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const supabase = createClient();
   const [user, setUser] = useState<UserContextType>(null);
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      setUser(user);
+    let cancelled = false;
+    (async () => {
+      try {
+        const { user } = await api.get<{ user: AppUser | null }>(
+          "/api/auth/me",
+        );
+        if (!cancelled) setUser(user);
+      } catch {
+        if (!cancelled) setUser(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
     };
-
-    getUser();
   }, []);
 
   return <UserContext.Provider value={user}>{children}</UserContext.Provider>;

@@ -1,19 +1,13 @@
-import { createClient } from "@/lib/supabase/client";
+import { api, ApiError } from "@/lib/api";
 
-export async function getUserRole() {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return false;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  return profile?.role === "admin";
+export async function getUserRole(): Promise<boolean> {
+  try {
+    const { user } = await api.get<{ user: { role?: string } | null }>(
+      "/api/auth/me",
+    );
+    return user?.role === "admin";
+  } catch (e) {
+    if (e instanceof ApiError) return false;
+    throw e;
+  }
 }

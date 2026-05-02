@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { PDFViewer } from "@react-pdf/renderer";
 import { useParams, useRouter } from "next/navigation";
 import { InvoicePDF } from "@/components/InvoicePDF/InvoicePDF";
+import { api } from "@/lib/api";
 
 interface OrderItem {
   id: string;
@@ -40,61 +40,29 @@ interface Order {
 export default function FacturaPage() {
   const params = useParams();
   const router = useRouter();
-  const supabase = createClient();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getOrder = async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select(
-          `
-          id,
-          created_at,
-          customer_name,
-          customer_phone,
-          customer_address,
-          payment_method,
-          total,
-          order_type,
-          status,
-          neighborhood,
-          lat,
-          lng,
-          cash_amount,
-          delivery_fee,
-          subtotal,
-          discount_percentage,
-          order_items (
-            id,
-            product_name,
-            quantity,
-            price,
-            size,
-            extra,
-            observations,
-            additionals
-          )
-        `,
-        )
-        .eq("id", params.id)
-        .single();
-
-      if (error) {
-        console.log(error);
-        router.push("/admin");
-      } else {
-        setOrder(data as Order);
+    if (!params.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { order } = await api.get<{ order: Order }>(
+          `/api/orders/${encodeURIComponent(String(params.id))}`,
+        );
+        if (!cancelled) setOrder(order);
+      } catch (e) {
+        console.log(e);
+        router.push("/dashboardAdmin/orders");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-
-      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
     };
-
-    if (params.id) {
-      getOrder();
-    }
-  }, [params.id, supabase, router]);
+  }, [params.id, router]);
 
   if (loading) {
     return (
@@ -113,7 +81,7 @@ export default function FacturaPage() {
         <div className="text-center">
           <p className="text-red-600 mb-4">No se encontró la orden</p>
           <button
-            onClick={() => router.push("/admin")}
+            onClick={() => router.push("/dashboardAdmin/orders")}
             className="bg-orange-500 text-white px-6 py-2 rounded-lg"
           >
             Volver al dashboard
@@ -135,10 +103,10 @@ export default function FacturaPage() {
               onClick={() => window.print()}
               className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition"
             >
-              🖨️ Imprimir
+              Imprimir
             </button>
             <button
-              onClick={() => router.push("/admin")}
+              onClick={() => router.push("/dashboardAdmin/orders")}
               className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition"
             >
               ← Volver

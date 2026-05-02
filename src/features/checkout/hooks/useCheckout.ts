@@ -2,6 +2,7 @@
 
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 import { useCheckoutForm } from "./useCheckoutForm";
 import { useCheckoutLocation } from "./useCheckoutLocation";
@@ -47,26 +48,31 @@ export function useCheckout() {
 
   const handleSubmit = async () => {
     if (cart.length === 0) {
-      alert("Tu carrito está vacío");
+      toast.error("Tu carrito está vacío");
+      return;
+    }
+
+    if (!orderType) {
+      toast.error("Selecciona el tipo de pedido");
       return;
     }
 
     if (orderType === "domicilio") {
       if (!form.nombre || !form.telefono || !form.direccion || !barrio) {
-        alert("Completa todos los datos");
+        toast.error("Completa todos los datos");
         return;
       }
     }
 
     if (orderType === "recoger") {
       if (!form.nombre || !form.telefono) {
-        alert("Completa todos los datos");
+        toast.error("Completa todos los datos");
         return;
       }
     }
 
     if (orderType === "mesa" && !mesa) {
-      alert("Selecciona una mesa");
+      toast.error("Selecciona una mesa");
       return;
     }
 
@@ -100,6 +106,8 @@ export function useCheckout() {
 
       localStorage.removeItem("order_type");
 
+      toast.success("Pedido enviado");
+
       if (window.innerWidth < 768) {
         router.push(`/dashboard/pedido/${order.id}`);
       } else {
@@ -108,8 +116,8 @@ export function useCheckout() {
         setShowOrderPage(true);
       }
     } catch (error) {
-      console.log(error);
-      alert("Error creando la orden");
+      console.error(error);
+      toast.error("Error creando la orden");
     }
   };
 

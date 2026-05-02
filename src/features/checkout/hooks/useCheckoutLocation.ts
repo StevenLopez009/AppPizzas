@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export function useCheckoutLocation() {
   const [location, setLocation] = useState<{
@@ -22,7 +23,7 @@ export function useCheckoutLocation() {
         });
       },
       () => {
-        alert("No se pudo obtener la ubicación");
+        toast.error("No se pudo obtener la ubicación");
       },
     );
   };

@@ -1,9 +1,11 @@
 import OrderTrackingTime from "@/components/orderTrackingTime/OrderTrackingTime";
 import { ShoppingBasket } from "lucide-react";
 
+type OrderType = "domicilio" | "mesa" | "recoger";
+
 interface Props {
   status: string | null;
-  orderType: string | null;
+  orderType: OrderType | null;
   onGoHome: () => void;
 }
 

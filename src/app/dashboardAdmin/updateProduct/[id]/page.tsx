@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/client";
-import ProductUpdate from "./ProductUpdate";
 import { notFound } from "next/navigation";
+import { getProduct } from "@/lib/repos/products";
+import ProductUpdate from "./ProductUpdate";
 
 export default async function Page({
   params,
@@ -8,15 +8,7 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = createClient();
-
-  const { data: product } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", id)
-    .single();
-
+  const product = await getProduct(id);
   if (!product) return notFound();
-
   return <ProductUpdate product={product} />;
 }

@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../../lib/supabase/client";
 import { useRouter } from "next/navigation";
 import {
   Form,
@@ -20,9 +19,9 @@ import { Input } from "../ui/input";
 import ImgLogin from "@/assets/images/loginImg.jpg";
 import SignUpForm from "./SignUpForm";
 import Link from "next/link";
+import { api, ApiError } from "@/lib/api";
 
 const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
-  const supabase = createClient();
   const router = useRouter();
   const [isLoading, setisLoading] = useState<boolean>(false);
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
@@ -30,9 +29,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
   const formSchema = z.object({
     email: z
       .email("Por favor ingresa un correo válido. Ejemplo: user@mail.com")
-      .min(1, {
-        message: "Este campo es requerido",
-      }),
+      .min(1, { message: "Este campo es requerido" }),
     password: z.string().min(6, {
       message: "La contraseña debe tener al menos 6 caracteres",
     }),
@@ -40,44 +37,36 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
-  const { handleSubmit, formState, control } = form;
-  const { errors } = formState;
-
-  const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const { handleSubmit, control } = form;
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setisLoading(true);
     try {
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
-
-      if (error) throw error;
+      const { user } = await api.post<{
+        user: { email: string; role: "user" | "admin" };
+      }>("/api/auth/login", { email: data.email, password: data.password });
 
       toast.success("¡Bienvenido!");
-
-      const USER_EMAIL = authData.user?.email;
-      if (USER_EMAIL?.toLowerCase() === ADMIN_EMAIL?.toLowerCase()) {
+      if (user.role === "admin") {
         router.replace("/dashboardAdmin");
       } else {
         router.replace("/dashboard");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Error al iniciar sesión");
+      router.refresh();
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "Error al iniciar sesión";
+      toast.error(message);
     } finally {
       setisLoading(false);
     }
-  };
-
-  const handleRegister = () => {
-    setIsRegistering(true);
   };
 
   if (isRegistering) {
@@ -87,7 +76,6 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md md:max-w-4xl bg-white shadow-2xl rounded-[30px] overflow-hidden md:flex">
-        {/* Imagen */}
         <div
           className="relative h-56 md:h-auto md:w-1/2 bg-cover bg-center"
           style={{ backgroundImage: `url(${ImgLogin.src})` }}
@@ -100,7 +88,6 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
           </Link>
         </div>
 
-        {/* Formulario */}
         <div className="w-full md:w-1/2 p-6 md:p-10">
           <div className="text-center mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-orange-600">
@@ -116,9 +103,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-500 text-sm">
-                      Email
-                    </FormLabel>
+                    <FormLabel className="text-gray-500 text-sm">Email</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -164,7 +149,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
           <p className="text-center text-sm text-gray-400 mt-6">
             ¿No tienes cuenta?{" "}
             <span
-              onClick={handleRegister}
+              onClick={() => setIsRegistering(true)}
               className="text-orange-500 font-semibold cursor-pointer"
             >
               Regístrate

@@ -4,7 +4,9 @@ import { useState } from "react";
 import SignInForm from "@/components/auth/SignInForm";
 
 export default function ProfilePage() {
-  const [typeSelected, setTypeSelected] = useState("sign-in");
+  const [typeSelected, setTypeSelected] = useState<
+    "sign-up" | "sign-in" | "recover-password"
+  >("sign-in");
 
   return (
     <main>

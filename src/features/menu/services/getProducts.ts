@@ -1,14 +1,11 @@
-import { createClient } from "@/lib/supabase/client";
+import { api } from "@/lib/api";
 
 export async function getProducts() {
-  const supabase = createClient();
-
-  const { data, error } = await supabase.from("products").select("*");
-
-  if (error) {
-    console.log(error);
+  try {
+    const { products } = await api.get<{ products: unknown[] }>("/api/products");
+    return products;
+  } catch (e) {
+    console.log(e);
     return [];
   }
-
-  return data || [];
 }

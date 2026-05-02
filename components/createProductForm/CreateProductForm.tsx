@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { CATEGORIES } from "@/lib/categories";
 import Image from "next/image";
+import toast from "react-hot-toast";
 import imgProduct from "@/assets/images/createProduct.jpg";
+import { uploadImageToCloudinary } from "@/lib/storage/cloudinary";
+import { api, ApiError } from "@/lib/api";
 
 export default function CreateProductForm() {
-  const supabase = createClient();
-
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -19,6 +19,7 @@ export default function CreateProductForm() {
     category: "",
   });
   const [file, setFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const isPizza =
     form.category === "Pizza Dulce" || form.category === "Pizza Sal";
@@ -26,76 +27,50 @@ export default function CreateProductForm() {
   const category = form.category.toLowerCase();
   const isComidaRapida = category.includes("rapida");
 
-  const handleChange = (e: any) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e: any) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-    }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) setFile(selectedFile);
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    let imageUrl = "";
-
-    if (file) {
-      const fileName = `${Date.now()}-${file.name}`;
-
-      const { data, error: uploadError } = await supabase.storage
-        .from("products")
-        .upload(fileName, file);
-
-      if (uploadError) {
-        console.error(uploadError);
-        alert("Error subiendo imagen");
-        return;
+    setSubmitting(true);
+    try {
+      let imageUrl = "";
+      if (file) {
+        imageUrl = await uploadImageToCloudinary(file);
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from("products")
-        .getPublicUrl(fileName);
+      let prices: Array<{ label: string; price: number }> = [];
+      if (isPizza) {
+        prices = [
+          { label: "Personal", price: Number(form.pricePersonal) },
+          { label: "Mediana", price: Number(form.priceMediana) },
+        ];
+      } else if (isComidaRapida) {
+        prices = [
+          { label: "Sencillo", price: Number(form.pricePersonal) },
+          { label: "Doble", price: Number(form.priceMediana) },
+        ];
+      } else {
+        prices = [{ label: "", price: Number(form.price) }];
+      }
 
-      imageUrl = publicUrlData.publicUrl;
-    }
-
-    let prices = [];
-
-    if (isPizza) {
-      prices = [
-        { label: "Personal", price: Number(form.pricePersonal) },
-        { label: "Mediana", price: Number(form.priceMediana) },
-      ];
-    } else if (isComidaRapida) {
-      prices = [
-        { label: "Sencillo", price: Number(form.pricePersonal) },
-        { label: "Doble", price: Number(form.priceMediana) },
-      ];
-    } else {
-      prices = [{ label: "", price: Number(form.price) }];
-    }
-
-    const { error } = await supabase.from("products").insert([
-      {
+      await api.post("/api/products", {
         name: form.name,
         description: form.description,
         prices,
         image_url: imageUrl,
         category: form.category,
-      },
-    ]);
+      });
 
-    if (error) {
-      console.error(error);
-      alert("Error al crear producto");
-    } else {
-      alert("Producto creado ");
+      toast.success("Producto creado");
       setForm({
         name: "",
         description: "",
@@ -105,6 +80,18 @@ export default function CreateProductForm() {
         image_url: "",
         category: "",
       });
+      setFile(null);
+    } catch (err) {
+      console.error(err);
+      const msg =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "Error al crear producto";
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -224,9 +211,10 @@ export default function CreateProductForm() {
 
         <button
           type="submit"
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95"
+          disabled={submitting}
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-60"
         >
-          Guardar Producto
+          {submitting ? "Guardando…" : "Guardar Producto"}
         </button>
       </div>
     </form>

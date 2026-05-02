@@ -1,4 +1,5 @@
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export const useLastOrderNavigation = () => {
   const router = useRouter();
@@ -9,7 +10,7 @@ export const useLastOrderNavigation = () => {
     if (lastOrderId) {
       router.push(`/pedido/${lastOrderId}`);
     } else {
-      alert("No tienes pedidos activos");
+      toast("No tienes pedidos activos", { icon: "📭" });
     }
   };
 

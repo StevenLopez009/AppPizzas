@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { BookMinus, PrinterIcon, TrashIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
+import { api } from "@/lib/api";
+import { useOrdersStream } from "@/lib/realtime/client";
 
 interface OrderItem {
   id: string;
@@ -52,7 +54,6 @@ const ORDER_FLOW = {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const supabase = createClient();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,67 +76,37 @@ export default function AdminDashboard() {
     listo_para_recoger: "bg-green-500 text-purple-800",
   };
 
-  useEffect(() => {
-    const getOrders = async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select(
-          `
-          id,
-          created_at,
-          customer_name,
-          customer_phone,
-          customer_address,
-          payment_method,
-          table_number,
-          total,
-          order_type,
-          delivery_fee,
-          status,
-          neighborhood,
-          lat,
-          lng,
-          cash_amount,
-          order_items (
-            id,
-            product_name,
-            quantity,
-            price,
-            size,
-            extra,
-            observations,
-            additionals
-          ),
-          discount_percentage
-        `,
-        )
-        .order("created_at", { ascending: false });
-
-      if (!error) setOrders(data as Order[]);
+  async function refreshOrders() {
+    try {
+      const { orders } = await api.get<{ orders: Order[] }>("/api/orders");
+      setOrders(orders);
+    } catch (e) {
+      console.error(e);
+    } finally {
       setLoading(false);
-    };
+    }
+  }
 
-    getOrders();
-
-    const channel = supabase
-      .channel("orders-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "orders",
-        },
-        () => {
-          getOrders();
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+  useEffect(() => {
+    refreshOrders();
   }, []);
+
+  useOrdersStream(null, (event) => {
+    if (event.type === "order.created" && event.order) {
+      const incoming = event.order as Order;
+      setOrders((prev) =>
+        prev.find((o) => o.id === incoming.id) ? prev : [incoming, ...prev],
+      );
+      router;
+    } else if (event.type === "order.updated" && event.order) {
+      const updated = event.order as Order;
+      setOrders((prev) =>
+        prev.map((o) => (o.id === updated.id ? updated : o)),
+      );
+    } else if (event.type === "order.deleted" && event.orderId) {
+      setOrders((prev) => prev.filter((o) => o.id !== event.orderId));
+    }
+  });
 
   const openInvoice = (orderId: string) => {
     window.open(`/dashboardAdmin/factura/${orderId}`, "_blank");
@@ -149,27 +120,15 @@ export default function AdminDashboard() {
     const confirmDelete = window.confirm(
       `¿Estás seguro de eliminar el pedido de ${customerName}?\n\nEsta acción no se puede deshacer.`,
     );
-
     if (!confirmDelete) return;
 
     try {
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .delete()
-        .eq("order_id", orderId);
-
-      if (itemsError) throw itemsError;
-      const { error: orderError } = await supabase
-        .from("orders")
-        .delete()
-        .eq("id", orderId);
-
-      if (orderError) throw orderError;
-
-      setOrders((prevOrders) => prevOrders.filter((o) => o.id !== orderId));
-    } catch (error) {
-      console.error("Error eliminando pedido:", error);
-      alert("❌ Error al eliminar el pedido. Por favor, intenta de nuevo.");
+      await api.delete(`/api/orders/${encodeURIComponent(orderId)}`);
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      toast.success("Pedido eliminado");
+    } catch (e) {
+      console.error("Error eliminando pedido:", e);
+      toast.error("Error al eliminar el pedido. Intenta de nuevo.");
     }
   };
 
@@ -184,15 +143,14 @@ export default function AdminDashboard() {
     const nextStatus = flow[index + 1];
     if (!nextStatus) return;
 
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: nextStatus })
-      .eq("id", order.id);
-
-    if (!error) {
-      setOrders((prev) =>
-        prev.map((o) => (o.id === order.id ? { ...o, status: nextStatus } : o)),
+    try {
+      const { order: updated } = await api.patch<{ order: Order }>(
+        `/api/orders/${encodeURIComponent(order.id)}`,
+        { status: nextStatus },
       );
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -208,9 +166,7 @@ export default function AdminDashboard() {
     const adicionalesMatch = item.extra.match(/Adicionales:\s*(.*)/);
 
     const sabores = mitadesMatch?.[1]?.split("/").map((s) => s.trim());
-
     const bordes = bordesMatch?.[1]?.split("/").map((b) => b.trim());
-
     const adicionales = adicionalesMatch?.[1]?.trim();
 
     return `
@@ -225,49 +181,40 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
 
   const filteredOrders = orders.filter((order) => {
     const orderDate = new Date(order.created_at);
-
-    // filtro por fecha
     if (dateRange.from && orderDate < dateRange.from) return false;
     if (dateRange.to && orderDate > dateRange.to) return false;
-
-    // filtro por nombre (seguro contra null)
     if (
       search &&
       !(order.customer_name || "").toLowerCase().includes(search.toLowerCase())
     ) {
       return false;
     }
-
     return true;
   });
 
   const totalSales = filteredOrders.reduce((acc, o) => {
     const final = o.total - (o.total * (o.discount_percentage || 0)) / 100;
-
     return acc + final;
   }, 0);
-  const totalOrders = filteredOrders.length;
 
   const applyDiscount = async (order: Order) => {
     const discount = discounts[order.id];
-
     if (discount === undefined || discount < 0 || discount > 100) {
-      return alert("Descuento inválido");
+      toast.error("Descuento inválido");
+      return;
     }
 
-    const { error } = await supabase
-      .from("orders")
-      .update({ discount_percentage: discount })
-      .eq("id", order.id);
-
-    if (!error) {
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === order.id ? { ...o, discount_percentage: discount } : o,
-        ),
+    try {
+      const { order: updated } = await api.patch<{ order: Order }>(
+        `/api/orders/${encodeURIComponent(order.id)}`,
+        { discount_percentage: discount },
       );
-
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
       setActiveDiscount(null);
+      toast.success("Descuento aplicado");
+    } catch (e) {
+      console.error(e);
+      toast.error("Error aplicando descuento");
     }
   };
 
@@ -279,63 +226,32 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
     { domicilio: 0, mesa: 0, recoger: 0 },
   );
 
-  const tipeOrder = (order: Order) => {
-    console.log(order.order_type);
-  };
-  const updateOrderTotal = async (orderId: string) => {
-    const { data: items } = await supabase
-      .from("order_items")
-      .select("price, quantity")
-      .eq("order_id", orderId);
-
-    const newTotal =
-      items?.reduce((acc, item) => acc + item.price * item.quantity, 0) || 0;
-
-    await supabase.from("orders").update({ total: newTotal }).eq("id", orderId);
-
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, total: newTotal } : o)),
-    );
-  };
-
   const handleAddExtra = async () => {
-    if (!extraName || !extraPrice) {
-      return alert("Completa los campos");
-    }
-
-    const price = Number(extraPrice);
-
-    const { data, error } = await supabase
-      .from("order_items")
-      .insert([
-        {
-          order_id: selectedOrder,
-          product_name: extraName,
-          quantity: 1,
-          price: price,
-          size: "extra",
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) {
-      console.error(error);
+    if (!extraName || !extraPrice || !selectedOrder) {
+      toast.error("Completa los campos");
       return;
     }
-    setOrders((prev) =>
-      prev.map((order) => {
-        if (order.id === selectedOrder) {
-          return {
-            ...order,
-            order_items: [...order.order_items, data],
-          };
-        }
-        return order;
-      }),
-    );
 
-    await updateOrderTotal(selectedOrder!);
+    try {
+      const { order: updated } = await api.post<{ order: Order }>(
+        `/api/orders/${encodeURIComponent(selectedOrder)}/items`,
+        {
+          product_name: extraName,
+          quantity: 1,
+          price: Number(extraPrice),
+          size: "extra",
+        },
+      );
+      if (updated) {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === updated.id ? updated : o)),
+        );
+      }
+      toast.success("Extra agregado");
+    } catch (e) {
+      console.error(e);
+      toast.error("Error agregando extra");
+    }
 
     setExtraName("");
     setExtraPrice("");
@@ -377,8 +293,12 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
           <div className="rounded-xl overflow-hidden">
             <Calendar
               mode="range"
-              selected={dateRange}
-              onSelect={(range) => setDateRange(range || {})}
+              selected={
+                dateRange.from ? { from: dateRange.from, to: dateRange.to } : undefined
+              }
+              onSelect={(range) =>
+                setDateRange(range ? { from: range.from, to: range.to } : {})
+              }
               numberOfMonths={2}
               className="p-2"
             />
@@ -419,13 +339,10 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
         <button
           onClick={() => {
             const today = new Date();
-
             const start = new Date(today);
             start.setHours(0, 0, 0, 0);
-
             const end = new Date(today);
             end.setHours(23, 59, 59, 999);
-
             setDateRange({ from: start, to: end });
           }}
           className="px-4 py-2 bg-gray-200 rounded-xl"
@@ -467,7 +384,6 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
         </button>
       </div>
       <div className="max-w-7xl mx-auto mt-6 mb-20">
-        {/* GRID RESPONSIVE */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredOrders.map((order) => {
             const finalTotal =
@@ -479,7 +395,6 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
                 key={order.id}
                 className="bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between"
               >
-                {/* HEADER */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="space-y-1">
                     {order.order_type === "mesa" && (
@@ -491,21 +406,21 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
                           {order.customer_name}
                         </p>
                         <p className="text-sm text-gray-500">
-                          📞 {order.customer_phone}
+                          {order.customer_phone}
                         </p>
 
                         <p className="text-sm text-gray-500">
-                          📍 {order.customer_address}
+                          {order.customer_address}
                         </p>
                       </>
                     )}
 
                     <p className="text-sm text-gray-400">
-                      💳 {order.payment_method}
+                      {order.payment_method}
                     </p>
                     <p className="text-sm text-gray-400">
                       {order.cash_amount
-                        ? `Paga con $${order.cash_amount.toLocaleString("es-CO")}`
+                        ? `Paga con $${Number(order.cash_amount).toLocaleString("es-CO")}`
                         : "No especificado"}
                     </p>
 
@@ -521,7 +436,7 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
                         target="_blank"
                         className="text-blue-500 text-sm underline"
                       >
-                        📍 Ver ubicación en mapa
+                        Ver ubicación en mapa
                       </a>
                     )}
                   </div>
@@ -529,12 +444,13 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
                   <div className="text-right">
                     {order.order_type === "domicilio" && order.delivery_fee && (
                       <p className="text-sm text-gray-500">
-                        Domicilio: ${order.delivery_fee.toLocaleString("es-CO")}
+                        Domicilio: $
+                        {Number(order.delivery_fee).toLocaleString("es-CO")}
                       </p>
                     )}
                     {order.discount_percentage > 0 && (
                       <p className="text-sm line-through text-gray-400">
-                        ${order.total.toLocaleString("es-CO")}
+                        ${Number(order.total).toLocaleString("es-CO")}
                       </p>
                     )}
 
@@ -552,7 +468,6 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
                   </div>
                 </div>
 
-                {/* ITEMS */}
                 <div className="border-t pt-3 pb-3 space-y-2">
                   {order.order_items?.map((item) => (
                     <div key={item.id} className="flex justify-between text-sm">
@@ -561,12 +476,10 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
                         {item.observations && (
                           <p className="text-sm">{item.observations}</p>
                         )}
-                        {item.additionals && (
+                        {item.additionals && item.additionals.length > 0 && (
                           <p className="text-orange-500 text-xs mt-1">
-                            Adicional: {item.additionals?.[0]?.name} (+$
-                            {item.additionals?.[0]?.price.toLocaleString(
-                              "es-CO",
-                            )}
+                            Adicional: {item.additionals[0]?.name} (+$
+                            {item.additionals[0]?.price.toLocaleString("es-CO")}
                             )
                           </p>
                         )}
@@ -588,7 +501,7 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
                           onClick={() =>
                             deleteOrder(order.id, order.customer_name)
                           }
-                          className="w-full  hover:bg-red-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-red-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                          className="w-full hover:bg-red-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-red-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
                         >
                           <TrashIcon className="w-5 h-5" />
                         </button>
@@ -601,13 +514,13 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
 
                         <button
                           onClick={() => openInvoice(order.id)}
-                          className="w-full  hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                          className="w-full hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
                         >
                           <PrinterIcon className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => setActiveDiscount(order.id)}
-                          className="w-full  hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                          className="w-full hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
                         >
                           %
                         </button>
@@ -628,7 +541,7 @@ ${adicionales ? `, adicionales: ${adicionales}` : ""}
                         />
                         <button
                           onClick={() => applyDiscount(order)}
-                          className="w-full  hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                          className="w-full hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
                         >
                           Aplicar
                         </button>

@@ -1,96 +1,64 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
-
-interface Banner {
-  id: string;
-  image_url: string;
-}
+import toast from "react-hot-toast";
+import { uploadImageToCloudinary } from "@/lib/storage/cloudinary";
+import {
+  createBanner,
+  deleteBanner,
+  getBanners,
+  type Banner,
+} from "@/src/features/banner/services/banner.service";
 
 export default function AdminBanner() {
-  const supabase = createClient();
-
   const [file, setFile] = useState<File | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(false);
 
-  async function getBanners() {
-    const { data, error } = await supabase
-      .from("banners")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (!error && data) {
+  async function refresh() {
+    try {
+      const data = await getBanners();
       setBanners(data);
+    } catch (e) {
+      console.error(e);
     }
   }
 
   useEffect(() => {
-    getBanners();
+    refresh();
   }, []);
 
-  const handleFileChange = (e: any) => {
-    const selectedFile = e.target.files[0];
-
-    if (selectedFile) {
-      setFile(selectedFile);
-    }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) setFile(selectedFile);
   };
 
   const handleUpload = async () => {
     if (!file) return;
-
     try {
       setLoading(true);
-
-      const fileName = `${Date.now()}-${file.name}`;
-
-      // subir imagen
-      const { error: uploadError } = await supabase.storage
-        .from("banners")
-        .upload(fileName, file);
-
-      if (uploadError) {
-        console.error(uploadError);
-        return;
-      }
-
-      // obtener url pública
-      const { data: publicUrlData } = supabase.storage
-        .from("banners")
-        .getPublicUrl(fileName);
-
-      const imageUrl = publicUrlData.publicUrl;
-
-      // guardar en tabla
-      const { error } = await supabase.from("banners").insert([
-        {
-          image_url: imageUrl,
-        },
-      ]);
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-
+      const url = await uploadImageToCloudinary(file);
+      await createBanner(url);
       setFile(null);
-
-      await getBanners();
-    } catch (error) {
-      console.error(error);
+      toast.success("Banner subido");
+      await refresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Error subiendo banner");
     } finally {
       setLoading(false);
     }
   };
 
   async function handleDelete(id: string) {
-    const { error } = await supabase.from("banners").delete().eq("id", id);
-
-    if (!error) {
-      setBanners((prev) => prev.filter((banner) => banner.id !== id));
+    try {
+      await deleteBanner(id);
+      setBanners((prev) => prev.filter((b) => b.id !== id));
+      toast.success("Banner eliminado");
+    } catch (e) {
+      console.error(e);
+      toast.error("Error eliminando banner");
     }
   }
 
@@ -122,7 +90,6 @@ export default function AdminBanner() {
               fill
               className="object-cover"
             />
-
             <button
               onClick={() => handleDelete(banner.id)}
               className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-xl"

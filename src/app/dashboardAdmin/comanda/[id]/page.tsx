@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { PDFViewer } from "@react-pdf/renderer";
-
 import { useParams, useRouter } from "next/navigation";
 import { KitchenOrderPDF } from "@/components/KitchenOrderPDF/KitchenOrderPDF";
+import { api } from "@/lib/api";
 
 interface OrderItem {
   id: string;
@@ -29,49 +28,29 @@ interface Order {
 export default function ComandaPage() {
   const params = useParams();
   const router = useRouter();
-  const supabase = createClient();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getOrder = async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select(
-          `
-          id,
-          created_at,
-          customer_name,
-          order_type,
-          order_items (
-            id,
-            product_name,
-            quantity,
-            price,
-            size,
-            extra,
-            observations,
-            additionals
-          )
-        `,
-        )
-        .eq("id", params.id)
-        .single();
-
-      if (error) {
-        console.log(error);
-        router.push("/admin");
-      } else {
-        setOrder(data as Order);
+    if (!params.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { order } = await api.get<{ order: Order }>(
+          `/api/orders/${encodeURIComponent(String(params.id))}`,
+        );
+        if (!cancelled) setOrder(order);
+      } catch (e) {
+        console.log(e);
+        router.push("/dashboardAdmin/orders");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-
-      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
     };
-
-    if (params.id) {
-      getOrder();
-    }
-  }, [params.id, supabase, router]);
+  }, [params.id, router]);
 
   if (loading) {
     return (
@@ -90,7 +69,7 @@ export default function ComandaPage() {
         <div className="text-center">
           <p className="text-red-600 mb-4">No se encontró la orden</p>
           <button
-            onClick={() => router.push("/admin")}
+            onClick={() => router.push("/dashboardAdmin/orders")}
             className="bg-orange-500 text-white px-6 py-2 rounded-lg"
           >
             Volver al dashboard
@@ -115,7 +94,7 @@ export default function ComandaPage() {
               Imprimir
             </button>
             <button
-              onClick={() => router.push("/admin")}
+              onClick={() => router.push("/dashboardAdmin/orders")}
               className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition"
             >
               ← Volver

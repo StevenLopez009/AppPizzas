@@ -1,49 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
-
 import Image from "next/image";
-
 import "swiper/css";
-
-import { createClient } from "@/lib/supabase/client";
-
-interface Banner {
-  id: string;
-  image_url: string;
-}
+import {
+  getBanners,
+  type Banner,
+} from "@/src/features/banner/services/banner.service";
 
 export default function BannerCarousel() {
-  const supabase = createClient();
-
   const [banners, setBanners] = useState<Banner[]>([]);
 
   useEffect(() => {
-    async function getBanners() {
-      const { data, error } = await supabase
-        .from("banners")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (!error && data) {
-        setBanners(data);
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await getBanners();
+        if (!cancelled) setBanners(data);
+      } catch (e) {
+        console.error(e);
       }
-    }
-
-    getBanners();
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
     <div className="w-full mt-5">
       <Swiper
         modules={[Autoplay]}
-        autoplay={{
-          delay: 3000,
-          disableOnInteraction: false,
-        }}
+        autoplay={{ delay: 3000, disableOnInteraction: false }}
         loop
         spaceBetween={16}
         slidesPerView={1}

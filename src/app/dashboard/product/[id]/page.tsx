@@ -1,22 +1,28 @@
 import { notFound } from "next/navigation";
-import ProductUI from "./ProductUi";
-import { createClient } from "@/lib/supabase/client";
+import ProductDetailPage from "@/src/features/products/pages/ProductDetailPage";
+import { getProductById } from "@/src/features/products/services/getProductById";
+import { getAdditionals } from "@/src/features/products/services/getAdditionals";
 
-export default async function ProductDetail({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+interface Props {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default async function Page({ params }: Props) {
   const { id } = await params;
-  const supabase = createClient();
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const product = await getProductById(id);
 
-  if (!product) return notFound();
+  if (!product) {
+    return notFound();
+  }
 
-  return <ProductUI product={product} />;
+  const additionals = await getAdditionals(product.category);
+
+  return (
+    <>
+      <ProductDetailPage product={product} additionals={additionals} />;
+    </>
+  );
 }

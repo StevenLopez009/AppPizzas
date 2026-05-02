@@ -196,6 +196,33 @@ export default function AdminDashboard() {
     }
   };
 
+  const formatPizza = (item: OrderItem) => {
+    if (!item.extra?.includes("Mitades:")) {
+      return `${item.quantity} pizza ${item.size}, ${item.product_name}${
+        item.extra ? `, borde ${item.extra}` : ""
+      }`;
+    }
+
+    const mitadesMatch = item.extra.match(/Mitades:\s*([^|]+)/);
+    const bordesMatch = item.extra.match(/Bordes:\s*([^|]+)/);
+    const adicionalesMatch = item.extra.match(/Adicionales:\s*(.*)/);
+
+    const sabores = mitadesMatch?.[1]?.split("/").map((s) => s.trim());
+
+    const bordes = bordesMatch?.[1]?.split("/").map((b) => b.trim());
+
+    const adicionales = adicionalesMatch?.[1]?.trim();
+
+    return `
+${item.quantity} pizza ${item.size},
+${sabores?.[0] || ""}
+, borde ${bordes?.[0] || "normal"},
+${sabores?.[1] || ""}
+, borde ${bordes?.[1] || "normal"}
+${adicionales ? `, adicionales: ${adicionales}` : ""}
+  `.replace(/\s+/g, " ");
+  };
+
   const filteredOrders = orders.filter((order) => {
     const orderDate = new Date(order.created_at);
 
@@ -530,11 +557,7 @@ export default function AdminDashboard() {
                   {order.order_items?.map((item) => (
                     <div key={item.id} className="flex justify-between text-sm">
                       <div>
-                        {item.quantity} {item.size}
-                        <p className="text-md">
-                          {item.product_name}
-                          {item.extra ? `borde ${item.extra}` : ""}
-                        </p>
+                        <p className="text-md">{formatPizza(item)}</p>
                         {item.observations && (
                           <p className="text-sm">{item.observations}</p>
                         )}

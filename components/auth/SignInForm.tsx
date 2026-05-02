@@ -18,8 +18,6 @@ import toast from "react-hot-toast";
 import { AuthFormProps } from "./AuthForm";
 import { Input } from "../ui/input";
 import ImgLogin from "@/assets/images/loginImg.jpg";
-import { ro } from "date-fns/locale";
-import { Sign } from "node:crypto";
 import SignUpForm from "./SignUpForm";
 import Link from "next/link";
 

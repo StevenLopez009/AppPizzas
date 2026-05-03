@@ -5,6 +5,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { UserProvider } from "@/context/UserContext";
 import { CartProvider } from "@/context/CartContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { getThemePrimary } from "@/lib/repos/appSettings";
 import { buildBrandCssVars } from "@/lib/theme/brandCssVars";
 
@@ -34,18 +35,27 @@ export default async function RootLayout({
   return (
     <html
       lang="es"
-      className="dark"
       style={brandStyle}
       suppressHydrationWarning
     >
+      <head>
+        {/* Anti-flicker: apply stored theme class before first paint */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem('app-theme')||'dark';document.documentElement.classList.add(t==='light'?'light':'dark');})();`,
+          }}
+        />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-canvas text-fg`}
         suppressHydrationWarning
       >
-        <UserProvider>
-          <CartProvider>{children}</CartProvider>
-          <Toaster />
-        </UserProvider>
+        <ThemeProvider>
+          <UserProvider>
+            <CartProvider>{children}</CartProvider>
+            <Toaster />
+          </UserProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -24,7 +24,6 @@ export default function CategoryList({
       .catch(() => {});
   }, []);
 
-  // Build menu items: "Todos" + deduplicate pizza variants into one "Pizza" entry
   const menuItems: { name: string }[] = [{ name: "Todos" }];
   let pizzaAdded = false;
   for (const cat of dbCategories) {
@@ -43,26 +42,15 @@ export default function CategoryList({
             key={item.name}
             onClick={() => {
               onSelect(item.name);
-
-              if (item.name === "Pizza") {
-                onResetPizza();
-              }
+              if (item.name === "Pizza") onResetPizza();
             }}
             className={`
-              min-w-[120px]
-              lg:min-w-full
-              rounded-2xl
-              px-4
-              py-3
-              text-center
-              shadow-sm
-              transition
-              active:scale-95
-
-              ${
-                selectedCategory === item.name
-                  ? "bg-brand text-white"
-                  : "bg-white text-gray-700"
+              min-w-[120px] lg:min-w-full
+              rounded-2xl px-4 py-3 text-center
+              shadow-sm transition active:scale-95
+              ${selectedCategory === item.name
+                ? "bg-brand text-white"
+                : "bg-surface text-fg hover:bg-surface-muted"
               }
             `}
           >

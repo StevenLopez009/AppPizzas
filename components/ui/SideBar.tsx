@@ -1,7 +1,5 @@
-"use client";
-
 import { LogOut } from "lucide-react";
-import ThemeToggle from "@/components/ui/ThemeToggle";
+import ThemeToggle from "./ThemeToggle";
 
 type MenuItem = {
   id: string;
@@ -49,7 +47,7 @@ export default function Sidebar({
                 ${
                   isActive
                     ? "bg-surface-muted text-brand shadow-sm"
-                    : "text-fg-subtle hover:bg-surface-muted hover:text-fg"
+                    : "text-fg-subtle hover:bg-surface-muted hover:text-fg-muted"
                 }`}
             >
               <Icon size={18} />
@@ -59,20 +57,19 @@ export default function Sidebar({
         })}
       </nav>
 
-      {/* Theme toggle + Logout */}
-      <div className="flex flex-col gap-1 mt-2">
-        <ThemeToggle className="w-full justify-start" />
+      {/* Theme toggle */}
+      <ThemeToggle className="w-full justify-start mb-1" />
 
-        {onLogout && (
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-fg-subtle hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500 dark:hover:text-red-400 transition-all"
-          >
-            <LogOut size={18} />
-            Cerrar sesión
-          </button>
-        )}
-      </div>
+      {/* Logout */}
+      {onLogout && (
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-fg-subtle hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40 transition-all mt-1"
+        >
+          <LogOut size={18} />
+          Cerrar sesión
+        </button>
+      )}
     </aside>
   );
 }

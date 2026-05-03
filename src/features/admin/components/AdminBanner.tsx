@@ -64,15 +64,23 @@ export default function AdminBanner() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-3xl shadow">
-        <h2 className="text-2xl font-bold mb-4">Administrar banners</h2>
+      <div className="bg-surface border border-line p-6 rounded-3xl shadow-sm">
+        <h2 className="text-2xl font-bold text-fg mb-4">Administrar banners</h2>
 
-        <input type="file" accept="image/*" onChange={handleFileChange} />
+        <label className="block">
+          <span className="text-sm text-fg-muted mb-1 block">Imagen del banner</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="w-full border border-dashed border-line bg-canvas text-fg-muted p-3 rounded-xl cursor-pointer hover:border-brand transition file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-surface-muted file:text-fg-muted hover:file:bg-line"
+          />
+        </label>
 
         <button
           onClick={handleUpload}
           disabled={loading}
-          className="mt-4 bg-brand text-white px-5 py-2 rounded-xl"
+          className="mt-4 bg-brand hover:bg-brand-hover text-white px-5 py-2 rounded-xl font-medium transition disabled:opacity-60"
         >
           {loading ? "Subiendo..." : "Subir banner"}
         </button>
@@ -82,7 +90,7 @@ export default function AdminBanner() {
         {banners.map((banner) => (
           <div
             key={banner.id}
-            className="relative h-40 rounded-2xl overflow-hidden"
+            className="relative h-40 rounded-2xl overflow-hidden border border-line"
           >
             <Image
               src={banner.image_url}
@@ -92,7 +100,7 @@ export default function AdminBanner() {
             />
             <button
               onClick={() => handleDelete(banner.id)}
-              className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-xl"
+              className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 dark:bg-red-950/60 dark:hover:bg-red-900/80 text-white dark:text-red-300 px-3 py-1 rounded-xl text-sm transition"
             >
               Eliminar
             </button>

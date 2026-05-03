@@ -16,15 +16,15 @@ export default function DesktopLayout({
   return (
     <div className="hidden md:grid w-full grid-cols-[250px_1fr_350px] overflow-hidden">
       {/* Sidebar */}
-      <div className="h-screen border-r">
+      <div className="h-screen border-r border-line">
         <SidebarContainer menu={menu} title={title} />
       </div>
 
       {/* Main */}
-      <main className="min-w-0 p-4 overflow-x-auto">{children}</main>
+      <main className="min-w-0 p-4 overflow-x-auto bg-canvas">{children}</main>
 
       {/* Right Panel */}
-      <div className="h-screen overflow-y-auto border-l">
+      <div className="h-screen overflow-y-auto border-l border-line bg-canvas">
         {showOrderPage && <OrderPage />}
         {!showOrderPage && !showOrder && <Orders />}
         {!showOrderPage && showOrder && <CheckoutUI />}

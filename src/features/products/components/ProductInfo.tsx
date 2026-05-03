@@ -12,18 +12,16 @@ export default function ProductInfo({ product }: Props) {
 
         <div className="flex items-center gap-1">
           <span>⭐</span>
-          <span className="font-bold text-sm">4.9</span>
+          <span className="font-bold text-sm text-fg">4.9</span>
         </div>
       </div>
 
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">{product.name}</h1>
+        <h1 className="text-2xl font-bold text-fg">{product.name}</h1>
       </div>
 
       <div className="mb-5">
-        <p className="text-gray-500 text-sm leading-relaxed">
-          {product.description}
-        </p>
+        <p className="text-fg-muted text-sm leading-relaxed">{product.description}</p>
       </div>
     </>
   );

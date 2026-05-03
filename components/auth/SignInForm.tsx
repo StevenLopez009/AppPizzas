@@ -74,8 +74,8 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md md:max-w-4xl bg-white shadow-2xl rounded-[30px] overflow-hidden md:flex">
+    <div className="min-h-screen flex items-center justify-center bg-canvas px-4">
+      <div className="w-full max-w-md md:max-w-4xl bg-surface shadow-2xl rounded-[30px] overflow-hidden md:flex border border-line">
         <div
           className="relative h-56 md:h-auto md:w-1/2 bg-cover bg-center"
           style={{ backgroundImage: `url(${ImgLogin.src})` }}
@@ -90,10 +90,10 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
 
         <div className="w-full md:w-1/2 p-6 md:p-10">
           <div className="text-center mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-brand-text">
+            <h1 className="text-2xl md:text-3xl font-bold text-fg">
               Iniciar Sesión
             </h1>
-            <p className="text-sm text-gray-400 mt-2">Accede para continuar</p>
+            <p className="text-sm text-fg-subtle mt-2">Accede para continuar</p>
           </div>
 
           <Form {...form}>
@@ -103,12 +103,12 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-500 text-sm">Email</FormLabel>
+                    <FormLabel className="text-fg-muted text-sm">Email</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         placeholder="Enter your email"
-                        className="h-12 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-brand-ring"
+                        className="h-12 rounded-xl bg-canvas border border-line text-fg placeholder:text-fg-subtle focus:ring-2 focus:ring-brand-ring"
                       />
                     </FormControl>
                     <FormMessage />
@@ -121,7 +121,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-500 text-sm">
+                    <FormLabel className="text-fg-muted text-sm">
                       Password
                     </FormLabel>
                     <FormControl>
@@ -129,7 +129,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
                         {...field}
                         type="password"
                         placeholder="Enter password"
-                        className="h-12 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-blue-400"
+                        className="h-12 rounded-xl bg-canvas border border-line text-fg placeholder:text-fg-subtle focus:ring-2 focus:ring-brand-ring"
                       />
                     </FormControl>
                     <FormMessage />
@@ -139,14 +139,14 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
 
               <button
                 type="submit"
-                className="w-full h-12 bg-brand text-white rounded-xl font-semibold shadow-md hover:bg-brand-hover transition"
+                className="w-full h-12 bg-brand text-white rounded-xl font-semibold shadow-md hover:bg-brand-hover transition disabled:opacity-60"
               >
                 {isLoading ? "Cargando..." : "Ingresar"}
               </button>
             </form>
           </Form>
 
-          <p className="text-center text-sm text-gray-400 mt-6">
+          <p className="text-center text-sm text-fg-subtle mt-6">
             ¿No tienes cuenta?{" "}
             <span
               onClick={() => setIsRegistering(true)}

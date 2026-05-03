@@ -266,18 +266,18 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-10">
-      <h1 className="text-2xl md:text-4xl font-bold mb-6">Pedidos</h1>
+    <div className="min-h-screen bg-canvas p-4 md:p-10">
+      <h1 className="text-2xl md:text-4xl font-bold text-fg mb-6">Pedidos</h1>
       <Popover>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             className="
         w-full md:w-[300px] justify-start
-        rounded-2xl border-gray-200 bg-white
+        rounded-2xl border-line bg-surface
         shadow-sm hover:shadow-md
         transition-all duration-200
-        text-gray-700 font-medium
+        text-fg font-medium
       "
           >
             <CalendarIcon className="mr-2 h-4 w-4 text-brand" />
@@ -292,9 +292,9 @@ export default function AdminDashboard() {
         <PopoverContent
           className="
       w-auto p-4
-      rounded-2xl border border-gray-200
+      rounded-2xl border border-line
       shadow-xl
-      bg-white
+      bg-surface
     "
         >
           <div className="rounded-xl overflow-hidden">
@@ -317,76 +317,52 @@ export default function AdminDashboard() {
         placeholder="Buscar cliente..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full md:w-[300px] mt-4 px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-ring"
+        className="w-full md:w-[300px] mt-4 px-4 py-2 rounded-xl border border-line bg-canvas text-fg placeholder:text-fg-subtle focus:outline-none focus:ring-2 focus:ring-brand-ring"
       />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 mt-6">
-        <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-sm text-gray-400">Ventas</p>
-          <p className="text-xl font-bold">
-            ${totalSales.toLocaleString("es-CO")}
-          </p>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-sm text-gray-400">Domicilios</p>
-          <p className="text-xl font-bold">{byType.domicilio}</p>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-sm text-gray-400">Mesa</p>
-          <p className="text-xl font-bold">{byType.mesa}</p>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-sm text-gray-400">Recoger</p>
-          <p className="text-xl font-bold">{byType.recoger}</p>
-        </div>
+        {[
+          { label: "Ventas", value: `$${totalSales.toLocaleString("es-CO")}` },
+          { label: "Domicilios", value: byType.domicilio },
+          { label: "Mesa", value: byType.mesa },
+          { label: "Recoger", value: byType.recoger },
+        ].map(({ label, value }) => (
+          <div key={label} className="bg-surface border border-line p-4 rounded-xl shadow-sm">
+            <p className="text-sm text-fg-muted">{label}</p>
+            <p className="text-xl font-bold text-fg">{value}</p>
+          </div>
+        ))}
       </div>
       <div className="flex gap-2 mt-4 flex-wrap">
-        <button
-          onClick={() => {
-            const today = new Date();
-            const start = new Date(today);
-            start.setHours(0, 0, 0, 0);
-            const end = new Date(today);
-            end.setHours(23, 59, 59, 999);
-            setDateRange({ from: start, to: end });
-          }}
-          className="px-4 py-2 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md text-gray-700 font-medium transition-all duration-150 active:scale-95"
-        >
-          Hoy
-        </button>
-
-        <button
-          onClick={() => {
-            const today = new Date();
-            const firstDay = new Date(
-              today.setDate(today.getDate() - today.getDay()),
-            );
-            const lastDay = new Date();
-            setDateRange({ from: firstDay, to: lastDay });
-          }}
-          className="px-4 py-2 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md text-gray-700 font-medium transition-all duration-150 active:scale-95"
-        >
-          Esta semana
-        </button>
-
-        <button
-          onClick={() => {
-            const now = new Date();
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-            setDateRange({ from: firstDay, to: lastDay });
-          }}
-          className="px-4 py-2 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md text-gray-700 font-medium transition-all duration-150 active:scale-95"
-        >
-          Este mes
-        </button>
-
-        <button
-          onClick={() => setDateRange({})}
-          className="px-4 py-2 bg-white border border-red-100 rounded-xl shadow-sm hover:shadow-md text-red-500 font-medium transition-all duration-150 active:scale-95"
-        >
+        {[
+          {
+            label: "Hoy", onClick: () => {
+              const today = new Date();
+              const start = new Date(today); start.setHours(0, 0, 0, 0);
+              const end = new Date(today); end.setHours(23, 59, 59, 999);
+              setDateRange({ from: start, to: end });
+            }
+          },
+          {
+            label: "Esta semana", onClick: () => {
+              const today = new Date();
+              const firstDay = new Date(today.setDate(today.getDate() - today.getDay()));
+              setDateRange({ from: firstDay, to: new Date() });
+            }
+          },
+          {
+            label: "Este mes", onClick: () => {
+              const now = new Date();
+              setDateRange({ from: new Date(now.getFullYear(), now.getMonth(), 1), to: new Date(now.getFullYear(), now.getMonth() + 1, 0) });
+            }
+          },
+        ].map(({ label, onClick }) => (
+          <button key={label} onClick={onClick}
+            className="px-4 py-2 bg-surface border border-line rounded-xl shadow-sm hover:shadow-md text-fg font-medium transition-all duration-150 active:scale-95">
+            {label}
+          </button>
+        ))}
+        <button onClick={() => setDateRange({})}
+          className="px-4 py-2 bg-surface border border-red-200 dark:border-red-900/50 rounded-xl shadow-sm hover:shadow-md text-red-500 font-medium transition-all duration-150 active:scale-95">
           Limpiar
         </button>
       </div>
@@ -400,14 +376,14 @@ export default function AdminDashboard() {
             return (
               <div
                 key={order.id}
-                className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col justify-between"
+                className="bg-surface border border-line rounded-2xl shadow-md overflow-hidden flex flex-col justify-between"
               >
                 {/* Order number header */}
-                <div className="bg-gray-800 px-5 py-2 flex items-center justify-between">
-                  <span className="text-white font-extrabold text-lg tracking-wide">
+                <div className="bg-surface-raised px-5 py-2 flex items-center justify-between border-b border-line">
+                  <span className="text-fg font-extrabold text-lg tracking-wide">
                     Pedido&nbsp;#{order.order_number}
                   </span>
-                  <span className="text-xs text-gray-300">
+                  <span className="text-xs text-fg-subtle">
                     {new Date(order.created_at).toLocaleTimeString("es-CO", {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -426,27 +402,27 @@ export default function AdminDashboard() {
                         <p className="font-bold text-lg">
                           {order.customer_name}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-fg-muted">
                           {order.customer_phone}
                         </p>
 
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-fg-muted">
                           {order.customer_address}
                         </p>
                       </>
                     )}
 
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-fg-muted">
                       {order.payment_method}
                     </p>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-fg-muted">
                       {order.cash_amount
                         ? `Paga con $${Number(order.cash_amount).toLocaleString("es-CO")}`
                         : "No especificado"}
                     </p>
 
                     {order.order_type === "domicilio" && (
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-fg-muted">
                         {order.neighborhood}
                       </p>
                     )}
@@ -464,13 +440,13 @@ export default function AdminDashboard() {
 
                   <div className="text-right">
                     {order.order_type === "domicilio" && order.delivery_fee && (
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-fg-muted">
                         Domicilio: $
                         {Number(order.delivery_fee).toLocaleString("es-CO")}
                       </p>
                     )}
                     {order.discount_percentage > 0 && (
-                      <p className="text-sm line-through text-gray-400">
+                      <p className="text-sm line-through text-fg-subtle">
                         ${Number(order.total).toLocaleString("es-CO")}
                       </p>
                     )}
@@ -481,7 +457,7 @@ export default function AdminDashboard() {
                     <span
                       className={`text-xs px-3 py-1 rounded-full font-semibold ${
                         STATUS_STYLES[order.status] ||
-                        "bg-gray-100 text-gray-600"
+                        "bg-surface-muted text-fg-muted"
                       }`}
                     >
                       {order.status}
@@ -558,7 +534,7 @@ export default function AdminDashboard() {
                               [order.id]: Number(e.target.value),
                             })
                           }
-                          className="w-full border border-gray-300 rounded-2xl px-3 py-2"
+                          className="w-full border border-line bg-canvas text-fg rounded-2xl px-3 py-2 outline-none focus:ring-2 focus:ring-brand-ring"
                         />
                         <button
                           onClick={() => applyDiscount(order)}
@@ -591,7 +567,7 @@ export default function AdminDashboard() {
                             [order.id]: e.target.value,
                           }))
                         }
-                        className="flex-1 rounded-2xl border border-gray-200 px-2 py-2 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-brand"
+                        className="flex-1 rounded-2xl border border-line bg-canvas text-fg px-2 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand"
                       >
                         {ORDER_FLOW[order.order_type].map((s) => (
                           <option key={s} value={s}>
@@ -621,16 +597,16 @@ export default function AdminDashboard() {
         </div>
       </div>
       {selectedOrder && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl w-[300px] space-y-4">
-            <h2 className="text-lg font-bold">Agregar producto extra</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-surface border border-line p-6 rounded-2xl w-[300px] space-y-4 shadow-2xl">
+            <h2 className="text-lg font-bold text-fg">Agregar producto extra</h2>
 
             <input
               type="text"
               placeholder="Nombre"
               value={extraName}
               onChange={(e) => setExtraName(e.target.value)}
-              className="w-full border rounded-xl px-3 py-2"
+              className="w-full border border-line bg-canvas text-fg placeholder:text-fg-subtle rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-brand-ring"
             />
 
             <input
@@ -638,20 +614,19 @@ export default function AdminDashboard() {
               placeholder="Precio"
               value={extraPrice}
               onChange={(e) => setExtraPrice(e.target.value)}
-              className="w-full border rounded-xl px-3 py-2"
+              className="w-full border border-line bg-canvas text-fg placeholder:text-fg-subtle rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-brand-ring"
             />
 
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="w-full bg-gray-200 py-2 rounded-xl"
+                className="w-full bg-surface-muted text-fg py-2 rounded-xl hover:bg-line transition"
               >
                 Cancelar
               </button>
-
               <button
                 onClick={handleAddExtra}
-                className="w-full bg-green-500 text-white py-2 rounded-xl"
+                className="w-full bg-green-500 text-white py-2 rounded-xl hover:bg-green-600 transition"
               >
                 Agregar
               </button>

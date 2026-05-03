@@ -100,10 +100,12 @@ export default function CreateProductForm() {
     }
   };
 
+  const fieldCls = "w-full border border-line bg-canvas text-fg placeholder:text-fg-subtle focus:border-brand-ring focus:ring-2 focus:ring-brand-ring outline-none p-3 rounded-xl transition";
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full mt-10 mx-auto bg-white rounded-3xl shadow-xl overflow-hidden grid md:grid-cols-2"
+      className="w-full mt-10 mx-auto bg-surface border border-line rounded-3xl shadow-xl overflow-hidden grid md:grid-cols-2"
     >
       <div className="relative h-60 md:h-auto">
         <Image
@@ -113,112 +115,44 @@ export default function CreateProductForm() {
           className="object-cover object-top md:object-center"
           priority
         />
-        <div className="absolute inset-0 flex items-end p-6">
-          <h2 className="text-white text-2xl font-bold">
-            Crea un nuevo producto
-          </h2>
+        <div className="absolute inset-0 flex items-end p-6 bg-gradient-to-t from-black/60 to-transparent rounded-l-3xl">
+          <h2 className="text-white text-2xl font-bold">Crea un nuevo producto</h2>
         </div>
       </div>
 
       <div className="p-6 md:p-10 space-y-5">
-        <h2 className="text-2xl font-bold text-gray-800 md:hidden">
-          Crear Producto
-        </h2>
+        <h2 className="text-2xl font-bold text-fg md:hidden">Crear Producto</h2>
 
-        <input
-          type="text"
-          name="name"
-          placeholder="Nombre del producto"
-          value={form.name}
-          onChange={handleChange}
-          className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition"
-          required
-        />
+        <input type="text" name="name" placeholder="Nombre del producto" value={form.name} onChange={handleChange} className={fieldCls} required />
 
-        <textarea
-          name="description"
-          placeholder="Descripción"
-          value={form.description}
-          onChange={handleChange}
-          className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition resize-none"
-        />
+        <textarea name="description" placeholder="Descripción" value={form.description} onChange={handleChange} className={`${fieldCls} resize-none`} />
 
-        <select
-          name="category"
-          value={form.category}
-          onChange={handleChange}
-          className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition"
-          required
-        >
+        <select name="category" value={form.category} onChange={handleChange} className={fieldCls} required>
           <option value="">Selecciona una categoría</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
+          {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
         </select>
 
         {isPizza || isComidaRapida ? (
           <div className="grid grid-cols-2 gap-3">
-            <input
-              type="number"
-              name="pricePersonal"
-              placeholder={
-                isPizza
-                  ? "Precio Personal"
-                  : isComidaRapida
-                    ? "Precio Sencillo"
-                    : ""
-              }
-              value={form.pricePersonal}
-              onChange={handleChange}
-              className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition"
-              required
-            />
-
-            <input
-              type="number"
-              name="priceMediana"
-              placeholder={
-                isPizza
-                  ? "Precio Mediana"
-                  : isComidaRapida
-                    ? "Precio Doble"
-                    : ""
-              }
-              value={form.priceMediana}
-              onChange={handleChange}
-              className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition"
-              required
-            />
+            <input type="number" name="pricePersonal"
+              placeholder={isPizza ? "Precio Personal" : "Precio Sencillo"}
+              value={form.pricePersonal} onChange={handleChange} className={fieldCls} required />
+            <input type="number" name="priceMediana"
+              placeholder={isPizza ? "Precio Mediana" : "Precio Doble"}
+              value={form.priceMediana} onChange={handleChange} className={fieldCls} required />
           </div>
         ) : (
-          <input
-            type="number"
-            name="price"
-            placeholder="Precio"
-            value={form.price}
-            onChange={handleChange}
-            className="w-full border border-gray-200 focus:border-brand-ring focus:ring-2 focus:ring-brand-surface-muted outline-none p-3 rounded-xl transition"
-            required
-          />
+          <input type="number" name="price" placeholder="Precio" value={form.price} onChange={handleChange} className={fieldCls} required />
         )}
 
         <label className="block">
-          <span className="text-sm text-gray-500">Imagen del producto</span>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="w-full mt-1 border border-dashed border-gray-300 p-3 rounded-xl cursor-pointer hover:border-brand-ring transition"
-          />
+          <span className="text-sm text-fg-muted">Imagen del producto</span>
+          <input type="file" accept="image/*" onChange={handleFileChange}
+            className="w-full mt-1 border border-dashed border-line p-3 rounded-xl cursor-pointer hover:border-brand-ring text-fg-muted transition" />
         </label>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-brand hover:bg-brand-hover text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-60"
-        >
+        <button type="submit" disabled={submitting}
+          className="w-full bg-brand hover:bg-brand-hover text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-60">
           {submitting ? "Guardando…" : "Guardar Producto"}
         </button>
       </div>

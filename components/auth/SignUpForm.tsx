@@ -61,23 +61,25 @@ const SignUpForm = (_: Partial<AuthFormProps>) => {
     }
   };
 
+  const inputCls = "w-full mt-1 h-12 px-4 rounded-xl bg-canvas border border-line text-fg placeholder:text-fg-subtle focus:ring-2 focus:ring-brand-ring outline-none transition disabled:opacity-60";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-6 md:p-8">
+    <div className="min-h-screen flex items-center justify-center bg-canvas px-4">
+      <div className="w-full max-w-md bg-surface border border-line shadow-xl rounded-2xl p-6 md:p-8">
         <div className="text-center mb-6">
-          <h1>Nuevo Cliente</h1>
-          <p className="text-sm text-gray-400 mt-2">Registrate como cliente</p>
+          <h1 className="text-2xl font-bold text-fg">Nuevo Cliente</h1>
+          <p className="text-sm text-fg-subtle mt-2">Registrate como cliente</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="text-sm text-gray-500">Nombre</label>
+            <label className="text-sm text-fg-muted">Nombre</label>
             <input
               {...register("name")}
               type="text"
               placeholder="Juan Pérez"
               disabled={isLoading}
-              className="w-full mt-1 h-12 px-4 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-brand-ring outline-none"
+              className={inputCls}
             />
             {errors.name && (
               <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
@@ -85,13 +87,13 @@ const SignUpForm = (_: Partial<AuthFormProps>) => {
           </div>
 
           <div>
-            <label className="text-sm text-gray-500">Correo</label>
+            <label className="text-sm text-fg-muted">Correo</label>
             <input
               {...register("email")}
               type="email"
               placeholder="correo@email.com"
               disabled={isLoading}
-              className="w-full mt-1 h-12 px-4 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-brand-ring outline-none"
+              className={inputCls}
             />
             {errors.email && (
               <p className="text-red-500 text-xs mt-1">
@@ -101,13 +103,13 @@ const SignUpForm = (_: Partial<AuthFormProps>) => {
           </div>
 
           <div>
-            <label className="text-sm text-gray-500">Teléfono</label>
+            <label className="text-sm text-fg-muted">Teléfono</label>
             <input
               {...register("phone")}
               type="text"
               placeholder="3001234567"
               disabled={isLoading}
-              className="w-full mt-1 h-12 px-4 rounded-xl bg-gray-100"
+              className={inputCls}
             />
             {errors.phone && (
               <p className="text-red-500 text-xs mt-1">
@@ -117,13 +119,13 @@ const SignUpForm = (_: Partial<AuthFormProps>) => {
           </div>
 
           <div>
-            <label className="text-sm text-gray-500">Contraseña</label>
+            <label className="text-sm text-fg-muted">Contraseña</label>
             <input
               {...register("password")}
               type="password"
               placeholder="••••••"
               disabled={isLoading}
-              className="w-full mt-1 h-12 px-4 rounded-xl bg-gray-100"
+              className={inputCls}
             />
             {errors.password && (
               <p className="text-red-500 text-xs mt-1">
@@ -135,7 +137,7 @@ const SignUpForm = (_: Partial<AuthFormProps>) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 bg-brand text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-brand-hover transition"
+            className="w-full h-12 bg-brand text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-brand-hover transition disabled:opacity-60"
           >
             {isLoading && <LoaderCircle className="w-4 h-4 animate-spin" />}
             Crear cuenta

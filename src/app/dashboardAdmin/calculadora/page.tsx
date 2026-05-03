@@ -27,18 +27,16 @@ function loadRecipes(): Recipe[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 function saveRecipes(recipes: Recipe[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
 }
 
-function uid() {
-  return Math.random().toString(36).slice(2);
-}
+function uid() { return Math.random().toString(36).slice(2); }
+
+const fieldCls = "w-full bg-canvas border border-line text-fg placeholder:text-fg-subtle rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand";
 
 export default function CalculadoraPage() {
   const [productName, setProductName] = useState("");
@@ -50,26 +48,12 @@ export default function CalculadoraPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [showRecipes, setShowRecipes] = useState(false);
 
-  useEffect(() => {
-    setRecipes(loadRecipes());
-  }, []);
+  useEffect(() => { setRecipes(loadRecipes()); }, []);
 
-  const addIngredient = () => {
-    setIngredients((prev) => [
-      ...prev,
-      { id: uid(), name: "", quantity: 1, unit: "und", unitCost: 0 },
-    ]);
-  };
-
-  const removeIngredient = (id: string) => {
-    setIngredients((prev) => prev.filter((i) => i.id !== id));
-  };
-
-  const updateIngredient = (id: string, field: keyof Ingredient, value: string | number) => {
-    setIngredients((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, [field]: value } : i))
-    );
-  };
+  const addIngredient = () => setIngredients((prev) => [...prev, { id: uid(), name: "", quantity: 1, unit: "und", unitCost: 0 }]);
+  const removeIngredient = (id: string) => setIngredients((prev) => prev.filter((i) => i.id !== id));
+  const updateIngredient = (id: string, field: keyof Ingredient, value: string | number) =>
+    setIngredients((prev) => prev.map((i) => (i.id === id ? { ...i, [field]: value } : i)));
 
   const ingredientCost = (i: Ingredient) => i.quantity * i.unitCost;
   const totalIngredientCost = ingredients.reduce((acc, i) => acc + ingredientCost(i), 0);
@@ -79,43 +63,27 @@ export default function CalculadoraPage() {
   const margin = salePriceNum > 0 ? (profit / salePriceNum) * 100 : 0;
 
   const handleSave = () => {
-    if (!productName.trim()) {
-      toast.error("Escribe el nombre del producto");
-      return;
-    }
-    const recipe: Recipe = {
-      id: uid(),
-      name: productName,
-      salePrice: salePriceNum,
-      extraCosts: Number(extraCosts || 0),
-      ingredients,
-      savedAt: new Date().toISOString(),
-    };
+    if (!productName.trim()) { toast.error("Escribe el nombre del producto"); return; }
+    const recipe: Recipe = { id: uid(), name: productName, salePrice: salePriceNum, extraCosts: Number(extraCosts || 0), ingredients, savedAt: new Date().toISOString() };
     const updated = [recipe, ...recipes];
-    setRecipes(updated);
-    saveRecipes(updated);
+    setRecipes(updated); saveRecipes(updated);
     toast.success(`Receta "${productName}" guardada`);
   };
 
   const handleLoad = (recipe: Recipe) => {
-    setProductName(recipe.name);
-    setSalePrice(String(recipe.salePrice));
-    setExtraCosts(String(recipe.extraCosts));
-    setIngredients(recipe.ingredients);
+    setProductName(recipe.name); setSalePrice(String(recipe.salePrice));
+    setExtraCosts(String(recipe.extraCosts)); setIngredients(recipe.ingredients);
     setShowRecipes(false);
     toast("Receta cargada", { icon: "📂" });
   };
 
   const handleDeleteRecipe = (id: string) => {
     const updated = recipes.filter((r) => r.id !== id);
-    setRecipes(updated);
-    saveRecipes(updated);
+    setRecipes(updated); saveRecipes(updated);
   };
 
   const handleClear = () => {
-    setProductName("");
-    setSalePrice("");
-    setExtraCosts("");
+    setProductName(""); setSalePrice(""); setExtraCosts("");
     setIngredients([{ id: uid(), name: "", quantity: 1, unit: "und", unitCost: 0 }]);
   };
 
@@ -130,13 +98,13 @@ export default function CalculadoraPage() {
             <ChefHat size={20} className="text-brand" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-800">Calculadora de costos</h1>
-            <p className="text-xs text-gray-400">Calcula la ganancia por producto</p>
+            <h1 className="text-xl font-bold text-fg">Calculadora de costos</h1>
+            <p className="text-xs text-fg-subtle">Calcula la ganancia por producto</p>
           </div>
         </div>
         <button
           onClick={() => setShowRecipes(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white shadow-sm border border-gray-100 text-sm text-gray-600 hover:shadow-md transition"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface shadow-sm border border-line text-sm text-fg-muted hover:shadow-md transition"
         >
           <FolderOpen size={16} />
           Recetas ({recipes.length})
@@ -144,46 +112,34 @@ export default function CalculadoraPage() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Left: inputs */}
+        {/* ── Left: inputs ─────────────────────────────── */}
         <div className="space-y-4">
-          {/* Product name & price */}
-          <div className="bg-white rounded-3xl shadow-sm p-5 space-y-4">
-            <h2 className="font-semibold text-gray-700">Producto</h2>
+          {/* Product name & prices */}
+          <div className="bg-surface border border-line rounded-3xl shadow-sm p-5 space-y-4">
+            <h2 className="font-semibold text-fg">Producto</h2>
             <input
               type="text"
               placeholder="Nombre del producto (ej. Hamburguesa)"
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
+              className={fieldCls}
             />
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-400 mb-1 block">Precio de venta ($)</label>
-                <input
-                  type="number"
-                  placeholder="0"
-                  value={salePrice}
-                  onChange={(e) => setSalePrice(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
-                />
+                <label className="text-xs text-fg-subtle mb-1 block">Precio de venta ($)</label>
+                <input type="number" placeholder="0" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} className={fieldCls} />
               </div>
               <div>
-                <label className="text-xs text-gray-400 mb-1 block">Otros costos ($)</label>
-                <input
-                  type="number"
-                  placeholder="Empaque, gas…"
-                  value={extraCosts}
-                  onChange={(e) => setExtraCosts(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
-                />
+                <label className="text-xs text-fg-subtle mb-1 block">Otros costos ($)</label>
+                <input type="number" placeholder="Empaque, gas…" value={extraCosts} onChange={(e) => setExtraCosts(e.target.value)} className={fieldCls} />
               </div>
             </div>
           </div>
 
           {/* Ingredients */}
-          <div className="bg-white rounded-3xl shadow-sm p-5 space-y-3">
+          <div className="bg-surface border border-line rounded-3xl shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-700">Ingredientes</h2>
+              <h2 className="font-semibold text-fg">Ingredientes</h2>
               <button
                 onClick={addIngredient}
                 className="flex items-center gap-1.5 text-xs text-brand font-semibold bg-brand/10 px-3 py-1.5 rounded-lg hover:bg-brand/20 transition"
@@ -194,7 +150,7 @@ export default function CalculadoraPage() {
 
             <div className="space-y-2">
               {ingredients.map((ing) => (
-                <div key={ing.id} className="bg-gray-50 rounded-2xl p-3 space-y-2">
+                <div key={ing.id} className="bg-surface-muted border border-line-muted rounded-2xl p-3 space-y-2">
                   {/* Row 1: name + delete */}
                   <div className="flex items-center gap-2">
                     <input
@@ -202,11 +158,11 @@ export default function CalculadoraPage() {
                       placeholder="Nombre del ingrediente"
                       value={ing.name}
                       onChange={(e) => updateIngredient(ing.id, "name", e.target.value)}
-                      className="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
+                      className={fieldCls}
                     />
                     <button
                       onClick={() => removeIngredient(ing.id)}
-                      className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-red-50 text-red-400 hover:bg-red-100 transition"
+                      className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-950/40 text-red-400 hover:bg-red-100 dark:hover:bg-red-950/60 transition"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -215,21 +171,19 @@ export default function CalculadoraPage() {
                   {/* Row 2: quantity + unit + cost + subtotal */}
                   <div className="grid grid-cols-[80px_90px_1fr_auto] gap-2 items-center">
                     <div>
-                      <p className="text-[10px] text-gray-400 mb-1 pl-1">Cantidad</p>
+                      <p className="text-[10px] text-fg-subtle mb-1 pl-1">Cantidad</p>
                       <input
-                        type="number"
-                        min="0"
-                        value={ing.quantity}
+                        type="number" min="0" value={ing.quantity}
                         onChange={(e) => updateIngredient(ing.id, "quantity", Number(e.target.value))}
-                        className="w-full bg-white border border-gray-200 rounded-xl px-2 py-2 text-sm outline-none focus:ring-2 focus:ring-brand/20 text-center"
+                        className={`${fieldCls} text-center`}
                       />
                     </div>
                     <div>
-                      <p className="text-[10px] text-gray-400 mb-1 pl-1">Unidad</p>
+                      <p className="text-[10px] text-fg-subtle mb-1 pl-1">Unidad</p>
                       <select
                         value={ing.unit}
                         onChange={(e) => updateIngredient(ing.id, "unit", e.target.value)}
-                        className="w-full bg-white border border-gray-200 rounded-xl px-2 py-2 text-sm outline-none"
+                        className={fieldCls}
                       >
                         <option value="und">und</option>
                         <option value="gr">gr</option>
@@ -241,30 +195,25 @@ export default function CalculadoraPage() {
                       </select>
                     </div>
                     <div>
-                      <p className="text-[10px] text-gray-400 mb-1 pl-1">Costo unitario</p>
+                      <p className="text-[10px] text-fg-subtle mb-1 pl-1">Costo unitario</p>
                       <input
-                        type="number"
-                        min="0"
-                        placeholder="$0"
+                        type="number" min="0" placeholder="$0"
                         value={ing.unitCost || ""}
                         onChange={(e) => updateIngredient(ing.id, "unitCost", Number(e.target.value))}
-                        className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand/20 text-right"
+                        className={`${fieldCls} text-right`}
                       />
                     </div>
                     <div className="text-right pt-4">
-                      <span className="text-sm font-semibold text-gray-700">
-                        ${fmt(ingredientCost(ing))}
-                      </span>
+                      <span className="text-sm font-semibold text-fg">${fmt(ingredientCost(ing))}</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Subtotal ingredients */}
-            <div className="flex justify-between items-center pt-2 border-t border-gray-100 text-sm">
-              <span className="text-gray-500">Costo ingredientes</span>
-              <span className="font-semibold text-gray-700">${fmt(totalIngredientCost)}</span>
+            <div className="flex justify-between items-center pt-2 border-t border-line text-sm">
+              <span className="text-fg-muted">Costo ingredientes</span>
+              <span className="font-semibold text-fg">${fmt(totalIngredientCost)}</span>
             </div>
           </div>
 
@@ -278,44 +227,41 @@ export default function CalculadoraPage() {
             </button>
             <button
               onClick={handleClear}
-              className="px-5 py-3 rounded-2xl bg-white border border-gray-200 text-gray-500 text-sm hover:bg-gray-50 transition"
+              className="px-5 py-3 rounded-2xl bg-surface border border-line text-fg-muted text-sm hover:bg-surface-muted transition"
             >
               Limpiar
             </button>
           </div>
         </div>
 
-        {/* Right: results */}
+        {/* ── Right: results ───────────────────────────── */}
         <div className="space-y-4">
-          <div className="bg-white rounded-3xl shadow-sm p-5 space-y-4">
-            <h2 className="font-semibold text-gray-700">Resumen de costos</h2>
-
+          {/* Cost summary */}
+          <div className="bg-surface border border-line rounded-3xl shadow-sm p-5 space-y-4">
+            <h2 className="font-semibold text-fg">Resumen de costos</h2>
             <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Costo ingredientes</span>
-                <span className="font-medium">${fmt(totalIngredientCost)}</span>
+              {[
+                { label: "Costo ingredientes", value: fmt(totalIngredientCost) },
+                { label: "Otros costos", value: fmt(Number(extraCosts || 0)) },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex justify-between text-sm">
+                  <span className="text-fg-muted">{label}</span>
+                  <span className="font-medium text-fg">${value}</span>
+                </div>
+              ))}
+              <div className="flex justify-between text-sm font-semibold border-t border-line pt-3">
+                <span className="text-fg">Costo total</span>
+                <span className="text-fg">${fmt(totalCost)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Otros costos</span>
-                <span className="font-medium">${fmt(Number(extraCosts || 0))}</span>
-              </div>
-              <div className="flex justify-between text-sm font-semibold border-t border-gray-100 pt-3">
-                <span className="text-gray-700">Costo total</span>
-                <span className="text-gray-800">${fmt(totalCost)}</span>
-              </div>
-              <div className="flex justify-between text-sm border-t border-gray-100 pt-3">
-                <span className="text-gray-500">Precio de venta</span>
-                <span className="font-medium">${fmt(salePriceNum)}</span>
+              <div className="flex justify-between text-sm border-t border-line pt-3">
+                <span className="text-fg-muted">Precio de venta</span>
+                <span className="font-medium text-fg">${fmt(salePriceNum)}</span>
               </div>
             </div>
           </div>
 
-          {/* Profit card */}
-          <div
-            className={`rounded-3xl p-6 text-white ${
-              profit >= 0 ? "bg-gradient-to-br from-green-500 to-green-600" : "bg-gradient-to-br from-red-500 to-red-600"
-            }`}
-          >
+          {/* Profit card — always colored, no semantic tokens needed */}
+          <div className={`rounded-3xl p-6 text-white ${profit >= 0 ? "bg-gradient-to-br from-green-500 to-green-600" : "bg-gradient-to-br from-red-500 to-red-600"}`}>
             <p className="text-sm opacity-80 mb-1">Ganancia por unidad</p>
             <p className="text-4xl font-black">${fmt(profit)}</p>
             <div className="mt-4 flex items-center justify-between">
@@ -330,40 +276,29 @@ export default function CalculadoraPage() {
             </div>
           </div>
 
-          {/* Margin indicator */}
-          <div className="bg-white rounded-3xl shadow-sm p-5">
-            <div className="flex justify-between text-xs text-gray-400 mb-2">
+          {/* Margin progress */}
+          <div className="bg-surface border border-line rounded-3xl shadow-sm p-5">
+            <div className="flex justify-between text-xs text-fg-subtle mb-2">
               <span>Margen de ganancia</span>
-              <span
-                className={
-                  margin >= 50 ? "text-green-600 font-semibold" :
-                  margin >= 30 ? "text-yellow-600 font-semibold" :
-                  "text-red-500 font-semibold"
-                }
-              >
+              <span className={margin >= 50 ? "text-green-500 font-semibold" : margin >= 30 ? "text-yellow-500 font-semibold" : "text-red-500 font-semibold"}>
                 {margin >= 50 ? "Excelente 🎉" : margin >= 30 ? "Aceptable ⚠️" : "Bajo 🔴"}
               </span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-surface-muted rounded-full h-3 overflow-hidden">
               <div
-                className={`h-3 rounded-full transition-all duration-500 ${
-                  margin >= 50 ? "bg-green-500" : margin >= 30 ? "bg-yellow-400" : "bg-red-500"
-                }`}
+                className={`h-3 rounded-full transition-all duration-500 ${margin >= 50 ? "bg-green-500" : margin >= 30 ? "bg-yellow-400" : "bg-red-500"}`}
                 style={{ width: `${Math.min(Math.max(margin, 0), 100)}%` }}
               />
             </div>
-            <div className="flex justify-between text-xs text-gray-300 mt-1">
-              <span>0%</span>
-              <span>30%</span>
-              <span>50%</span>
-              <span>100%</span>
+            <div className="flex justify-between text-xs text-fg-subtle mt-1">
+              <span>0%</span><span>30%</span><span>50%</span><span>100%</span>
             </div>
           </div>
 
           {/* Per-ingredient breakdown */}
           {ingredients.some((i) => i.name && i.unitCost > 0) && (
-            <div className="bg-white rounded-3xl shadow-sm p-5">
-              <h3 className="font-semibold text-gray-700 mb-3 text-sm">Desglose por ingrediente</h3>
+            <div className="bg-surface border border-line rounded-3xl shadow-sm p-5">
+              <h3 className="font-semibold text-fg mb-3 text-sm">Desglose por ingrediente</h3>
               <div className="space-y-2">
                 {ingredients
                   .filter((i) => i.name && i.unitCost > 0)
@@ -374,14 +309,11 @@ export default function CalculadoraPage() {
                     return (
                       <div key={ing.id}>
                         <div className="flex justify-between text-xs mb-1">
-                          <span className="text-gray-600">{ing.name}</span>
-                          <span className="text-gray-500">${fmt(cost)} ({pct.toFixed(0)}%)</span>
+                          <span className="text-fg-muted">{ing.name}</span>
+                          <span className="text-fg-subtle">${fmt(cost)} ({pct.toFixed(0)}%)</span>
                         </div>
-                        <div className="w-full bg-gray-100 rounded-full h-1.5">
-                          <div
-                            className="h-1.5 rounded-full bg-brand"
-                            style={{ width: `${pct}%` }}
-                          />
+                        <div className="w-full bg-surface-muted rounded-full h-1.5">
+                          <div className="h-1.5 rounded-full bg-brand" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );
@@ -394,41 +326,41 @@ export default function CalculadoraPage() {
 
       {/* Saved recipes drawer */}
       {showRecipes && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h2 className="font-bold text-gray-800">Recetas guardadas</h2>
-              <button onClick={() => setShowRecipes(false)} className="p-1.5 rounded-xl hover:bg-gray-100">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 p-4">
+          <div className="bg-surface border border-line rounded-3xl w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-line">
+              <h2 className="font-bold text-fg">Recetas guardadas</h2>
+              <button onClick={() => setShowRecipes(false)} className="p-1.5 rounded-xl hover:bg-surface-muted text-fg-muted transition">
                 <X size={18} />
               </button>
             </div>
             <div className="overflow-y-auto flex-1 p-4 space-y-3">
               {recipes.length === 0 && (
-                <p className="text-center text-gray-400 py-10 text-sm">No hay recetas guardadas</p>
+                <p className="text-center text-fg-subtle py-10 text-sm">No hay recetas guardadas</p>
               )}
               {recipes.map((r) => {
                 const cost = r.ingredients.reduce((a, i) => a + i.quantity * i.unitCost, 0) + r.extraCosts;
                 const p = r.salePrice - cost;
                 const m = r.salePrice > 0 ? (p / r.salePrice) * 100 : 0;
                 return (
-                  <div key={r.id} className="border border-gray-100 rounded-2xl p-4">
+                  <div key={r.id} className="border border-line rounded-2xl p-4 bg-canvas">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <p className="font-semibold text-gray-800">{r.name}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="font-semibold text-fg">{r.name}</p>
+                        <p className="text-xs text-fg-subtle mt-0.5">
                           Venta: ${fmt(r.salePrice)} · Costo: ${fmt(cost)} · Ganancia: ${fmt(p)} ({m.toFixed(1)}%)
                         </p>
                       </div>
                       <div className="flex gap-2 shrink-0">
                         <button
                           onClick={() => handleLoad(r)}
-                          className="text-xs bg-brand/10 text-brand px-3 py-1.5 rounded-lg font-medium"
+                          className="text-xs bg-brand/10 text-brand px-3 py-1.5 rounded-lg font-medium hover:bg-brand/20 transition"
                         >
                           Cargar
                         </button>
                         <button
                           onClick={() => handleDeleteRecipe(r.id)}
-                          className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100"
+                          className="p-1.5 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-400 hover:bg-red-100 dark:hover:bg-red-950/60 transition"
                         >
                           <Trash2 size={14} />
                         </button>

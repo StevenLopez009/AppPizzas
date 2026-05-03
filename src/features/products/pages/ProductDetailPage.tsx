@@ -62,7 +62,7 @@ export default function ProductDetailPage({ product, additionals }: Props) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto min-h-screen bg-white">
+    <div className="max-w-7xl mx-auto min-h-screen bg-canvas">
       <div className="md:grid md:grid-cols-2 md:gap-8">
         <ProductGallery product={product} />
 

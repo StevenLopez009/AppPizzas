@@ -14,7 +14,7 @@
 | **ws** | **8.x** | Servidor WebSocket dedicado |
 | **Cloudinary** | (externo) | Storage de imágenes (opcional) |
 | **Docker Compose** | — | Orquestación local |
-| Tailwind CSS | 4.x | Estilos con variables CSS (`--brand-*`) |
+| Tailwind CSS | 4.x | Estilos con variables CSS (`--brand-*`, `--app-*` semantic tokens) |
 | Shadcn/UI | 4.x | Componentes UI |
 | React Hot Toast | 2.x | Notificaciones (todas) |
 | React PDF | 4.x | Facturas y comandas |
@@ -191,7 +191,13 @@ AppPizzas/
 │
 ├── context/
 │   ├── CartContext.tsx
-│   └── UserContext.tsx            # /api/auth/me
+│   ├── UserContext.tsx            # /api/auth/me
+│   └── ThemeContext.tsx           # ThemeProvider + useTheme hook (dark/light)
+│
+├── components/
+│   └── ui/
+│       └── ThemeToggle.tsx        # Botón sol/luna — prop iconOnly para mobile
+│
 └── proxy.ts                       # middleware Next.js (verifica JWT)
 ```
 
@@ -289,6 +295,56 @@ Los pedidos del cliente se almacenan en `localStorage["order_history"]` (ver `li
 - `businessName`: nombre del negocio mostrado en el sidebar (admin y cliente). Se edita desde `/dashboardAdmin/appearance`.
 
 El `ensureAppSettingsTable()` en `lib/repos/appSettings.ts` crea la tabla y columnas si no existen (auto-migración al arranque).
+
+---
+
+## Dark mode / Light mode
+
+Sistema completo de temas claro/oscuro implementado con:
+
+### Tokens semánticos CSS (`src/app/globals.css`)
+
+```css
+:root {
+  --app-canvas: #f4f4f5;   --app-surface: #ffffff;
+  --app-fg: #18181b;       --app-fg-muted: #52525b;
+  --app-fg-subtle: #a1a1aa; --app-line: #e4e4e7;
+  color-scheme: light;
+}
+.dark {
+  --app-canvas: #0a0a0b;   --app-surface: #18181b;
+  --app-fg: #fafafa;       --app-fg-muted: #a1a1aa;
+  --app-line: #3f3f46;
+  --app-brand-surface: color-mix(in srgb, var(--app-brand) 18%, #0a0a0b);
+  color-scheme: dark;
+}
+```
+
+Mapeados a utilities Tailwind vía `@theme inline`: `bg-canvas`, `bg-surface`, `bg-surface-raised`, `bg-surface-muted`, `text-fg`, `text-fg-muted`, `text-fg-subtle`, `border-line`, `border-line-muted`.
+
+### ThemeProvider (`context/ThemeContext.tsx`)
+
+- Persiste preferencia en `localStorage["app-theme"]`.
+- Por defecto: `"dark"`.
+- Aplica/quita clase `dark` en `<html>`.
+- Anti-flicker: script inline en `<head>` antes del primer render.
+
+### Toggle placement
+
+| Superficie | Cómo |
+|---|---|
+| Sidebar desktop (admin + cliente) | `<ThemeToggle className="w-full justify-start" />` |
+| Mobile cliente (`MobileLayout`) | `<ThemeToggle iconOnly />` en esquina superior derecha |
+| Mobile admin (drawer "Más") | Botón inline con `Sun`/`Moon` |
+| Página `/dashboardAdmin/appearance` | Sección dedicada "Modo de visualización" |
+
+### Convención de estilos
+
+Todos los componentes usan tokens semánticos, no colores hardcodeados:
+- Fondos: `bg-canvas` / `bg-surface` / `bg-surface-muted`
+- Texto: `text-fg` / `text-fg-muted` / `text-fg-subtle`
+- Bordes: `border-line` / `border-line-muted`
+- Botones peligrosos: incluir variante `dark:bg-red-950/40 dark:hover:bg-red-950/60`
 
 ---
 

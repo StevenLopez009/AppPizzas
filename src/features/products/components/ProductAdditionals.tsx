@@ -8,40 +8,29 @@ interface Props {
   onToggle: (additional: any) => void;
 }
 
-export default function ProductAdditionals({
-  additionals,
-  selectedAdditionals,
-  onToggle,
-}: Props) {
+export default function ProductAdditionals({ additionals, selectedAdditionals, onToggle }: Props) {
   return (
     <div className="mb-5">
-      <h3 className="font-bold text-gray-800 mb-3">Ingredientes adicionales</h3>
+      <h3 className="font-bold text-fg mb-3">Ingredientes adicionales</h3>
 
       <div className="grid grid-cols-2 gap-2">
         {additionals.map((additional) => {
-          const isSelected = selectedAdditionals.some(
-            (item) => item.name === additional.name,
-          );
+          const isSelected = selectedAdditionals.some((item) => item.name === additional.name);
 
           return (
             <button
               type="button"
               key={additional.id || additional.name}
               onClick={() => onToggle(additional)}
-              className={`
-                p-3 rounded-xl text-left transition-all active:scale-95
-                ${
-                  isSelected
-                    ? "bg-brand text-white shadow-md"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }
-              `}
+              className={`p-3 rounded-xl text-left transition-all active:scale-95
+                ${isSelected
+                  ? "bg-brand text-white shadow-md"
+                  : "bg-surface-muted text-fg hover:bg-line"
+                }`}
             >
               <div className="font-medium text-sm">{additional.name}</div>
-
               <div className="text-xs mt-1 opacity-80">
-                +$
-                {additional.price.toLocaleString("es-CO")}
+                +${additional.price.toLocaleString("es-CO")}
               </div>
             </button>
           );
@@ -50,25 +39,19 @@ export default function ProductAdditionals({
 
       {selectedAdditionals.length > 0 && (
         <div className="mt-4 p-3 bg-brand-surface rounded-2xl">
-          <p className="text-xs font-semibold text-brand-text mb-2">
-            Ingredientes seleccionados
-          </p>
+          <p className="text-xs font-semibold text-brand-text mb-2">Ingredientes seleccionados</p>
 
           <div className="flex flex-wrap gap-2">
             {selectedAdditionals.map((item) => (
               <span
                 key={item.name}
-                className="
-                  bg-white px-3 py-1 rounded-full text-sm
-                  flex items-center gap-2 shadow-sm
-                "
+                className="bg-surface px-3 py-1 rounded-full text-sm text-fg flex items-center gap-2 shadow-sm border border-line"
               >
                 {item.name}
-
                 <button
                   type="button"
                   onClick={() => onToggle(item)}
-                  className="text-gray-500 hover:text-red-500 transition"
+                  className="text-fg-subtle hover:text-red-500 transition"
                 >
                   <CircleX size={14} />
                 </button>

@@ -22,41 +22,26 @@ export default function CustomerForm({ form, barrio, mesa, orderType, setBarrio,
       .catch(() => {});
   }, []);
 
+  const inputCls = "w-full p-4 outline-none bg-transparent text-fg placeholder:text-fg-subtle";
+  const dividerCls = "divide-y divide-line";
+
   return (
     <div className="px-6 mt-4">
-      <div className="bg-white rounded-3xl shadow-sm divide-y">
+      <div className={`bg-surface rounded-3xl shadow-sm border border-line ${dividerCls}`}>
         {orderType !== "mesa" && (
           <>
-            <input
-              name="nombre"
-              value={form.nombre}
-              onChange={handleChange}
-              placeholder="Nombre"
-              className="w-full p-4 outline-none"
-            />
-            <input
-              name="telefono"
-              value={form.telefono}
-              onChange={handleChange}
-              placeholder="Teléfono"
-              className="w-full p-4 outline-none"
-            />
+            <input name="nombre" value={form.nombre} onChange={handleChange} placeholder="Nombre" className={inputCls} />
+            <input name="telefono" value={form.telefono} onChange={handleChange} placeholder="Teléfono" className={inputCls} />
           </>
         )}
 
         {orderType === "domicilio" && (
           <>
-            <input
-              name="direccion"
-              value={form.direccion}
-              onChange={handleChange}
-              placeholder="Dirección"
-              className="w-full p-4 outline-none"
-            />
+            <input name="direccion" value={form.direccion} onChange={handleChange} placeholder="Dirección" className={inputCls} />
             <select
               value={barrio}
               onChange={(e) => setBarrio(e.target.value)}
-              className="w-full p-4 outline-none"
+              className={`${inputCls} cursor-pointer`}
             >
               <option value="">Selecciona tu barrio</option>
               {barrios.map((b) => (
@@ -69,11 +54,7 @@ export default function CustomerForm({ form, barrio, mesa, orderType, setBarrio,
         )}
 
         {orderType === "mesa" && (
-          <select
-            value={mesa}
-            onChange={(e) => setMesa(e.target.value)}
-            className="w-full p-4 outline-none"
-          >
+          <select value={mesa} onChange={(e) => setMesa(e.target.value)} className={`${inputCls} cursor-pointer`}>
             <option value="">Selecciona Mesa</option>
             {[...Array(7)].map((_, i) => (
               <option key={i} value={`Mesa ${i + 1}`}>Mesa {i + 1}</option>

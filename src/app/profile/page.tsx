@@ -16,10 +16,10 @@ export default function ProfilePage() {
 
       {typeSelected === "sign-up" && (
         <div className="p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4 text-black-600">Registro</h2>
+          <h2 className="text-2xl font-bold mb-4 text-fg">Registro</h2>
           <button
             onClick={() => setTypeSelected("sign-in")}
-            className="text-brand-text font-bold underline"
+            className="text-brand font-bold underline"
           >
             Volver al Login
           </button>

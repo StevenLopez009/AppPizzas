@@ -17,7 +17,10 @@ import {
   LogOut,
   User,
   Map,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 import { usePathname, useRouter } from "next/navigation";
 import SalesStats from "@/components/report/SalesStats";
 import DevSeedControl from "@/components/dev/DevSeedControl";
@@ -38,6 +41,7 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const primary = [
     { id: "home",   icon: Home,          path: "/dashboardAdmin",        label: "Inicio" },
@@ -63,7 +67,7 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
     <>
       {/* Bottom bar */}
       <div className="block md:hidden fixed bottom-0 left-0 w-full z-40">
-        <div className="mx-4 mb-4 bg-white rounded-3xl shadow-xl px-4 py-3 flex justify-around items-center border border-gray-100">
+        <div className="mx-4 mb-4 bg-surface rounded-3xl shadow-xl px-4 py-3 flex justify-around items-center border border-line">
           {primary.map(({ id, icon: Icon, path, label }) => {
             const isActive = pathname === path;
             return (
@@ -72,8 +76,8 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
                 onClick={() => navigate(path)}
                 className="flex flex-col items-center gap-1"
               >
-                <Icon size={22} className={isActive ? "text-brand" : "text-gray-400"} />
-                <span className={`text-[10px] ${isActive ? "text-brand font-semibold" : "text-gray-400"}`}>
+                <Icon size={22} className={isActive ? "text-brand" : "text-fg-subtle"} />
+                <span className={`text-[10px] ${isActive ? "text-brand font-semibold" : "text-fg-subtle"}`}>
                   {label}
                 </span>
               </button>
@@ -85,8 +89,8 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
             onClick={() => setDrawerOpen(true)}
             className="flex flex-col items-center gap-1"
           >
-            <MoreHorizontal size={22} className="text-gray-400" />
-            <span className="text-[10px] text-gray-400">Más</span>
+            <MoreHorizontal size={22} className="text-fg-subtle" />
+            <span className="text-[10px] text-fg-subtle">Más</span>
           </button>
         </div>
       </div>
@@ -98,14 +102,14 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
           onClick={() => setDrawerOpen(false)}
         >
           <div
-            className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl p-6 pb-10"
+            className="absolute bottom-0 left-0 w-full bg-surface rounded-t-3xl p-6 pb-10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-gray-800 text-base">Menú</h3>
+              <h3 className="font-bold text-fg text-base">Menú</h3>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="p-2 rounded-xl bg-gray-100 text-gray-500"
+                className="p-2 rounded-xl bg-surface-muted text-fg-muted"
               >
                 <X size={18} />
               </button>
@@ -119,7 +123,7 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
                     key={id}
                     onClick={() => navigate(path)}
                     className={`flex flex-col items-center gap-2 p-4 rounded-2xl transition ${
-                      isActive ? "bg-brand/10 text-brand" : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                      isActive ? "bg-brand/10 text-brand" : "bg-surface-muted text-fg-muted hover:bg-line-muted"
                     }`}
                   >
                     <Icon size={22} />
@@ -129,9 +133,18 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
               })}
             </div>
 
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-surface-muted text-fg-muted font-semibold text-sm"
+            >
+              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+              {theme === "dark" ? "Modo claro" : "Modo oscuro"}
+            </button>
+
             <button
               onClick={() => { setDrawerOpen(false); onLogout(); }}
-              className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-red-50 text-red-500 font-semibold text-sm"
+              className="mt-2 w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-red-50 text-red-500 dark:bg-red-950/40 dark:text-red-400 font-semibold text-sm"
             >
               <LogOut size={16} />
               Cerrar sesión

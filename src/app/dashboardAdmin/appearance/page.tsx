@@ -4,12 +4,15 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { api, ApiError } from "@/lib/api";
 import { applyBrandTheme } from "@/lib/theme/brandCssVars";
+import { useTheme } from "@/context/ThemeContext";
+import { Moon, Sun } from "lucide-react";
 
 export default function AppearanceAdminPage() {
   const [hex, setHex] = useState("#F97316");
   const [businessName, setBusinessName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     (async () => {
@@ -105,6 +108,22 @@ export default function AppearanceAdminPage() {
           className="w-full rounded-xl bg-brand py-3 font-semibold text-white shadow-md transition hover:bg-brand-hover active:bg-brand-active disabled:opacity-50"
         >
           {saving ? "Guardando…" : "Guardar cambios"}
+        </button>
+      </div>
+
+      {/* Dark mode */}
+      <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
+        <p className="text-sm text-gray-300 mb-3">Modo de visualización</p>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="flex items-center gap-3 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white hover:bg-white/10 transition"
+        >
+          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          <span className="flex-1 text-left">
+            {theme === "dark" ? "Modo claro" : "Modo oscuro"}
+          </span>
+          <span className="text-xs text-gray-400 capitalize">{theme === "dark" ? "Activo: oscuro" : "Activo: claro"}</span>
         </button>
       </div>
     </div>

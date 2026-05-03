@@ -26,7 +26,7 @@ export default function FoodCard({
 
   return (
     <Link href={href} className="w-full h-full">
-      <div className="flex flex-col w-full h-full bg-[#F5F5F5] rounded-[24px] sm:rounded-[28px] p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
+      <div className="flex flex-col w-full h-full bg-surface rounded-[24px] sm:rounded-[28px] p-3 sm:p-4 shadow-sm hover:shadow-md border border-line-muted transition-all duration-300 cursor-pointer">
         <div className="relative w-full h-[120px] sm:h-[140px]">
           <Image
             src={image}
@@ -38,17 +38,17 @@ export default function FoodCard({
 
         <div className="mt-2 sm:mt-3 flex justify-between items-start gap-2 flex-1">
           <div className="flex-1">
-            <h3 className="text-gray-800 font-semibold text-sm sm:text-base leading-tight">
+            <h3 className="text-fg font-semibold text-sm sm:text-base leading-tight">
               {title}
             </h3>
 
-            <p className="text-gray-400 text-[11px] sm:text-xs mt-1 leading-tight">
+            <p className="text-fg-subtle text-[11px] sm:text-xs mt-1 leading-tight">
               {(description ?? "").slice(0, 60)}
               {(description ?? "").length > 60 && "..."}
             </p>
           </div>
 
-          <div className="mt-1 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-ring flex items-center justify-center shadow-lg hover:bg-brand-hover transition shrink-0">
+          <div className="mt-1 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand flex items-center justify-center shadow-lg hover:bg-brand-hover transition shrink-0">
             <Plus size={16} className="text-white sm:w-[18px] sm:h-[18px]" />
           </div>
         </div>

@@ -6,15 +6,14 @@ interface Props {
 export default function ProductBorderSelector({ value, onChange }: Props) {
   return (
     <div className="mb-5">
-      <h3 className="font-bold text-gray-800 mb-3">Bordes de la Pizza</h3>
+      <h3 className="font-bold text-fg mb-3">Bordes de la Pizza</h3>
 
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-gray-200 rounded-2xl p-3 bg-gray-50 outline-none"
+        className="w-full border border-line rounded-2xl p-3 bg-surface-muted text-fg outline-none focus:ring-2 focus:ring-brand-ring"
       >
         <option value="">---</option>
-
         <option value="queso">Queso Crema</option>
         <option value="arequipe">Arequipe</option>
         <option value="bocadillo">Bocadillo</option>

@@ -12,18 +12,12 @@ export default function SearchBar({ value, onChange }: Props) {
         onChange={(e) => onChange(e.target.value)}
         placeholder="Buscar tus platos favoritos..."
         className="
-          w-full
-          py-3
-          px-4
-          rounded-2xl
-          border
-          border-gray-200
-          bg-white
-          shadow-sm
-          text-sm
-          focus:outline-none
-          focus:ring-2
-          focus:ring-brand-ring
+          w-full py-3 px-4 rounded-2xl
+          border border-line
+          bg-surface text-fg
+          placeholder:text-fg-subtle
+          shadow-sm text-sm
+          focus:outline-none focus:ring-2 focus:ring-brand-ring
         "
       />
     </div>

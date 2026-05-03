@@ -10,7 +10,6 @@ import { useCheckoutLocation } from "./useCheckoutLocation";
 import { createOrder } from "../services/createOrder";
 import { createOrderItems } from "../services/createOrderItems";
 import { sendWhatsAppOrder } from "../services/sendWhatsAppOrder";
-import { getDomicilio } from "../utils/barrios";
 
 export function useCheckout() {
   const router = useRouter();
@@ -21,7 +20,7 @@ export function useCheckout() {
     orderType,
   } = useCart();
 
-  const { form, barrio, mesa, setBarrio, setMesa, handleChange } =
+  const { form, barrio, barrioFee, mesa, setBarrio, setMesa, handleChange } =
     useCheckoutForm();
 
   const { location, locating, savedLocation, getLocation, saveLocation, clearSavedLocation, sendRestaurantLocation } =
@@ -32,7 +31,7 @@ export function useCheckout() {
     0,
   );
 
-  const domicilio = orderType === "domicilio" ? getDomicilio(barrio) : 0;
+  const domicilio = orderType === "domicilio" ? barrioFee : 0;
 
   const total = subtotal + domicilio;
 

@@ -8,13 +8,16 @@ import {
   ClipboardList,
   Home,
   Pizza,
-  User,
   HandPlatter,
   Palette,
   Tag,
+  ChefHat,
+  MoreHorizontal,
+  X,
+  LogOut,
+  User,
+  Map,
 } from "lucide-react";
-
-import BottomMenu from "@/components/bottomMenu/BottomMenu";
 import { usePathname, useRouter } from "next/navigation";
 import SalesStats from "@/components/report/SalesStats";
 import DevSeedControl from "@/components/dev/DevSeedControl";
@@ -29,6 +32,115 @@ interface OrderSummary {
   payment_method: string;
   order_type: "domicilio" | "mesa" | "recoger";
   order_items: { product_name: string; quantity: number }[];
+}
+
+function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const primary = [
+    { id: "home",   icon: Home,          path: "/dashboardAdmin",        label: "Inicio" },
+    { id: "orders", icon: ClipboardList, path: "/dashboardAdmin/orders", label: "Pedidos" },
+    { id: "create", icon: Pizza,         path: "/dashboardAdmin/create", label: "Crear" },
+  ];
+
+  const secondary = [
+    { id: "adittionals", icon: HandPlatter, path: "/dashboardAdmin/adittionals", label: "Adicionales" },
+    { id: "categories",  icon: Tag,         path: "/dashboardAdmin/categories",  label: "Categorías" },
+    { id: "appearance",  icon: Palette,     path: "/dashboardAdmin/appearance",  label: "Apariencia" },
+    { id: "calculadora", icon: ChefHat,     path: "/dashboardAdmin/calculadora", label: "Calculadora" },
+    { id: "mapa",        icon: Map,         path: "/dashboardAdmin/mapa",        label: "Mapa mesas" },
+    { id: "profile",     icon: User,        path: "/profile",                    label: "Perfil" },
+  ];
+
+  const navigate = (path: string) => {
+    setDrawerOpen(false);
+    router.push(path);
+  };
+
+  return (
+    <>
+      {/* Bottom bar */}
+      <div className="block md:hidden fixed bottom-0 left-0 w-full z-40">
+        <div className="mx-4 mb-4 bg-white rounded-3xl shadow-xl px-4 py-3 flex justify-around items-center border border-gray-100">
+          {primary.map(({ id, icon: Icon, path, label }) => {
+            const isActive = pathname === path;
+            return (
+              <button
+                key={id}
+                onClick={() => navigate(path)}
+                className="flex flex-col items-center gap-1"
+              >
+                <Icon size={22} className={isActive ? "text-brand" : "text-gray-400"} />
+                <span className={`text-[10px] ${isActive ? "text-brand font-semibold" : "text-gray-400"}`}>
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+
+          {/* More button */}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="flex flex-col items-center gap-1"
+          >
+            <MoreHorizontal size={22} className="text-gray-400" />
+            <span className="text-[10px] text-gray-400">Más</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Drawer overlay */}
+      {drawerOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 md:hidden"
+          onClick={() => setDrawerOpen(false)}
+        >
+          <div
+            className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl p-6 pb-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-gray-800 text-base">Menú</h3>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="p-2 rounded-xl bg-gray-100 text-gray-500"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {secondary.map(({ id, icon: Icon, path, label }) => {
+                const isActive = pathname === path;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => navigate(path)}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl transition ${
+                      isActive ? "bg-brand/10 text-brand" : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    <Icon size={22} />
+                    <span className="text-xs font-medium">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => { setDrawerOpen(false); onLogout(); }}
+              className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-red-50 text-red-500 font-semibold text-sm"
+            >
+              <LogOut size={16} />
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default function AdminLayout({
@@ -147,6 +259,18 @@ export default function AdminLayout({
       icon: Palette,
       path: "/dashboardAdmin/appearance",
     },
+    {
+      id: "calculadora",
+      label: "Calculadora",
+      icon: ChefHat,
+      path: "/dashboardAdmin/calculadora",
+    },
+    {
+      id: "mapa",
+      label: "Mapa mesas",
+      icon: Map,
+      path: "/dashboardAdmin/mapa",
+    },
   ];
 
   return (
@@ -167,31 +291,7 @@ export default function AdminLayout({
       </div>
 
       {!hideBottomMenu && (
-        <div className="block md:hidden fixed bottom-0 left-0 w-full">
-          <BottomMenu
-            defaultActive="home"
-            items={[
-              { id: "home", icon: Home, path: "/dashboardAdmin" },
-              { id: "create", icon: Pizza, path: "/dashboardAdmin/create" },
-              {
-                id: "adittionals",
-                icon: HandPlatter,
-                path: "/dashboardAdmin/adittionals",
-              },
-              {
-                id: "orders",
-                icon: ClipboardList,
-                path: "/dashboardAdmin/orders",
-              },
-              {
-                id: "appearance",
-                icon: Palette,
-                path: "/dashboardAdmin/appearance",
-              },
-              { id: "profile", icon: User, path: "/profile" },
-            ]}
-          />
-        </div>
+        <AdminMobileMenu onLogout={handleLogout} />
       )}
     </div>
   );

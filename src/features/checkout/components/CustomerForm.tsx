@@ -1,26 +1,27 @@
-import { BARRIOS } from "../utils/barrios";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+
+interface DbBarrio { id: string; name: string; delivery_fee: number }
 
 interface Props {
   form: any;
   barrio: string;
   mesa: string;
   orderType: string;
-
   setBarrio: (value: string) => void;
   setMesa: (value: string) => void;
-
   handleChange: (e: any) => void;
 }
 
-export default function CustomerForm({
-  form,
-  barrio,
-  mesa,
-  orderType,
-  setBarrio,
-  setMesa,
-  handleChange,
-}: Props) {
+export default function CustomerForm({ form, barrio, mesa, orderType, setBarrio, setMesa, handleChange }: Props) {
+  const [barrios, setBarrios] = useState<DbBarrio[]>([]);
+
+  useEffect(() => {
+    api.get<{ barrios: DbBarrio[] }>("/api/barrios")
+      .then(({ barrios }) => setBarrios(barrios))
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="px-6 mt-4">
       <div className="bg-white rounded-3xl shadow-sm divide-y">
@@ -33,12 +34,11 @@ export default function CustomerForm({
               placeholder="Nombre"
               className="w-full p-4 outline-none"
             />
-
             <input
               name="telefono"
               value={form.telefono}
               onChange={handleChange}
-              placeholder="Telefono"
+              placeholder="Teléfono"
               className="w-full p-4 outline-none"
             />
           </>
@@ -50,19 +50,18 @@ export default function CustomerForm({
               name="direccion"
               value={form.direccion}
               onChange={handleChange}
-              placeholder="Direccion"
+              placeholder="Dirección"
               className="w-full p-4 outline-none"
             />
-
             <select
               value={barrio}
               onChange={(e) => setBarrio(e.target.value)}
               className="w-full p-4 outline-none"
             >
               <option value="">Selecciona tu barrio</option>
-              {BARRIOS.map((b) => (
-                <option key={b.value} value={b.value}>
-                  {b.label} — ${b.domicilio.toLocaleString("es-CO")} domicilio
+              {barrios.map((b) => (
+                <option key={b.id} value={b.name}>
+                  {b.name} — ${b.delivery_fee.toLocaleString("es-CO")} domicilio
                 </option>
               ))}
             </select>
@@ -76,11 +75,8 @@ export default function CustomerForm({
             className="w-full p-4 outline-none"
           >
             <option value="">Selecciona Mesa</option>
-
             {[...Array(7)].map((_, i) => (
-              <option key={i} value={`Mesa ${i + 1}`}>
-                Mesa {i + 1}
-              </option>
+              <option key={i} value={`Mesa ${i + 1}`}>Mesa {i + 1}</option>
             ))}
           </select>
         )}

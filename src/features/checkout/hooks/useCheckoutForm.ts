@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
+
+interface DbBarrio { id: string; name: string; delivery_fee: number }
 
 const FORM_KEY = "saved_checkout_form";
 
@@ -23,6 +26,13 @@ function loadSavedForm(): SavedForm | null {
 export function useCheckoutForm() {
   const [barrio, setBarrioState] = useState("");
   const [mesa, setMesa] = useState("");
+  const [barriosList, setBarriosList] = useState<DbBarrio[]>([]);
+
+  useEffect(() => {
+    api.get<{ barrios: DbBarrio[] }>("/api/barrios")
+      .then(({ barrios }) => setBarriosList(barrios))
+      .catch(() => {});
+  }, []);
 
   const [form, setForm] = useState({
     nombre: "",
@@ -69,12 +79,15 @@ export function useCheckoutForm() {
     persistForm(form, value);
   };
 
+  const barrioFee = barriosList.find((b) => b.name === barrio)?.delivery_fee ?? 0;
+
   return {
     form,
     setForm,
 
     barrio,
     setBarrio,
+    barrioFee,
 
     mesa,
     setMesa,

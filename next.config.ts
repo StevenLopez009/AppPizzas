@@ -1,6 +1,6 @@
 const nextConfig = {
   images: {
-    domains: ["yrepouvyqitglfhsqofx.supabase.co"],
+    domains: ["yrepouvyqitglfhsqofx.supabase.co", "picsum.photos"],
   },
   async redirects() {
     return [

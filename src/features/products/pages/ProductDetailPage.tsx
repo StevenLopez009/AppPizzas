@@ -18,13 +18,9 @@ interface Props {
 
 export default function ProductDetailPage({ product, additionals }: Props) {
   const { addToCart } = useCart();
-
   const [selectedSize, setSelectedSize] = useState(product.prices[0]);
-
   const [selectedBorder, setSelectedBorder] = useState("");
-
   const [selectedAdditionals, setSelectedAdditionals] = useState<any[]>([]);
-
   const [observations, setObservations] = useState("");
 
   const additionalsPrice = selectedAdditionals.reduce(
@@ -36,7 +32,7 @@ export default function ProductDetailPage({ product, additionals }: Props) {
 
   const toggleAdditional = (additional: any) => {
     setSelectedAdditionals((prev) => {
-      const exists = prev.find((item) => item.name === additional.name);
+      const exists = prev.find((item) => item.id === additional.id);
 
       if (exists) {
         return prev.filter((item) => item.name !== additional.name);

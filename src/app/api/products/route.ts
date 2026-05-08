@@ -20,18 +20,23 @@ export async function POST(req: Request) {
       description?: string;
       prices?: Array<{ label: string; price: number }>;
       image_url?: string;
+      category_id?: string;
       category?: string;
     };
+
     if (!body.name) {
       return NextResponse.json({ error: "name requerido" }, { status: 400 });
     }
+
     const product = await createProduct({
       name: body.name,
       description: body.description ?? null,
       prices: body.prices ?? [],
       image_url: body.image_url ?? null,
+      category_id: body.category_id ?? null,
       category: body.category ?? null,
     });
+
     return NextResponse.json({ product }, { status: 201 });
   } catch (e) {
     console.error("[/api/products POST]", e);

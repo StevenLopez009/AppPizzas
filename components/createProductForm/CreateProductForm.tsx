@@ -7,6 +7,11 @@ import imgProduct from "@/assets/images/createProduct.jpg";
 import { uploadImageToCloudinary } from "@/lib/storage/cloudinary";
 import { api, ApiError } from "@/lib/api";
 
+interface Category {
+  id: string;
+  name: string;
+}
+
 export default function CreateProductForm() {
   const [form, setForm] = useState({
     name: "",
@@ -15,25 +20,30 @@ export default function CreateProductForm() {
     pricePersonal: "",
     priceMediana: "",
     image_url: "",
-    category: "",
+    category_id: "",
   });
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    api.get<{ categories: { id: string; name: string }[] }>("/api/categories")
-      .then(({ categories }) => setCategories(categories.map((c) => c.name)))
+    api
+      .get<{ categories: { id: string; name: string }[] }>("/api/categories")
+      .then(({ categories }) => setCategories(categories))
       .catch(() => {});
   }, []);
 
-  const isPizza = form.category.toLowerCase().includes("pizza");
-
-  const category = form.category.toLowerCase();
-  const isComidaRapida = category.includes("rapida");
+  const selectedCategory = categories.find(
+    (cat) => cat.id === form.category_id,
+  );
+  const categoryName = selectedCategory?.name.toLowerCase() || "";
+  const isPizza = categoryName.includes("pizza");
+  const isComidaRapida = categoryName.includes("rapida");
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -72,7 +82,8 @@ export default function CreateProductForm() {
         description: form.description,
         prices,
         image_url: imageUrl,
-        category: form.category,
+        category_id: form.category_id,
+        category: selectedCategory?.name || "",
       });
 
       toast.success("Producto creado");
@@ -83,7 +94,7 @@ export default function CreateProductForm() {
         pricePersonal: "",
         priceMediana: "",
         image_url: "",
-        category: "",
+        category_id: "",
       });
       setFile(null);
     } catch (err) {
@@ -100,7 +111,8 @@ export default function CreateProductForm() {
     }
   };
 
-  const fieldCls = "w-full border border-line bg-canvas text-fg placeholder:text-fg-subtle focus:border-brand-ring focus:ring-2 focus:ring-brand-ring outline-none p-3 rounded-xl transition";
+  const fieldCls =
+    "w-full border border-line bg-canvas text-fg placeholder:text-fg-subtle focus:border-brand-ring focus:ring-2 focus:ring-brand-ring outline-none p-3 rounded-xl transition";
 
   return (
     <form
@@ -116,43 +128,96 @@ export default function CreateProductForm() {
           priority
         />
         <div className="absolute inset-0 flex items-end p-6 bg-gradient-to-t from-black/60 to-transparent rounded-l-3xl">
-          <h2 className="text-white text-2xl font-bold">Crea un nuevo producto</h2>
+          <h2 className="text-white text-2xl font-bold">
+            Crea un nuevo producto
+          </h2>
         </div>
       </div>
 
       <div className="p-6 md:p-10 space-y-5">
         <h2 className="text-2xl font-bold text-fg md:hidden">Crear Producto</h2>
 
-        <input type="text" name="name" placeholder="Nombre del producto" value={form.name} onChange={handleChange} className={fieldCls} required />
+        <input
+          type="text"
+          name="name"
+          placeholder="Nombre del producto"
+          value={form.name}
+          onChange={handleChange}
+          className={fieldCls}
+          required
+        />
 
-        <textarea name="description" placeholder="Descripción" value={form.description} onChange={handleChange} className={`${fieldCls} resize-none`} />
+        <textarea
+          name="description"
+          placeholder="Descripción"
+          value={form.description}
+          onChange={handleChange}
+          className={`${fieldCls} resize-none`}
+        />
 
-        <select name="category" value={form.category} onChange={handleChange} className={fieldCls} required>
+        <select
+          name="category_id"
+          value={form.category_id}
+          onChange={handleChange}
+          className={fieldCls}
+          required
+        >
           <option value="">Selecciona una categoría</option>
-          {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
         </select>
 
         {isPizza || isComidaRapida ? (
           <div className="grid grid-cols-2 gap-3">
-            <input type="number" name="pricePersonal"
+            <input
+              type="number"
+              name="pricePersonal"
               placeholder={isPizza ? "Precio Personal" : "Precio Sencillo"}
-              value={form.pricePersonal} onChange={handleChange} className={fieldCls} required />
-            <input type="number" name="priceMediana"
+              value={form.pricePersonal}
+              onChange={handleChange}
+              className={fieldCls}
+              required
+            />
+            <input
+              type="number"
+              name="priceMediana"
               placeholder={isPizza ? "Precio Mediana" : "Precio Doble"}
-              value={form.priceMediana} onChange={handleChange} className={fieldCls} required />
+              value={form.priceMediana}
+              onChange={handleChange}
+              className={fieldCls}
+              required
+            />
           </div>
         ) : (
-          <input type="number" name="price" placeholder="Precio" value={form.price} onChange={handleChange} className={fieldCls} required />
+          <input
+            type="number"
+            name="price"
+            placeholder="Precio"
+            value={form.price}
+            onChange={handleChange}
+            className={fieldCls}
+            required
+          />
         )}
 
         <label className="block">
           <span className="text-sm text-fg-muted">Imagen del producto</span>
-          <input type="file" accept="image/*" onChange={handleFileChange}
-            className="w-full mt-1 border border-dashed border-line p-3 rounded-xl cursor-pointer hover:border-brand-ring text-fg-muted transition" />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="w-full mt-1 border border-dashed border-line p-3 rounded-xl cursor-pointer hover:border-brand-ring text-fg-muted transition"
+          />
         </label>
 
-        <button type="submit" disabled={submitting}
-          className="w-full bg-brand hover:bg-brand-hover text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full bg-brand hover:bg-brand-hover text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-60"
+        >
           {submitting ? "Guardando…" : "Guardar Producto"}
         </button>
       </div>

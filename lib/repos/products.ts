@@ -14,6 +14,7 @@ export interface ProductRow extends RowDataPacket {
   description: string | null;
   prices: unknown;
   image_url: string | null;
+  category_id: string | null;
   category: string | null;
   created_at: Date;
 }
@@ -24,6 +25,7 @@ export interface Product {
   description: string | null;
   prices: PriceRow[];
   image_url: string | null;
+  category_id: string | null;
   category: string | null;
   created_at: string;
 }
@@ -35,6 +37,7 @@ function toProduct(row: ProductRow): Product {
     description: row.description,
     prices: parseJSON<PriceRow[]>(row.prices, []),
     image_url: row.image_url,
+    category_id: row.category_id,
     category: row.category,
     created_at:
       row.created_at instanceof Date
@@ -63,20 +66,22 @@ export interface NewProduct {
   description?: string | null;
   prices: PriceRow[];
   image_url?: string | null;
+  category_id?: string | null;
   category?: string | null;
 }
 
 export async function createProduct(input: NewProduct): Promise<Product> {
   const id = uuid();
   await db.execute(
-    `INSERT INTO products (id, name, description, prices, image_url, category)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO products (id, name, description, prices, image_url, category_id, category)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       input.name,
       input.description ?? null,
       JSON.stringify(input.prices ?? []),
       input.image_url ?? null,
+      input.category_id ?? null,
       input.category ?? null,
     ],
   );
@@ -107,13 +112,23 @@ export async function updateProduct(
     fields.push("image_url = ?");
     values.push(patch.image_url);
   }
-  if (patch.category !== undefined) {
-    fields.push("category = ?");
-    values.push(patch.category);
+  if (patch.category_id !== undefined) {
+    if (patch.category_id !== undefined) {
+      fields.push("category_id = ?");
+      values.push(patch.category_id);
+    }
+
+    if (patch.category !== undefined) {
+      fields.push("category = ?");
+      values.push(patch.category);
+    }
   }
   if (fields.length === 0) return getProduct(id);
   values.push(id);
-  await db.execute(`UPDATE products SET ${fields.join(", ")} WHERE id = ?`, values);
+  await db.execute(
+    `UPDATE products SET ${fields.join(", ")} WHERE id = ?`,
+    values,
+  );
   return getProduct(id);
 }
 

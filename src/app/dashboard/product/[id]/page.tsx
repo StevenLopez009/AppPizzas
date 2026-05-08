@@ -7,30 +7,19 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-function mapCategoryForAdditionals(category: string | null): string | null {
-  if (!category) return null;
-  const normalized = category.toLowerCase();
-  if (normalized.includes("pizza")) return "pizza";
-  if (normalized.includes("lasagna") || normalized.includes("lasaña"))
-    return "lasagna";
-  if (normalized.includes("rapida") || normalized.includes("com"))
-    return "Com. Rapidas";
-  return null;
-}
-
 export default async function Page({ params }: Props) {
   const { id } = await params;
 
   const product = await getProduct(id);
   if (!product) return notFound();
 
-  const additionalsCategory = mapCategoryForAdditionals(product.category);
-  const additionals = additionalsCategory
-    ? await listAdditionals({
-        category: additionalsCategory,
-        onlyActive: true,
-      })
-    : [];
+  const additionals = await listAdditionals({
+    category_id: product.category_id,
+    onlyActive: true,
+  });
+
+  console.log("Product category_id:", product.category_id);
+  console.log("Additionals found:", additionals.length);
 
   return <ProductDetailPage product={product} additionals={additionals} />;
 }

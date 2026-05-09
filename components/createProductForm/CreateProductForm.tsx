@@ -19,6 +19,8 @@ export default function CreateProductForm() {
     price: "",
     pricePersonal: "",
     priceMediana: "",
+    priceAgua: "",
+    priceLeche: "",
     image_url: "",
     category_id: "",
   });
@@ -39,6 +41,7 @@ export default function CreateProductForm() {
   const categoryName = selectedCategory?.name.toLowerCase() || "";
   const isPizza = categoryName.includes("pizza");
   const isComidaRapida = categoryName.includes("rapida");
+  const isBebida = categoryName.includes("bebida");
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -73,6 +76,11 @@ export default function CreateProductForm() {
           { label: "Sencillo", price: Number(form.pricePersonal) },
           { label: "Doble", price: Number(form.priceMediana) },
         ];
+      } else if (isBebida) {
+        prices = [
+          { label: "Agua", price: Number(form.priceAgua) },
+          { label: "Leche", price: Number(form.priceLeche) },
+        ];
       } else {
         prices = [{ label: "", price: Number(form.price) }];
       }
@@ -93,6 +101,8 @@ export default function CreateProductForm() {
         price: "",
         pricePersonal: "",
         priceMediana: "",
+        priceAgua: "",
+        priceLeche: "",
         image_url: "",
         category_id: "",
       });
@@ -170,7 +180,28 @@ export default function CreateProductForm() {
           ))}
         </select>
 
-        {isPizza || isComidaRapida ? (
+        {isBebida ? (
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              type="number"
+              name="priceAgua"
+              placeholder="Precio Agua"
+              value={form.priceAgua}
+              onChange={handleChange}
+              className={fieldCls}
+              required
+            />
+            <input
+              type="number"
+              name="priceLeche"
+              placeholder="Precio Leche"
+              value={form.priceLeche}
+              onChange={handleChange}
+              className={fieldCls}
+              required
+            />
+          </div>
+        ) : isPizza || isComidaRapida ? (
           <div className="grid grid-cols-2 gap-3">
             <input
               type="number"

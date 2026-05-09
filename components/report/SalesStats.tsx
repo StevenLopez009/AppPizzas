@@ -1,5 +1,7 @@
 "use client";
 
+import { useTheme } from "@/context/ThemeContext";
+
 import {
   BarChart,
   Bar,
@@ -32,6 +34,20 @@ interface Props {
 }
 
 export default function SalesStats({ orders }: Props) {
+  const { theme } = useTheme();
+
+  const isDark = theme === "dark";
+
+  // =========================
+  // COLORES DINÁMICOS
+  // =========================
+
+  const chartGrid = isDark ? "#27272a" : "#e5e7eb";
+  const chartText = isDark ? "#a1a1aa" : "#6b7280";
+  const tooltipBg = isDark ? "#18181b" : "#ffffff";
+  const tooltipBorder = isDark ? "#27272a" : "#e5e7eb";
+  const tooltipText = isDark ? "#f4f4f5" : "#111827";
+
   // =========================
   // VENTAS POR DÍA
   // =========================
@@ -40,6 +56,7 @@ export default function SalesStats({ orders }: Props) {
 
   orders.forEach((order) => {
     const day = new Date(order.created_at).toLocaleDateString("es-CO");
+
     salesByDayMap[day] = (salesByDayMap[day] || 0) + finalTotal(order);
   });
 
@@ -90,20 +107,20 @@ export default function SalesStats({ orders }: Props) {
       : 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 transition-colors duration-300">
       {/* HEADER */}
-      <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
-        <h2 className="text-2xl font-bold text-gray-800">Estadísticas</h2>
+      <div className="bg-surface border border-line rounded-3xl p-5 shadow-sm transition-colors duration-300">
+        <h2 className="text-2xl font-bold text-fg">Estadísticas</h2>
 
-        <p className="text-sm text-gray-400 mt-1">Resumen de ventas</p>
+        <p className="text-sm text-fg-muted mt-1">Resumen de ventas</p>
       </div>
 
       {/* CARDS */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400">Ventas</p>
+        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm transition-colors duration-300">
+          <p className="text-xs text-fg-muted">Ventas</p>
 
-          <h2 className="text-lg font-bold text-gray-800 mt-1">
+          <h2 className="text-lg font-bold text-fg mt-1">
             $
             {orders
               .reduce((acc, o) => acc + finalTotal(o), 0)
@@ -111,45 +128,61 @@ export default function SalesStats({ orders }: Props) {
           </h2>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400">Pedidos</p>
+        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm transition-colors duration-300">
+          <p className="text-xs text-fg-muted">Pedidos</p>
 
-          <h2 className="text-lg font-bold text-gray-800 mt-1">
-            {orders.length}
-          </h2>
+          <h2 className="text-lg font-bold text-fg mt-1">{orders.length}</h2>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400">Ticket Prom.</p>
+        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm transition-colors duration-300">
+          <p className="text-xs text-fg-muted">Ticket Prom.</p>
 
-          <h2 className="text-lg font-bold text-gray-800 mt-1">
+          <h2 className="text-lg font-bold text-fg mt-1">
             ${Math.round(averageTicket).toLocaleString("es-CO")}
           </h2>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400">Productos</p>
+        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm transition-colors duration-300">
+          <p className="text-xs text-fg-muted">Productos</p>
 
-          <h2 className="text-lg font-bold text-gray-800 mt-1">
+          <h2 className="text-lg font-bold text-fg mt-1">
             {topProducts.reduce((acc, p) => acc + p.quantity, 0)}
           </h2>
         </div>
       </div>
 
       {/* VENTAS */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
-        <h3 className="font-semibold text-gray-800 mb-4">Ventas por día</h3>
+      <div className="bg-surface border border-line rounded-3xl p-4 shadow-sm transition-colors duration-300">
+        <h3 className="font-semibold text-fg mb-4">Ventas por día</h3>
 
         <div className="h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={salesByDay}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid stroke={chartGrid} strokeDasharray="3 3" />
 
-              <XAxis dataKey="day" tick={{ fontSize: 10 }} />
+              <XAxis
+                dataKey="day"
+                tick={{
+                  fontSize: 10,
+                  fill: chartText,
+                }}
+              />
 
-              <YAxis tick={{ fontSize: 10 }} />
+              <YAxis
+                tick={{
+                  fontSize: 10,
+                  fill: chartText,
+                }}
+              />
 
-              <Tooltip />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: tooltipBg,
+                  border: `1px solid ${tooltipBorder}`,
+                  borderRadius: "14px",
+                  color: tooltipText,
+                }}
+              />
 
               <Line
                 type="monotone"
@@ -163,19 +196,37 @@ export default function SalesStats({ orders }: Props) {
       </div>
 
       {/* TOP PRODUCTOS */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
-        <h3 className="font-semibold text-gray-800 mb-4">Top productos</h3>
+      <div className="bg-surface border border-line rounded-3xl p-4 shadow-sm transition-colors duration-300">
+        <h3 className="font-semibold text-fg mb-4">Top productos</h3>
 
         <div className="h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={topProducts}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid stroke={chartGrid} strokeDasharray="3 3" />
 
-              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+              <XAxis
+                dataKey="name"
+                tick={{
+                  fontSize: 10,
+                  fill: chartText,
+                }}
+              />
 
-              <YAxis tick={{ fontSize: 10 }} />
+              <YAxis
+                tick={{
+                  fontSize: 10,
+                  fill: chartText,
+                }}
+              />
 
-              <Tooltip />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: tooltipBg,
+                  border: `1px solid ${tooltipBorder}`,
+                  borderRadius: "14px",
+                  color: tooltipText,
+                }}
+              />
 
               <Bar dataKey="quantity" fill="#fb923c" radius={[8, 8, 0, 0]} />
             </BarChart>

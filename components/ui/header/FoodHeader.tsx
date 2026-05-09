@@ -20,7 +20,7 @@ export default function MenuView() {
 
   return (
     <div className="lg:px-4 mb-10">
-      <div className="flex flex-col md:flex-row gap-6 mt-2">
+      <div className="flex flex-col md:flex-row gap-6">
         <div className="w-full md:w-1/2">
           <BannerCarousel />
         </div>

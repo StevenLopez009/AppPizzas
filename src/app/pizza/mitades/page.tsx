@@ -225,9 +225,8 @@ export default function PizzaMitadesPage() {
   );
 
   return (
-    <div className="bg-white min-h-screen font-sans">
+    <div className="bg-background text-fg min-h-screen font-sans transition-colors duration-300">
       <div className="max-w-5xl mx-auto md:grid md:grid-cols-[1fr_1fr] md:min-h-screen">
-
         {/* Left column: image (sticky on md+) */}
         <div className="relative h-[300px] md:h-auto md:sticky md:top-0 md:self-start md:min-h-screen">
           <Image
@@ -240,12 +239,12 @@ export default function PizzaMitadesPage() {
           <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
             <button
               onClick={() => router.back()}
-              className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm active:scale-95 transition"
+              className="p-2 bg-surface/80 backdrop-blur-sm border border-line rounded-full shadow-sm text-fg"
             >
-              <ChevronLeft size={20} className="text-gray-700" />
+              <ChevronLeft size={20} className="text-fg-muted" />
             </button>
-            <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm">
-              <Heart size={20} className="text-gray-700" />
+            <button className="p-2 bg-surface/80 backdrop-blur-sm border border-line rounded-full shadow-sm text-fg">
+              <Heart size={20} className="text-fg-muted" />
             </button>
           </div>
         </div>
@@ -253,16 +252,14 @@ export default function PizzaMitadesPage() {
         {/* Right column: options */}
         <div className="px-6 pt-6 pb-32 md:pb-8 md:overflow-y-auto">
           <div className="flex justify-between items-start mb-1">
-            <span className="text-gray-400 text-sm">Pizza</span>
+            <span className="text-fg-muted text-sm">Pizza</span>
             <div className="flex items-center gap-1">
               <Star size={16} className="fill-yellow-400 text-yellow-400" />
               <span className="font-bold text-sm">4.9</span>
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-800 mb-3">
-            Pizza por mitades
-          </h1>
+          <h1 className="text-2xl font-bold text-fg mb-3">Pizza por mitades</h1>
 
           {error && (
             <div className="mb-4 flex items-center gap-2 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
@@ -272,15 +269,15 @@ export default function PizzaMitadesPage() {
           )}
 
           <div className="mb-6">
-            <h3 className="font-bold text-gray-800 mb-2">Descripción</h3>
-            <p className="text-gray-500 leading-relaxed text-sm">
+            <h3 className="font-bold text-fg mb-2">Descripción</h3>
+            <p className="text-fg-muted leading-relaxed text-sm">
               {descripcionDinamica}
             </p>
           </div>
 
           {/* Size */}
           <div className="mb-6">
-            <h3 className="font-bold text-gray-800 mb-3">Seleccione un tamaño</h3>
+            <h3 className="font-bold text-fg mb-3">Seleccione un tamaño</h3>
             <div className="flex gap-3">
               {sizes.map((s) => (
                 <button
@@ -289,7 +286,7 @@ export default function PizzaMitadesPage() {
                   className={`px-6 py-3 rounded-2xl font-semibold whitespace-nowrap transition active:scale-95 ${
                     selectedSize?.label === s.label
                       ? "bg-brand text-white shadow-lg"
-                      : "bg-gray-100 text-gray-600"
+                      : "bg-surface-muted text-fg-muted"
                   }`}
                 >
                   {s.label}
@@ -300,12 +297,12 @@ export default function PizzaMitadesPage() {
 
           {/* Sweet flavors */}
           <div className="mb-5">
-            <h3 className="font-bold text-gray-800 mb-3">Sabores Dulces</h3>
+            <h3 className="font-bold text-fg mb-3">Sabores Dulces</h3>
             <div className="grid grid-cols-2 gap-3">
               {[0, 1].map((i) => (
                 <select
                   key={i}
-                  className="w-full border rounded-xl p-3 bg-white text-sm"
+                  className="w-full rounded-xl p-3 bg-surface border border-line text-fg text-sm"
                   value={sabores[i] || ""}
                   onChange={(e) => handleSelect(e.target.value, i)}
                   disabled={disabled && !sabores[i]}
@@ -324,7 +321,9 @@ export default function PizzaMitadesPage() {
                   <option value="infantil_2">Infantil 2</option>
                   <option value="infantil_3">Infantil 3</option>
                   <option value="oreo_miel">Oreo miel</option>
-                  <option value="platano_bocadillo">Plátano con bocadillo</option>
+                  <option value="platano_bocadillo">
+                    Plátano con bocadillo
+                  </option>
                   <option value="queso_bocadillo">Queso y bocadillo</option>
                   <option value="tropical">Tropical</option>
                 </select>
@@ -334,9 +333,9 @@ export default function PizzaMitadesPage() {
 
           {/* Sweet border */}
           <div className="mb-6">
-            <h3 className="font-bold text-gray-800 mb-3">Borde mitad dulce</h3>
+            <h3 className="font-bold text-fg mb-3">Borde mitad dulce</h3>
             <select
-              className="w-full border rounded-xl p-3 bg-white text-sm"
+              className="w-full rounded-xl p-3 bg-surface border border-line text-fg text-sm"
               value={borders[0]}
               onChange={(e) => handleBorderSelect(e.target.value, 0)}
             >
@@ -347,12 +346,12 @@ export default function PizzaMitadesPage() {
 
           {/* Savory flavors */}
           <div className="mb-5">
-            <h3 className="font-bold text-gray-800 mb-3">Sabores de sal</h3>
+            <h3 className="font-bold text-fg mb-3">Sabores de sal</h3>
             <div className="grid grid-cols-2 gap-3">
               {[2, 3].map((i) => (
                 <select
                   key={i}
-                  className="w-full border rounded-xl p-3 bg-white text-sm"
+                  className="w-full rounded-xl p-3 bg-surface border border-line text-fg text-sm"
                   value={sabores[i] || ""}
                   onChange={(e) => handleSelect(e.target.value, i)}
                   disabled={disabled && !sabores[i]}
@@ -363,7 +362,9 @@ export default function PizzaMitadesPage() {
                   <option value="atun_pollo">Atún pollo</option>
                   <option value="campesina">Campesina</option>
                   <option value="caprichosa">Caprichosa</option>
-                  <option value="carne_champinon">Carne desmechada champiñones</option>
+                  <option value="carne_champinon">
+                    Carne desmechada champiñones
+                  </option>
                   <option value="carnes_1">Carnes 1</option>
                   <option value="carnes_2">Carnes 2</option>
                   <option value="carnes_3">Carnes 3</option>
@@ -398,9 +399,9 @@ export default function PizzaMitadesPage() {
 
           {/* Savory border */}
           <div className="mb-6">
-            <h3 className="font-bold text-gray-800 mb-3">Borde mitad de sal</h3>
+            <h3 className="font-bold text-fg mb-3">Borde mitad de sal</h3>
             <select
-              className="w-full border rounded-xl p-3 bg-white text-sm"
+              className="w-full rounded-xl p-3 bg-surface border border-line text-fg text-sm"
               value={borders[1]}
               onChange={(e) => handleBorderSelect(e.target.value, 1)}
             >
@@ -411,9 +412,7 @@ export default function PizzaMitadesPage() {
 
           {/* Additionals */}
           <div className="mb-6">
-            <h3 className="font-bold text-gray-800 mb-3">
-              Ingredientes adicionales
-            </h3>
+            <h3 className="font-bold text-fg mb-3">Ingredientes adicionales</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {additionalsPizzaList.map((additional) => {
                 const isSelected = selectedAdditionals.some(
@@ -426,7 +425,7 @@ export default function PizzaMitadesPage() {
                     className={`p-3 rounded-xl text-left transition-all active:scale-95 ${
                       isSelected
                         ? "bg-brand text-white shadow-md"
-                        : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+                        : "bg-surface-muted text-fg border border-line hover:bg-line-muted"
                     }`}
                   >
                     <div className="font-medium text-sm">{additional.name}</div>
@@ -439,20 +438,25 @@ export default function PizzaMitadesPage() {
             </div>
 
             {selectedAdditionals.length > 0 && (
-              <div className="mt-3 p-3 bg-brand-surface rounded-xl">
+              <div className="mt-3 p-3 bg-brand-surface rounded-xl border border-line">
                 <div className="text-xs text-brand-text font-medium mb-2">
                   Ingredientes seleccionados:
                 </div>
+
                 <div className="flex flex-wrap gap-2">
                   {selectedAdditionals.map((item) => (
                     <span
                       key={item.name}
-                      className="inline-flex items-center gap-1 text-xs bg-white px-2 py-1 rounded-full shadow-sm"
+                      className="inline-flex items-center gap-1 text-xs
+          bg-surface text-fg
+          px-2 py-1 rounded-full shadow-sm border border-line
+          transition-colors duration-300"
                     >
                       {item.name}
+
                       <button
                         onClick={() => toggleAdditional(item)}
-                        className="hover:text-red-500"
+                        className="text-fg-muted hover:text-red-500 transition-colors"
                       >
                         <CircleX size={12} />
                       </button>
@@ -464,10 +468,10 @@ export default function PizzaMitadesPage() {
           </div>
 
           {/* Footer: fixed on mobile, inline on md+ */}
-          <div className="fixed md:static bottom-0 left-0 w-full md:w-auto md:rounded-2xl bg-white/90 md:bg-gray-50 backdrop-blur-md md:backdrop-blur-none p-6 border-t border-gray-100 md:border md:border-gray-200 flex justify-between items-center rounded-t-3xl shadow-2xl md:shadow-none">
+          <div className="fixed md:static bottom-0 left-0 w-full md:w-auto md:rounded-2xl bg-surface/90 md:bg-surface-muted backdrop-blur-md md:backdrop-blur-none p-6 border-t  md:border border-line flex justify-between items-center rounded-t-3xl shadow-2xl md:shadow-none">
             <div>
-              <p className="text-gray-400 text-xs">Precio</p>
-              <p className="text-2xl font-black text-gray-800">
+              <p className="text-fg-muted text-xs">Precio</p>
+              <p className="text-2xl font-black text-fg">
                 ${calcularPrecioTotal().toLocaleString("es-CO")}
               </p>
             </div>

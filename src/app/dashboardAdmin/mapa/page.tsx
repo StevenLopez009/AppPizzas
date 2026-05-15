@@ -233,8 +233,13 @@ export default function MapaPage() {
 
   const tableOrders: Record<string, ActiveOrder> = {};
   for (const o of orders) {
-    if (o.order_type === "mesa" && o.table_number != null)
-      tableOrders[`Mesa ${o.table_number}`] = o;
+    if (
+      o.order_type === "mesa" &&
+      o.status !== "entregado" &&
+      o.table_number != null
+    ) {
+      tableOrders[o.table_number] = o;
+    }
   }
 
   /* ── Mutators ─────────────────────────────────────────────────────────── */
@@ -494,7 +499,7 @@ export default function MapaPage() {
 
         {/* Zones */}
         {floor.zones.map((zone) => {
-          const order = tableOrders[zone.id];
+          const order = tableOrders[zone.label];
           const occupied = !!order;
 
           return (
@@ -663,28 +668,32 @@ export default function MapaPage() {
             Mesas activas
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {orders.map((o) => (
-              <div
-                key={o.id}
-                onClick={() => setSelected(o === selected ? null : o)}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 cursor-pointer hover:shadow-md transition"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-gray-700">
-                    Mesa {o.table_number}
-                  </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-orange-100 text-orange-700">
-                    {o.status}
-                  </span>
+            {orders
+              .filter(
+                (o) => o.order_type === "mesa" && o.status !== "entregado",
+              )
+              .map((o) => (
+                <div
+                  key={o.id}
+                  onClick={() => setSelected(o === selected ? null : o)}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 cursor-pointer hover:shadow-md transition"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-gray-700">
+                      Mesa {o.table_number}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-orange-100 text-orange-700">
+                      {o.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    #{o.order_number} · {o.customer_name ?? "—"}
+                  </p>
+                  <p className="text-sm font-bold text-gray-800 mt-1">
+                    ${Number(o.total).toLocaleString("es-CO")}
+                  </p>
                 </div>
-                <p className="text-xs text-gray-400">
-                  #{o.order_number} · {o.customer_name ?? "—"}
-                </p>
-                <p className="text-sm font-bold text-gray-800 mt-1">
-                  ${Number(o.total).toLocaleString("es-CO")}
-                </p>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       )}

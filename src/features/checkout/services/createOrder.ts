@@ -12,10 +12,8 @@ export async function createOrder({
   domicilio,
   total,
 }: any) {
-  const tableNum =
-    orderType === "mesa" && mesa !== "" && mesa != null
-      ? parseInt(String(mesa).trim(), 10)
-      : null;
+  const tableNum = orderType === "mesa" && mesa ? String(mesa) : null;
+
   const cashParsed =
     form.pago === "efectivo" && form.montoEfectivo
       ? parseInt(String(form.montoEfectivo).replace(/\s/g, ""), 10)
@@ -27,10 +25,7 @@ export async function createOrder({
     customer_name: orderType === "mesa" ? null : form.nombre,
     customer_phone: orderType === "mesa" ? null : form.telefono,
     customer_address: orderType === "domicilio" ? form.direccion : null,
-    table_number:
-      orderType === "mesa" && Number.isFinite(tableNum as number)
-        ? tableNum
-        : null,
+    table_number: tableNum,
     payment_method: form.pago,
     cash_amount:
       form.pago === "efectivo" &&

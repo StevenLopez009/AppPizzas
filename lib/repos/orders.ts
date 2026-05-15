@@ -49,7 +49,7 @@ interface OrderRow extends RowDataPacket {
   customer_name: string | null;
   customer_phone: string | null;
   customer_address: string | null;
-  table_number: number | null;
+  table_number: string | null;
   payment_method: string | null;
   cash_amount: string | null;
   subtotal: string;
@@ -90,11 +90,12 @@ function nullableMoney(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** INT mesa: "" o NaN no son válidos para la columna. */
-function nullableTableNumber(v: unknown): number | null {
+function nullableTableNumber(v: unknown): string | null {
   if (v === null || v === undefined || v === "") return null;
-  const n = typeof v === "number" ? v : parseInt(String(v).trim(), 10);
-  return Number.isFinite(n) ? n : null;
+
+  const value = String(v).trim();
+
+  return value.length > 0 ? value : null;
 }
 
 function finiteQty(v: unknown): number {
@@ -297,7 +298,10 @@ export async function updateOrder(
   }
   if (fields.length === 0) return getOrder(id);
   values.push(id);
-  await db.execute(`UPDATE orders SET ${fields.join(", ")} WHERE id = ?`, values);
+  await db.execute(
+    `UPDATE orders SET ${fields.join(", ")} WHERE id = ?`,
+    values,
+  );
   return getOrder(id);
 }
 
@@ -333,7 +337,10 @@ export async function addOrderItem(
     [orderId],
   );
   const newTotal = num(sumRow?.total);
-  await db.execute("UPDATE orders SET total = ? WHERE id = ?", [newTotal, orderId]);
+  await db.execute("UPDATE orders SET total = ? WHERE id = ?", [
+    newTotal,
+    orderId,
+  ]);
 
   const row = await queryOne<OrderItemRow>(
     "SELECT * FROM order_items WHERE id = ? LIMIT 1",

@@ -1,7 +1,12 @@
+import { getSelectableZones } from "@/lib/floorLayout";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 
-interface DbBarrio { id: string; name: string; delivery_fee: number }
+interface DbBarrio {
+  id: string;
+  name: string;
+  delivery_fee: number;
+}
 
 interface Props {
   form: any;
@@ -13,31 +18,84 @@ interface Props {
   handleChange: (e: any) => void;
 }
 
-export default function CustomerForm({ form, barrio, mesa, orderType, setBarrio, setMesa, handleChange }: Props) {
+export default function CustomerForm({
+  form,
+  barrio,
+  mesa,
+  orderType,
+  setBarrio,
+  setMesa,
+  handleChange,
+}: Props) {
   const [barrios, setBarrios] = useState<DbBarrio[]>([]);
+  const [zones, setZones] = useState<any[]>([]);
 
   useEffect(() => {
-    api.get<{ barrios: DbBarrio[] }>("/api/barrios")
+    api
+      .get<{ barrios: DbBarrio[] }>("/api/barrios")
       .then(({ barrios }) => setBarrios(barrios))
       .catch(() => {});
   }, []);
 
-  const inputCls = "w-full p-4 outline-none bg-transparent text-fg placeholder:text-fg-subtle";
+  useEffect(() => {
+    setZones(
+      getSelectableZones().sort((a, b) => {
+        const typeOrder: Record<string, number> = {
+          mesa: 1,
+          vip: 2,
+          barra: 3,
+        };
+
+        const typeCompare =
+          (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
+
+        if (typeCompare !== 0) return typeCompare;
+
+        const numA = parseInt(a.label.match(/\d+/)?.[0] || "0", 10);
+        const numB = parseInt(b.label.match(/\d+/)?.[0] || "0", 10);
+
+        return numA - numB;
+      }),
+    );
+  }, []);
+
+  const inputCls =
+    "w-full p-4 outline-none bg-transparent text-fg placeholder:text-fg-subtle";
   const dividerCls = "divide-y divide-line";
 
   return (
     <div className="px-6 mt-4">
-      <div className={`bg-surface rounded-3xl shadow-sm border border-line ${dividerCls}`}>
+      <div
+        className={`bg-surface rounded-3xl shadow-sm border border-line ${dividerCls}`}
+      >
         {orderType !== "mesa" && (
           <>
-            <input name="nombre" value={form.nombre} onChange={handleChange} placeholder="Nombre" className={inputCls} />
-            <input name="telefono" value={form.telefono} onChange={handleChange} placeholder="Teléfono" className={inputCls} />
+            <input
+              name="nombre"
+              value={form.nombre}
+              onChange={handleChange}
+              placeholder="Nombre"
+              className={inputCls}
+            />
+            <input
+              name="telefono"
+              value={form.telefono}
+              onChange={handleChange}
+              placeholder="Teléfono"
+              className={inputCls}
+            />
           </>
         )}
 
         {orderType === "domicilio" && (
           <>
-            <input name="direccion" value={form.direccion} onChange={handleChange} placeholder="Dirección" className={inputCls} />
+            <input
+              name="direccion"
+              value={form.direccion}
+              onChange={handleChange}
+              placeholder="Dirección"
+              className={inputCls}
+            />
             <select
               value={barrio}
               onChange={(e) => setBarrio(e.target.value)}
@@ -54,10 +112,16 @@ export default function CustomerForm({ form, barrio, mesa, orderType, setBarrio,
         )}
 
         {orderType === "mesa" && (
-          <select value={mesa} onChange={(e) => setMesa(e.target.value)} className={`${inputCls} cursor-pointer`}>
+          <select
+            value={mesa}
+            onChange={(e) => setMesa(e.target.value)}
+            className={`${inputCls} cursor-pointer`}
+          >
             <option value="">Selecciona Mesa</option>
-            {[...Array(7)].map((_, i) => (
-              <option key={i} value={`Mesa ${i + 1}`}>Mesa {i + 1}</option>
+            {zones.map((zone) => (
+              <option key={zone.id} value={zone.label}>
+                {zone.label}
+              </option>
             ))}
           </select>
         )}

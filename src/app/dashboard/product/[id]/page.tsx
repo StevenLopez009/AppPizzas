@@ -14,7 +14,7 @@ export default async function Page({ params }: Props) {
   if (!product) return notFound();
 
   const additionals = await listAdditionals({
-    category_id: product.category_id,
+    category_id: product.category_id ?? undefined,
     onlyActive: true,
   });
 

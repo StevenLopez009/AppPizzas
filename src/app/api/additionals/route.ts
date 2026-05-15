@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   const onlyActive = url.searchParams.get("active") === "1";
 
   const additionals = await listAdditionals({
-    category,
+    category_id: category,
     onlyActive,
   });
 

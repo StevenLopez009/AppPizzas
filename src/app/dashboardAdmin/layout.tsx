@@ -23,7 +23,6 @@ import {
 import { useTheme } from "@/context/ThemeContext";
 import { usePathname, useRouter } from "next/navigation";
 import SalesStats from "@/components/report/SalesStats";
-import DevSeedControl from "@/components/dev/DevSeedControl";
 import { api, ApiError } from "@/lib/api";
 import { useOrdersStream } from "@/lib/realtime/client";
 
@@ -44,18 +43,53 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
   const { theme, toggleTheme } = useTheme();
 
   const primary = [
-    { id: "home",   icon: Home,          path: "/dashboardAdmin",        label: "Inicio" },
-    { id: "orders", icon: ClipboardList, path: "/dashboardAdmin/orders", label: "Pedidos" },
-    { id: "create", icon: Pizza,         path: "/dashboardAdmin/create", label: "Crear" },
+    { id: "home", icon: Home, path: "/dashboardAdmin", label: "Inicio" },
+    {
+      id: "orders",
+      icon: ClipboardList,
+      path: "/dashboardAdmin/orders",
+      label: "Pedidos",
+    },
+    {
+      id: "create",
+      icon: Pizza,
+      path: "/dashboardAdmin/create",
+      label: "Crear",
+    },
   ];
 
   const secondary = [
-    { id: "adittionals", icon: HandPlatter, path: "/dashboardAdmin/adittionals", label: "Adicionales" },
-    { id: "categories",  icon: Tag,         path: "/dashboardAdmin/categories",  label: "Categorías" },
-    { id: "appearance",  icon: Palette,     path: "/dashboardAdmin/appearance",  label: "Apariencia" },
-    { id: "calculadora", icon: ChefHat,     path: "/dashboardAdmin/calculadora", label: "Calculadora" },
-    { id: "mapa",        icon: Map,         path: "/dashboardAdmin/mapa",        label: "Mapa mesas" },
-    { id: "profile",     icon: User,        path: "/profile",                    label: "Perfil" },
+    {
+      id: "adittionals",
+      icon: HandPlatter,
+      path: "/dashboardAdmin/adittionals",
+      label: "Adicionales",
+    },
+    {
+      id: "categories",
+      icon: Tag,
+      path: "/dashboardAdmin/categories",
+      label: "Categorías",
+    },
+    {
+      id: "appearance",
+      icon: Palette,
+      path: "/dashboardAdmin/appearance",
+      label: "Apariencia",
+    },
+    {
+      id: "calculadora",
+      icon: ChefHat,
+      path: "/dashboardAdmin/calculadora",
+      label: "Calculadora",
+    },
+    {
+      id: "mapa",
+      icon: Map,
+      path: "/dashboardAdmin/mapa",
+      label: "Mapa mesas",
+    },
+    { id: "profile", icon: User, path: "/profile", label: "Perfil" },
   ];
 
   const navigate = (path: string) => {
@@ -76,8 +110,13 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
                 onClick={() => navigate(path)}
                 className="flex flex-col items-center gap-1"
               >
-                <Icon size={22} className={isActive ? "text-brand" : "text-fg-subtle"} />
-                <span className={`text-[10px] ${isActive ? "text-brand font-semibold" : "text-fg-subtle"}`}>
+                <Icon
+                  size={22}
+                  className={isActive ? "text-brand" : "text-fg-subtle"}
+                />
+                <span
+                  className={`text-[10px] ${isActive ? "text-brand font-semibold" : "text-fg-subtle"}`}
+                >
                   {label}
                 </span>
               </button>
@@ -123,7 +162,9 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
                     key={id}
                     onClick={() => navigate(path)}
                     className={`flex flex-col items-center gap-2 p-4 rounded-2xl transition ${
-                      isActive ? "bg-brand/10 text-brand" : "bg-surface-muted text-fg-muted hover:bg-line-muted"
+                      isActive
+                        ? "bg-brand/10 text-brand"
+                        : "bg-surface-muted text-fg-muted hover:bg-line-muted"
                     }`}
                   >
                     <Icon size={22} />
@@ -143,7 +184,10 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
             </button>
 
             <button
-              onClick={() => { setDrawerOpen(false); onLogout(); }}
+              onClick={() => {
+                setDrawerOpen(false);
+                onLogout();
+              }}
               className="mt-2 w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-red-50 text-red-500 dark:bg-red-950/40 dark:text-red-400 font-semibold text-sm"
             >
               <LogOut size={16} />
@@ -289,13 +333,14 @@ export default function AdminLayout({
   return (
     <div className="md:flex w-full min-h-screen">
       <div className="hidden md:block md:w-[18%]">
-        <SidebarContainer menu={adminMenu} title={businessName} onLogout={handleLogout} />
+        <SidebarContainer
+          menu={adminMenu}
+          title={businessName}
+          onLogout={handleLogout}
+        />
       </div>
 
-      <main className="w-full md:w-[57%] md:p-4">
-        <DevSeedControl />
-        {children}
-      </main>
+      <main className="w-full md:w-[57%] md:p-4">{children}</main>
 
       <div className="hidden xl:block xl:w-[25%] p-4">
         <div className="sticky top-4">
@@ -303,9 +348,7 @@ export default function AdminLayout({
         </div>
       </div>
 
-      {!hideBottomMenu && (
-        <AdminMobileMenu onLogout={handleLogout} />
-      )}
+      {!hideBottomMenu && <AdminMobileMenu onLogout={handleLogout} />}
     </div>
   );
 }

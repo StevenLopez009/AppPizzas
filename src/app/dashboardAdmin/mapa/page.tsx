@@ -275,14 +275,15 @@ export default function MapaPage() {
 
   function addZone() {
     if (!addForm?.label.trim()) return;
+    const isBarra = addForm.type === "barra";
     const zone: MapZone = {
       id: `${addForm.type}-${uid()}`,
       label: addForm.label.trim(),
       type: addForm.type,
       col: 0,
       row: 0,
-      colSpan: 2,
-      rowSpan: 1,
+      colSpan: isBarra ? 1 : 2,
+      rowSpan: isBarra ? 2 : 1,
     };
     updateFloors(
       floors.map((f) =>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookMinus, PrinterIcon, TrashIcon } from "lucide-react";
+import { BookMinus, Plus, PrinterIcon, TrashIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Calendar } from "@/components/ui/calendar";
@@ -67,7 +67,9 @@ export default function AdminDashboard() {
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [extraName, setExtraName] = useState("");
   const [extraPrice, setExtraPrice] = useState("");
-  const [pendingStatus, setPendingStatus] = useState<Record<string, string>>({});
+  const [pendingStatus, setPendingStatus] = useState<Record<string, string>>(
+    {},
+  );
   const [search, setSearch] = useState("");
 
   const STATUS_STYLES: Record<string, string> = {
@@ -110,9 +112,7 @@ export default function AdminDashboard() {
       router;
     } else if (event.type === "order.updated" && event.order) {
       const updated = event.order as Order;
-      setOrders((prev) =>
-        prev.map((o) => (o.id === updated.id ? updated : o)),
-      );
+      setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
     } else if (event.type === "order.deleted" && event.orderId) {
       setOrders((prev) => prev.filter((o) => o.id !== event.orderId));
     }
@@ -149,10 +149,12 @@ export default function AdminDashboard() {
 
   const changeStatus = async (order: Order, targetStatus?: string) => {
     const flow = ORDER_FLOW[order.order_type];
-    const status = targetStatus ?? (() => {
-      const index = flow.indexOf(order.status);
-      return flow[index + 1];
-    })();
+    const status =
+      targetStatus ??
+      (() => {
+        const index = flow.indexOf(order.status);
+        return flow[index + 1];
+      })();
     if (!status) return;
 
     try {
@@ -161,7 +163,11 @@ export default function AdminDashboard() {
         { status },
       );
       setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
-      setPendingStatus((prev) => { const next = { ...prev }; delete next[order.id]; return next; });
+      setPendingStatus((prev) => {
+        const next = { ...prev };
+        delete next[order.id];
+        return next;
+      });
     } catch (e) {
       console.error(e);
     }
@@ -176,7 +182,9 @@ export default function AdminDashboard() {
       const sabores = mitadesMatch?.[1]?.split("/").map((s) => s.trim());
       const bordes = bordesMatch?.[1]?.split("/").map((b) => b.trim());
       const adicionales = adicionalesMatch?.[1]?.trim();
-      return `${item.quantity}x ${item.product_name} ${item.size ?? ""} — ${sabores?.[0] ?? ""} (borde ${bordes?.[0] ?? "normal"}) / ${sabores?.[1] ?? ""} (borde ${bordes?.[1] ?? "normal"})${adicionales ? `, adicionales: ${adicionales}` : ""}`.replace(/\s+/g, " ").trim();
+      return `${item.quantity}x ${item.product_name} ${item.size ?? ""} — ${sabores?.[0] ?? ""} (borde ${bordes?.[0] ?? "normal"}) / ${sabores?.[1] ?? ""} (borde ${bordes?.[1] ?? "normal"})${adicionales ? `, adicionales: ${adicionales}` : ""}`
+        .replace(/\s+/g, " ")
+        .trim();
     }
 
     // Cualquier otro producto
@@ -301,7 +309,9 @@ export default function AdminDashboard() {
             <Calendar
               mode="range"
               selected={
-                dateRange.from ? { from: dateRange.from, to: dateRange.to } : undefined
+                dateRange.from
+                  ? { from: dateRange.from, to: dateRange.to }
+                  : undefined
               }
               onSelect={(range) =>
                 setDateRange(range ? { from: range.from, to: range.to } : {})
@@ -326,7 +336,10 @@ export default function AdminDashboard() {
           { label: "Mesa", value: byType.mesa },
           { label: "Recoger", value: byType.recoger },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-surface border border-line p-4 rounded-xl shadow-sm">
+          <div
+            key={label}
+            className="bg-surface border border-line p-4 rounded-xl shadow-sm"
+          >
             <p className="text-sm text-fg-muted">{label}</p>
             <p className="text-xl font-bold text-fg">{value}</p>
           </div>
@@ -335,34 +348,49 @@ export default function AdminDashboard() {
       <div className="flex gap-2 mt-4 flex-wrap">
         {[
           {
-            label: "Hoy", onClick: () => {
+            label: "Hoy",
+            onClick: () => {
               const today = new Date();
-              const start = new Date(today); start.setHours(0, 0, 0, 0);
-              const end = new Date(today); end.setHours(23, 59, 59, 999);
+              const start = new Date(today);
+              start.setHours(0, 0, 0, 0);
+              const end = new Date(today);
+              end.setHours(23, 59, 59, 999);
               setDateRange({ from: start, to: end });
-            }
+            },
           },
           {
-            label: "Esta semana", onClick: () => {
+            label: "Esta semana",
+            onClick: () => {
               const today = new Date();
-              const firstDay = new Date(today.setDate(today.getDate() - today.getDay()));
+              const firstDay = new Date(
+                today.setDate(today.getDate() - today.getDay()),
+              );
               setDateRange({ from: firstDay, to: new Date() });
-            }
+            },
           },
           {
-            label: "Este mes", onClick: () => {
+            label: "Este mes",
+            onClick: () => {
               const now = new Date();
-              setDateRange({ from: new Date(now.getFullYear(), now.getMonth(), 1), to: new Date(now.getFullYear(), now.getMonth() + 1, 0) });
-            }
+              setDateRange({
+                from: new Date(now.getFullYear(), now.getMonth(), 1),
+                to: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+              });
+            },
           },
         ].map(({ label, onClick }) => (
-          <button key={label} onClick={onClick}
-            className="px-4 py-2 bg-surface border border-line rounded-xl shadow-sm hover:shadow-md text-fg font-medium transition-all duration-150 active:scale-95">
+          <button
+            key={label}
+            onClick={onClick}
+            className="px-4 py-2 bg-surface border border-line rounded-xl shadow-sm hover:shadow-md text-fg font-medium transition-all duration-150 active:scale-95"
+          >
             {label}
           </button>
         ))}
-        <button onClick={() => setDateRange({})}
-          className="px-4 py-2 bg-surface border border-red-200 dark:border-red-900/50 rounded-xl shadow-sm hover:shadow-md text-red-500 font-medium transition-all duration-150 active:scale-95">
+        <button
+          onClick={() => setDateRange({})}
+          className="px-4 py-2 bg-surface border border-red-200 dark:border-red-900/50 rounded-xl shadow-sm hover:shadow-md text-red-500 font-medium transition-all duration-150 active:scale-95"
+        >
           Limpiar
         </button>
       </div>
@@ -392,205 +420,213 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="p-5 flex flex-col flex-1 justify-between">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="space-y-1">
-                    {order.order_type === "mesa" && (
-                      <p className="font-bold text-lg">{order.table_number}</p>
-                    )}
-                    {order.order_type !== "mesa" && (
-                      <>
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="space-y-1">
+                      {order.order_type === "mesa" && (
                         <p className="font-bold text-lg">
-                          {order.customer_name}
+                          {order.table_number}
                         </p>
-                        <p className="text-sm text-fg-muted">
-                          {order.customer_phone}
-                        </p>
+                      )}
+                      {order.order_type !== "mesa" && (
+                        <>
+                          <p className="font-bold text-lg">
+                            {order.customer_name}
+                          </p>
+                          <p className="text-sm text-fg-muted">
+                            {order.customer_phone}
+                          </p>
 
-                        <p className="text-sm text-fg-muted">
-                          {order.customer_address}
-                        </p>
-                      </>
-                    )}
+                          <p className="text-sm text-fg-muted">
+                            {order.customer_address}
+                          </p>
+                        </>
+                      )}
 
-                    <p className="text-sm text-fg-muted">
-                      {order.payment_method}
-                    </p>
-                    <p className="text-sm text-fg-muted">
-                      {order.cash_amount
-                        ? `Paga con $${Number(order.cash_amount).toLocaleString("es-CO")}`
-                        : "No especificado"}
-                    </p>
-
-                    {order.order_type === "domicilio" && (
                       <p className="text-sm text-fg-muted">
-                        {order.neighborhood}
+                        {order.payment_method}
                       </p>
-                    )}
-
-                    {order.lat && order.lng && (
-                      <a
-                        href={`https://www.google.com/maps?q=${order.lat},${order.lng}`}
-                        target="_blank"
-                        className="text-blue-500 text-sm underline"
-                      >
-                        Ver ubicación en mapa
-                      </a>
-                    )}
-                  </div>
-
-                  <div className="text-right">
-                    {order.order_type === "domicilio" && order.delivery_fee && (
                       <p className="text-sm text-fg-muted">
-                        Domicilio: $
-                        {Number(order.delivery_fee).toLocaleString("es-CO")}
+                        {order.cash_amount
+                          ? `Paga con $${Number(order.cash_amount).toLocaleString("es-CO")}`
+                          : "No especificado"}
                       </p>
-                    )}
-                    {order.discount_percentage > 0 && (
-                      <p className="text-sm line-through text-fg-subtle">
-                        ${Number(order.total).toLocaleString("es-CO")}
-                      </p>
-                    )}
 
-                    <p className="text-xl font-bold text-green-600">
-                      ${finalTotal.toLocaleString("es-CO")}
-                    </p>
-                    <span
-                      className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                        STATUS_STYLES[order.status] ||
-                        "bg-surface-muted text-fg-muted"
-                      }`}
-                    >
-                      {order.status}
-                    </span>
-                  </div>
-                </div>
+                      {order.order_type === "domicilio" && (
+                        <p className="text-sm text-fg-muted">
+                          {order.neighborhood}
+                        </p>
+                      )}
 
-                <div className="border-t pt-3 pb-3 space-y-2">
-                  {order.order_items?.map((item) => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <div>
-                        <p className="text-md">{formatItem(item)}</p>
-                        {item.observations && (
-                          <p className="text-sm">{item.observations}</p>
-                        )}
-                        {item.additionals && item.additionals.length > 0 && (
-                          <p className="text-brand text-xs mt-1">
-                            Adicional: {item.additionals[0]?.name} (+$
-                            {item.additionals[0]?.price.toLocaleString("es-CO")}
-                            )
+                      {order.lat && order.lng && (
+                        <a
+                          href={`https://www.google.com/maps?q=${order.lat},${order.lng}`}
+                          target="_blank"
+                          className="text-blue-500 text-sm underline"
+                        >
+                          Ver ubicación en mapa
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="text-right">
+                      {order.order_type === "domicilio" &&
+                        order.delivery_fee && (
+                          <p className="text-sm text-fg-muted">
+                            Domicilio: $
+                            {Number(order.delivery_fee).toLocaleString("es-CO")}
                           </p>
                         )}
-                      </div>
-                      <p className="font-semibold">
-                        $
-                        {Number(item.price * item.quantity).toLocaleString(
-                          "es-CO",
-                        )}
+                      {order.discount_percentage > 0 && (
+                        <p className="text-sm line-through text-fg-subtle">
+                          ${Number(order.total).toLocaleString("es-CO")}
+                        </p>
+                      )}
+
+                      <p className="text-xl font-bold text-green-600">
+                        ${finalTotal.toLocaleString("es-CO")}
                       </p>
+                      <span
+                        className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                          STATUS_STYLES[order.status] ||
+                          "bg-surface-muted text-fg-muted"
+                        }`}
+                      >
+                        {order.status}
+                      </span>
                     </div>
-                  ))}
-                </div>
-                <div className="border-t pt-3 space-y-4 mt-4">
-                  <div className="flex flex-row gap-3">
-                    {activeDiscount !== order.id ? (
-                      <>
+                  </div>
+
+                  <div className="border-t pt-3 pb-3 space-y-2">
+                    {order.order_items?.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex justify-between text-sm"
+                      >
+                        <div>
+                          <p className="text-md">{formatItem(item)}</p>
+                          {item.observations && (
+                            <p className="text-sm">{item.observations}</p>
+                          )}
+                          {item.additionals && item.additionals.length > 0 && (
+                            <p className="text-brand text-xs mt-1">
+                              Adicional: {item.additionals[0]?.name} (+$
+                              {item.additionals[0]?.price.toLocaleString(
+                                "es-CO",
+                              )}
+                              )
+                            </p>
+                          )}
+                        </div>
+                        <p className="font-semibold">
+                          $
+                          {Number(item.price * item.quantity).toLocaleString(
+                            "es-CO",
+                          )}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t pt-3 space-y-4 mt-4">
+                    <div className="flex flex-row gap-3">
+                      {activeDiscount !== order.id ? (
+                        <>
+                          <button
+                            onClick={() =>
+                              deleteOrder(order.id, order.customer_name)
+                            }
+                            className="w-full hover:bg-orange-600 py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-red-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                          >
+                            <TrashIcon className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => openKitchenOrder(order.id)}
+                            className="w-full hover:bg-orange-600 py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-red-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                          >
+                            <BookMinus className="w-5 h-5" />
+                          </button>
+
+                          <button
+                            onClick={() => openInvoice(order.id)}
+                            className="w-full hover:bg-orange-600 py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-red-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                          >
+                            <PrinterIcon className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => setActiveDiscount(order.id)}
+                            className="w-full hover:bg-orange-600 py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-red-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                          >
+                            %
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            type="number"
+                            placeholder="%"
+                            value={discounts[order.id] || ""}
+                            onChange={(e) =>
+                              setDiscounts({
+                                ...discounts,
+                                [order.id]: Number(e.target.value),
+                              })
+                            }
+                            className="w-full border border-line bg-canvas text-fg rounded-2xl px-3 py-2 outline-none focus:ring-2 focus:ring-brand-ring"
+                          />
+                          <button
+                            onClick={() => applyDiscount(order)}
+                            className="w-full hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                          >
+                            Aplicar
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setSelectedOrder(order.id);
+                          setExtraName("");
+                          setExtraPrice("");
+                        }}
+                        className="w-full hover:bg-red-600 py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-red-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        <Plus />
+                      </button>
+
+                      <div className="basis-[70%] flex gap-1">
+                        <select
+                          value={pendingStatus[order.id] ?? order.status}
+                          onChange={(e) =>
+                            setPendingStatus((prev) => ({
+                              ...prev,
+                              [order.id]: e.target.value,
+                            }))
+                          }
+                          className="flex-1 rounded-2xl border border-line bg-canvas text-fg px-2 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand"
+                        >
+                          {ORDER_FLOW[order.order_type].map((s) => (
+                            <option key={s} value={s}>
+                              {s.replace(/_/g, " ")}
+                            </option>
+                          ))}
+                        </select>
                         <button
                           onClick={() =>
-                            deleteOrder(order.id, order.customer_name)
+                            changeStatus(order, pendingStatus[order.id])
                           }
-                          className="w-full hover:bg-red-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-red-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
-                        >
-                          <TrashIcon className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => openKitchenOrder(order.id)}
-                          className="w-full hover:bg-green-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-green-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
-                        >
-                          <BookMinus className="w-5 h-5" />
-                        </button>
-
-                        <button
-                          onClick={() => openInvoice(order.id)}
-                          className="w-full hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
-                        >
-                          <PrinterIcon className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => setActiveDiscount(order.id)}
-                          className="w-full hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
-                        >
-                          %
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <input
-                          type="number"
-                          placeholder="%"
-                          value={discounts[order.id] || ""}
-                          onChange={(e) =>
-                            setDiscounts({
-                              ...discounts,
-                              [order.id]: Number(e.target.value),
-                            })
+                          disabled={
+                            (pendingStatus[order.id] ?? order.status) ===
+                            order.status
                           }
-                          className="w-full border border-line bg-canvas text-fg rounded-2xl px-3 py-2 outline-none focus:ring-2 focus:ring-brand-ring"
-                        />
-                        <button
-                          onClick={() => applyDiscount(order)}
-                          className="w-full hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+                          className={`px-3 py-2 rounded-2xl text-white font-bold text-sm shadow-md transition-all duration-200 active:scale-95 disabled:opacity-40 ${STATUS_BTN[order.status] ?? "bg-gray-500 hover:bg-gray-600"}`}
                         >
-                          Aplicar
+                          OK
                         </button>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setSelectedOrder(order.id);
-                        setExtraName("");
-                        setExtraPrice("");
-                      }}
-                      className="basis-[30%] hover:bg-blue-600 text-black py-3 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg shadow-blue-900/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
-                    >
-                      +
-                    </button>
-
-                    <div className="basis-[70%] flex gap-1">
-                      <select
-                        value={pendingStatus[order.id] ?? order.status}
-                        onChange={(e) =>
-                          setPendingStatus((prev) => ({
-                            ...prev,
-                            [order.id]: e.target.value,
-                          }))
-                        }
-                        className="flex-1 rounded-2xl border border-line bg-canvas text-fg px-2 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand"
-                      >
-                        {ORDER_FLOW[order.order_type].map((s) => (
-                          <option key={s} value={s}>
-                            {s.replace(/_/g, " ")}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        onClick={() =>
-                          changeStatus(order, pendingStatus[order.id])
-                        }
-                        disabled={
-                          (pendingStatus[order.id] ?? order.status) ===
-                          order.status
-                        }
-                        className={`px-3 py-2 rounded-2xl text-white font-bold text-sm shadow-md transition-all duration-200 active:scale-95 disabled:opacity-40 ${STATUS_BTN[order.status] ?? "bg-gray-500 hover:bg-gray-600"}`}
-                      >
-                        OK
-                      </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-                </div>{/* /p-5 */}
               </div>
             );
           })}
@@ -599,7 +635,9 @@ export default function AdminDashboard() {
       {selectedOrder && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-surface border border-line p-6 rounded-2xl w-[300px] space-y-4 shadow-2xl">
-            <h2 className="text-lg font-bold text-fg">Agregar producto extra</h2>
+            <h2 className="text-lg font-bold text-fg">
+              Agregar producto extra
+            </h2>
 
             <input
               type="text"

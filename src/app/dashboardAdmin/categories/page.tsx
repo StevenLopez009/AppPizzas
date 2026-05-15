@@ -354,30 +354,34 @@ export default function CategoriesAdminPage() {
             Gestiona los barrios y el costo de domicilio para cada uno.
           </p>
 
-          <div className="flex gap-2 mb-6">
-            <input
-              type="text"
-              value={newBarrioName}
-              onChange={(e) => setNewBarrioName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAddBarrio()}
-              placeholder="Nombre del barrio…"
-              className={`flex-1 ${inputCls}`}
-            />
-            <input
-              type="number"
-              value={newBarrioFee}
-              onChange={(e) => setNewBarrioFee(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAddBarrio()}
-              placeholder="$ domicilio"
-              className={`w-32 ${inputCls}`}
-            />
+          <div className="space-y-2 mb-6">
+            <div className="flex flex-col sm:flex-row gap-2 min-w-0">
+              <input
+                type="text"
+                value={newBarrioName}
+                onChange={(e) => setNewBarrioName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddBarrio()}
+                placeholder="Nombre del barrio…"
+                className={`flex-1 min-w-0 ${inputCls}`}
+              />
+
+              <input
+                type="number"
+                value={newBarrioFee}
+                onChange={(e) => setNewBarrioFee(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddBarrio()}
+                placeholder="$ domicilio"
+                className={`w-full sm:w-32 ${inputCls}`}
+              />
+            </div>
+
             <button
               onClick={handleAddBarrio}
               disabled={addingBarrio || !newBarrioName.trim() || !newBarrioFee}
-              className="flex items-center gap-1.5 bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 transition"
+              className="w-full flex items-center justify-center gap-1.5 bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 transition"
             >
               <Plus size={15} />
-              {addingBarrio ? "Guardando…" : "Agregar"}
+              {addingBarrio ? "Agregando…" : "Agregar barrio"}
             </button>
           </div>
 

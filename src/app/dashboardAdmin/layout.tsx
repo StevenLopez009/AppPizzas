@@ -229,11 +229,11 @@ export default function AdminLayout({
           user: { role: "user" | "admin" } | null;
         }>("/api/auth/me");
         if (!user || user.role !== "admin") {
-          router.replace("/login");
+          router.replace("/profile");
         }
       } catch (e) {
         if (e instanceof ApiError && e.status === 401) {
-          router.replace("/login");
+          router.replace("/profile");
         }
       }
     })();

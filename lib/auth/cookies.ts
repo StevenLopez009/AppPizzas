@@ -1,6 +1,11 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { SESSION_CONFIG, signSession, verifySession, type SessionPayload } from "./session";
+import {
+  SESSION_CONFIG,
+  signSession,
+  verifySession,
+  type SessionPayload,
+} from "./session";
 
 export async function getSession(): Promise<SessionPayload | null> {
   const store = await cookies();
@@ -8,13 +13,16 @@ export async function getSession(): Promise<SessionPayload | null> {
   return verifySession(token);
 }
 
-export async function setSessionCookie(payload: Omit<SessionPayload, "iat" | "exp">) {
+export async function setSessionCookie(
+  payload: Omit<SessionPayload, "iat" | "exp">,
+) {
   const token = await signSession(payload);
   const store = await cookies();
+
   store.set(SESSION_CONFIG.cookieName, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: false,
     path: "/",
     maxAge: SESSION_CONFIG.maxAgeSeconds,
   });

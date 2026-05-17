@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 \"sudo docker logs app-mysql-1 2>&1 | tail -20\")",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 \"sudo docker ps --format 'table {{.Names}}\\\\t{{.Status}}\\\\t{{.Ports}}' && echo '---BUILD---' && sudo docker logs app-mysql-1 2>&1 | tail -5\")",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 \"sudo docker logs app-mysql-1 2>&1 | tail -10\")",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 ' *)",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 \"cd /home/ubuntu/app && sudo docker compose down && sudo docker compose up -d mysql phpmyadmin && sudo docker ps\")",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 \"sudo docker ps --format 'table {{.Names}}\\\\t{{.Status}}\\\\t{{.Ports}}'\")",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 \"sudo docker logs app-mysql-1 2>&1 | tail -30\")",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 \"sudo docker inspect app-mysql-1 --format '{{.State.ExitCode}} {{.State.Error}}' 2>&1 ; sudo docker logs app-mysql-1 --tail 20 2>&1\")",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 \"sudo dmesg | grep -i 'oom\\\\|killed\\\\|out of memory' | tail -10 ; free -h ; sudo docker ps -a\")",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 \"ps aux --sort=-%mem | head -10 && free -h\")",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 \"free -h && sudo docker ps -a && sudo docker stats --no-stream 2>/dev/null\")",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 -o ConnectTimeout=15 \"free -h && sudo docker ps -a && ps aux --sort=-%mem | head -6\")",
+      "Bash(docker build *)",
+      "Bash(docker save *)",
+      "Bash(gzip)",
+      "Read(//tmp/**)",
+      "Bash(scp -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem /tmp/apppizzas-app.tar.gz ubuntu@44.220.70.161:/tmp/)",
+      "Bash(ssh -i /Users/tso/Documents/personal-proyect/empresa/AppPizzas/LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 \"sudo docker ps -a 2>&1 && echo '---' && curl -s -o /dev/null -w '%{http_code}' http://localhost:80 2>&1\")"
+    ]
+  }
+}

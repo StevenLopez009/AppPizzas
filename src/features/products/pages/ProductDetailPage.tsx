@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { uuid } from "@/lib/uuid";
 
 import ProductGallery from "../components/ProductGallery";
 import ProductInfo from "../components/ProductInfo";
@@ -44,7 +45,7 @@ export default function ProductDetailPage({ product, additionals }: Props) {
 
   const handleAddToCart = () => {
     addToCart({
-      id: crypto.randomUUID(),
+      id: uuid(),
       product_id: product.id,
       name: product.name,
       image: product.image_url,

@@ -4,12 +4,6 @@ import { useEffect, useRef } from "react";
 
 type Handler = (event: { type: string; orderId?: string; order?: unknown }) => void;
 
-const BASE_URL = process.env.NEXT_PUBLIC_REALTIME_WS_URL ?? "ws://localhost:3001";
-
-/**
- * Hook que abre un WebSocket al servidor realtime y llama `onEvent` con cada
- * mensaje recibido. Si `orderId` es null, suscribe a todos los pedidos.
- */
 export function useOrdersStream(orderId: string | null, onEvent: Handler) {
   const handlerRef = useRef(onEvent);
   handlerRef.current = onEvent;
@@ -19,10 +13,12 @@ export function useOrdersStream(orderId: string | null, onEvent: Handler) {
     let ws: WebSocket | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
+    const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const baseUrl = `${proto}//${window.location.hostname}:3001`;
     const path = orderId ? `/orders/${orderId}` : "/orders";
 
     const connect = () => {
-      ws = new WebSocket(`${BASE_URL}${path}`);
+      ws = new WebSocket(`${baseUrl}${path}`);
       ws.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);

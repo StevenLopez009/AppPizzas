@@ -46,8 +46,10 @@ CREATE TABLE IF NOT EXISTS products (
   prices      JSON          NOT NULL,
   image_url   VARCHAR(1024) NULL,
   category    VARCHAR(100)  NULL,
+  category_id CHAR(36)      NULL,
   created_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_products_category (category)
+  INDEX idx_products_category (category),
+  INDEX idx_products_category_id (category_id)
 ) ENGINE=InnoDB;
 
 -- ---------- Banners ----------
@@ -59,13 +61,15 @@ CREATE TABLE IF NOT EXISTS banners (
 
 -- ---------- Adicionales ----------
 CREATE TABLE IF NOT EXISTS additionals (
-  id         CHAR(36)      NOT NULL PRIMARY KEY,
-  name       VARCHAR(255)  NOT NULL,
-  price      DECIMAL(10,2) NOT NULL DEFAULT 0,
-  category   VARCHAR(100)  NULL,
-  active     TINYINT(1)    NOT NULL DEFAULT 1,
-  created_at TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_additionals_category (category)
+  id          CHAR(36)      NOT NULL PRIMARY KEY,
+  name        VARCHAR(255)  NOT NULL,
+  price       DECIMAL(10,2) NOT NULL DEFAULT 0,
+  category    VARCHAR(100)  NULL,
+  category_id CHAR(36)      NULL,
+  active      TINYINT(1)    NOT NULL DEFAULT 1,
+  created_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_additionals_category (category),
+  INDEX idx_additionals_category_id (category_id)
 ) ENGINE=InnoDB;
 
 -- ---------- Pedidos ----------

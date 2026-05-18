@@ -66,8 +66,11 @@ services:
       REALTIME_INTERNAL_TOKEN: ${REALTIME_INTERNAL_TOKEN:-change-me-internal-token}
       NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:-}
       NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET:-}
+    volumes:
+      - uploads_data:/app/public/uploads
     ports:
       - "3000:3000"
 
 volumes:
   mysql_data:
+  uploads_data:

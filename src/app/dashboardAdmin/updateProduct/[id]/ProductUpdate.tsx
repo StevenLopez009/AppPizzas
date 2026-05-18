@@ -105,7 +105,7 @@ export default function ProductUpdate({ product }: { product: any }) {
               <div className="absolute bottom-4 left-4 right-4">
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
                   onChange={handleFileChange}
                   className="w-full bg-white p-2 rounded-xl"
                 />

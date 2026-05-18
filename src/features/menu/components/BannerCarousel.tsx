@@ -45,6 +45,7 @@ export default function BannerCarousel() {
                 alt="banner"
                 fill
                 className="object-cover"
+                unoptimized={!banner.image_url.startsWith("http")}
               />
             </div>
           </SwiperSlide>

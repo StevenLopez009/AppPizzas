@@ -29,6 +29,13 @@ export async function listBanners(): Promise<Banner[]> {
   return rows.map(toBanner);
 }
 
+export async function getBanner(id: string): Promise<Banner | null> {
+  const row = await queryOne<BannerRow>("SELECT * FROM banners WHERE id = ?", [
+    id,
+  ]);
+  return row ? toBanner(row) : null;
+}
+
 export async function createBanner(image_url: string): Promise<Banner> {
   const id = uuid();
   await db.execute("INSERT INTO banners (id, image_url) VALUES (?, ?)", [

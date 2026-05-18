@@ -13,7 +13,7 @@
 | **jose** | **5.x** | JWT firmados (sesión cookie) |
 | **ws** | **8.x** | Servidor WebSocket dedicado |
 | **Cloudinary** | (externo) | Storage de imágenes (opcional) |
-| **Docker Compose** | — | Orquestación local |
+| **Docker Compose** | — | Orquestación local y producción |
 | Tailwind CSS | 4.x | Estilos con variables CSS (`--brand-*`, `--app-*` semantic tokens) |
 | Shadcn/UI | 4.x | Componentes UI |
 | React Hot Toast | 2.x | Notificaciones (todas) |
@@ -58,8 +58,71 @@ curl -X POST http://localhost:3000/api/dev/seed
 URLs:
 
 - http://localhost:3000/dashboard — Menú cliente
-- http://localhost:3000/login — Login
+- http://localhost:3000/profile — Login / Perfil
 - http://localhost:3000/dashboardAdmin/orders — Panel pedidos (admin)
+
+---
+
+## Producción — AWS Lightsail
+
+**Servidor**: Ubuntu 24.04 en AWS Lightsail (512MB RAM, 2 vCPU, 20GB SSD)
+**IP pública**: `44.220.70.161`
+**Región**: us-east-1 (Virginia)
+
+### Puertos abiertos (firewall Lightsail)
+
+| Puerto | Servicio |
+|---|---|
+| 22 | SSH |
+| 80 | App Next.js (HTTP) |
+| 3000 | App Next.js (directo) |
+| 3001 | WebSocket realtime |
+| 8080 | phpMyAdmin |
+
+### Acceso SSH
+
+```bash
+ssh -i LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161
+```
+
+### Proceso de deploy
+
+La instancia tiene 512MB RAM — **no puede hacer `next build` en Docker**. El flujo de deploy es:
+
+```bash
+# 1. En tu Mac: build para linux/amd64
+docker buildx build --platform linux/amd64 -t apppizzas-app:latest .
+
+# 2. Exportar y subir al servidor
+docker save apppizzas-app:latest | gzip > /tmp/apppizzas-app-amd64.tar.gz
+scp -i LightsailDefaultKey-us-east-1.pem /tmp/apppizzas-app-amd64.tar.gz ubuntu@44.220.70.161:/tmp/
+
+# 3. En el servidor: cargar imagen y reiniciar
+ssh -i LightsailDefaultKey-us-east-1.pem ubuntu@44.220.70.161 "
+  sudo docker load < /tmp/apppizzas-app-amd64.tar.gz
+  rm /tmp/apppizzas-app-amd64.tar.gz
+  cd /home/ubuntu/app
+  sudo docker compose stop app realtime
+  sudo docker compose rm -f app realtime
+  sudo docker compose up -d
+"
+```
+
+### Servicios en producción
+
+| Servicio | URL |
+|---|---|
+| App | http://44.220.70.161 |
+| phpMyAdmin | http://44.220.70.161:8080 |
+| MySQL | localhost:3307 (solo interno) |
+| Realtime WS | ws://44.220.70.161:3001 |
+
+### Notas importantes de producción
+
+- **WebSocket**: `lib/realtime/client.ts` detecta el host automáticamente usando `window.location.hostname` en runtime — no depende de `NEXT_PUBLIC_REALTIME_WS_URL` bakeado en build.
+- **Imágenes**: El fallback local usa volumen Docker `uploads_data` montado en `/app/public/uploads` — persiste entre reinicios. Para multi-instancia usar Cloudinary.
+- **MySQL en servidor**: El init de MySQL tarda ~5-10 min en la instancia pequeña. El healthcheck tiene `start_period: 3m` y `retries: 60` para tolerarlo.
+- **Swap**: El servidor tiene 2GB de swap configurado en `/swapfile` — crítico para que MySQL arranque con 512MB RAM.
 
 ---
 
@@ -67,7 +130,7 @@ URLs:
 
 ```bash
 cp .env.example .env       # ajusta credenciales y SESSION_SECRET
-docker compose up --build  # primer arranque
+docker compose up --build  # primer arranque (solo en máquinas con suficiente RAM)
 docker compose up -d       # subsiguientes
 ```
 
@@ -75,11 +138,12 @@ Servicios:
 
 | Servicio | Puerto host | Imagen / origen |
 |---|---|---|
-| `app` | 3000 | Build local (Dockerfile multi-stage, output standalone) |
-| `mysql` | 3306 | `mysql:8.0` con scripts `db/init` montados |
+| `app` | 80, 3000 | Build local (Dockerfile multi-stage, output standalone) |
+| `mysql` | 3307 | `mysql:8.0` con scripts `db/init` montados |
 | `realtime` | 3001 | Build local de `realtime-server/` (Node + `ws`) |
+| `phpmyadmin` | 8080 | `phpmyadmin:latest` |
 
-Volumen persistente: `mysql_data`. Reset completo:
+Volúmenes persistentes: `mysql_data`, `uploads_data`. Reset completo:
 
 ```bash
 docker compose down -v && docker compose up -d
@@ -93,7 +157,7 @@ docker compose down -v && docker compose up -d
 AppPizzas/
 ├── db/
 │   ├── init/
-│   │   ├── 01_schema.sql          # tablas MySQL (incluye categories, order_number)
+│   │   ├── 01_schema.sql          # tablas MySQL (products y additionals tienen category_id)
 │   │   ├── 02_seed_admin.sql      # usuario admin con bcrypt hash
 │   │   ├── 03_order_items_product_id.sql
 │   │   ├── 04_app_settings.sql
@@ -101,7 +165,7 @@ AppPizzas/
 │   └── migrations/                # SQL para aplicar en DBs existentes
 │       ├── add_order_number.sql
 │       ├── add_categories.sql
-│       └── add_order_number.sql
+│       └── add_category_id.sql    # ← NUEVO: category_id en products y additionals
 │
 ├── realtime-server/
 │   ├── server.js                  # WS + endpoint /notify interno
@@ -109,7 +173,7 @@ AppPizzas/
 │   └── Dockerfile
 │
 ├── public/
-│   └── uploads/                   # fallback local de imágenes
+│   └── uploads/                   # fallback local de imágenes (montado como volumen en prod)
 │       └── .gitkeep
 │
 ├── tests/
@@ -117,6 +181,7 @@ AppPizzas/
 │   ├── helpers/api.ts             # stubFetch para mocks
 │   └── views/                     # 11 archivos, 31 tests
 │
+├── LightsailDefaultKey-us-east-1.pem  # ← clave SSH producción (NO commitear)
 ├── Dockerfile                     # Next.js standalone
 ├── docker-compose.yml
 ├── vitest.config.ts
@@ -129,16 +194,16 @@ AppPizzas/
 │   │   ├── orders/{route.ts, [id]/route.ts, [id]/items/route.ts}
 │   │   ├── banners/{route.ts, [id]/route.ts}
 │   │   ├── additionals/{route.ts, [id]/route.ts}
-│   │   ├── categories/{route.ts, [id]/route.ts}   ← NUEVO
-│   │   ├── settings/route.ts                       ← themePrimary + businessName
+│   │   ├── categories/{route.ts, [id]/route.ts}
+│   │   ├── settings/route.ts                       # themePrimary + businessName
 │   │   ├── clients/route.ts
-│   │   ├── upload/route.ts
+│   │   ├── upload/route.ts                         # fallback local → public/uploads/
 │   │   └── dev/seed/route.ts
 │   ├── dashboard/...              # cliente (menú)
-│   ├── my-orders/...              # cliente: historial de pedidos ← NUEVO
+│   ├── my-orders/...              # cliente: historial de pedidos
 │   ├── dashboardAdmin/
 │   │   ├── orders/page.tsx        # gestión de pedidos
-│   │   ├── categories/page.tsx    # CRUD categorías ← NUEVO
+│   │   ├── categories/page.tsx    # CRUD categorías
 │   │   ├── appearance/page.tsx    # color + nombre del negocio
 │   │   └── ...
 │   ├── login/page.tsx
@@ -151,34 +216,34 @@ AppPizzas/
 │   ├── menu/                      # CategoryList (dinámica), FoodHeader, filtros
 │   └── orders/
 │       ├── components/
-│       │   ├── OrderHistoryView.tsx   ← NUEVO: historial cliente
+│       │   ├── OrderHistoryView.tsx   # historial cliente
 │       │   └── OrderPageView.tsx
 │       └── hooks/
-│           ├── useOrderHistory.ts     ← NUEVO
+│           ├── useOrderHistory.ts
 │           └── useOrderTracking.ts
 │
 ├── lib/
 │   ├── db.ts                      # pool mysql2/promise
 │   ├── uuid.ts
 │   ├── api.ts                     # fetch helper + ApiError
-│   ├── orderHistory.ts            # localStorage helpers (historial cliente) ← NUEVO
+│   ├── orderHistory.ts            # localStorage helpers (historial cliente)
 │   ├── auth/
 │   │   ├── password.ts            # bcryptjs
 │   │   ├── session.ts             # JWT (jose)
 │   │   └── cookies.ts             # set/get/clear/requireAdmin
 │   ├── realtime/
 │   │   ├── notify.ts              # POST → realtime/notify (server)
-│   │   └── client.ts              # useOrdersStream (cliente WS)
+│   │   └── client.ts              # useOrdersStream — URL dinámica por window.location.hostname
 │   ├── storage/
 │   │   └── cloudinary.ts          # Cloudinary o fallback /api/upload
 │   ├── theme/
 │   │   └── brandCssVars.ts        # applyBrandTheme() para CSS vars
 │   ├── repos/                     # acceso a datos (solo servidor)
-│   │   ├── products.ts
+│   │   ├── products.ts            # INSERT incluye category_id
 │   │   ├── orders.ts              # incluye order_number
 │   │   ├── banners.ts
-│   │   ├── additionals.ts
-│   │   ├── categories.ts          ← NUEVO
+│   │   ├── additionals.ts         # INSERT incluye category_id
+│   │   ├── categories.ts
 │   │   ├── appSettings.ts         # themePrimary + businessName
 │   │   ├── users.ts
 │   │   └── clients.ts
@@ -193,10 +258,6 @@ AppPizzas/
 │   ├── CartContext.tsx
 │   ├── UserContext.tsx            # /api/auth/me
 │   └── ThemeContext.tsx           # ThemeProvider + useTheme hook (dark/light)
-│
-├── components/
-│   └── ui/
-│       └── ThemeToggle.tsx        # Botón sol/luna — prop iconOnly para mobile
 │
 └── proxy.ts                       # middleware Next.js (verifica JWT)
 ```
@@ -228,7 +289,7 @@ NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
 NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=
 ```
 
-En `docker-compose.yml` los hosts internos cambian a `mysql` y `realtime` y se inyectan automáticamente.
+> **Nota**: `NEXT_PUBLIC_REALTIME_WS_URL` es ignorada en producción — `lib/realtime/client.ts` auto-detecta el host desde `window.location.hostname`.
 
 ---
 
@@ -240,12 +301,12 @@ Definidas en `db/init/01_schema.sql`.
 |---|---|
 | `users` | Auth: `email`, `password_hash` (bcrypt), `role` (`user`/`admin`). |
 | `clients` | Registro público (sin password). |
-| `products` | `prices` JSON `[{label, price}]`. `category` referencia el nombre de la tabla `categories`. |
+| `products` | `prices` JSON `[{label, price}]`. Columnas `category` (nombre) y `category_id` (UUID FK lógico). |
 | `categories` | Categorías de productos: `name`, `sort_order`. CRUD desde admin. |
 | `orders` | Estados, totales, ubicación, descuento. `order_number` AUTO_INCREMENT visible en cards. |
 | `order_items` | FK a `orders` (CASCADE). `additionals` JSON. |
 | `banners` | URL de imagen. |
-| `additionals` | Por categoría (`pizza`, `lasagna`, `Com. Rapidas`). |
+| `additionals` | Columnas `category` y `category_id`. |
 | `app_settings` | Singleton (id=1): `theme_primary` (#RRGGBB) + `business_name`. |
 
 ---
@@ -273,7 +334,7 @@ Servidor independiente en `realtime-server/server.js`:
 
 Las API routes que crean/actualizan/borran pedidos llaman `notifyRealtime(...)` (`lib/realtime/notify.ts`). El servidor WS reenvía a los clientes suscritos.
 
-En el navegador, el hook `useOrdersStream(orderId | null, handler)` (`lib/realtime/client.ts`) reconecta automáticamente. El layout admin lo usa para mantener las estadísticas actualizadas en tiempo real.
+En el navegador, el hook `useOrdersStream(orderId | null, handler)` (`lib/realtime/client.ts`) reconecta automáticamente. La URL se calcula en runtime desde `window.location.hostname` para funcionar correctamente en cualquier entorno sin recompilar.
 
 ---
 
@@ -365,7 +426,9 @@ Las categorías de productos se gestionan desde `/dashboardAdmin/categories`:
 1. **Cloudinary** (recomendado en prod): si `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` y `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` están definidos → upload directo a Cloudinary.
 2. **Fallback local**: si no están definidos → `POST /api/upload` que guarda en `public/uploads/` y devuelve URL relativa.
 
-> En producción multi-instancia **usa Cloudinary** (o S3/R2) porque el filesystem no se comparte entre réplicas.
+En producción Docker, el directorio `public/uploads/` está montado como volumen `uploads_data` para que las imágenes persistan entre reinicios del contenedor.
+
+> Para multi-instancia o CDN **usa Cloudinary**.
 
 ---
 
@@ -471,15 +534,10 @@ npm run test:ui                       # Vitest UI
 npx tsc --noEmit
 npm run lint
 
-# Docker completo
-npm run docker:build
-npm run docker:up:detach
-npm run docker:down
-npm run docker:reset                  # purga volumen MySQL
-
 # Migraciones manuales (DB existente sin reset)
 docker exec -i apppizzas-mysql-1 mysql -u app -papp_password apppizzas < db/migrations/add_order_number.sql
 docker exec -i apppizzas-mysql-1 mysql -u app -papp_password apppizzas < db/migrations/add_categories.sql
+docker exec -i apppizzas-mysql-1 mysql -u app -papp_password apppizzas < db/migrations/add_category_id.sql
 ```
 
 ---
@@ -491,7 +549,7 @@ docker exec -i apppizzas-mysql-1 mysql -u app -papp_password apppizzas < db/migr
 │                 Navegador (Next.js client)               │
 │  · UserContext / CartContext                             │
 │  · api.* (/api/...)                                      │
-│  · useOrdersStream (WS → realtime:3001)                  │
+│  · useOrdersStream (WS → window.location.hostname:3001)  │
 │  · localStorage["order_history"] (historial cliente)     │
 │  · uploadImageToCloudinary (Cloudinary o /api/upload)    │
 └──────────────┬─────────────────────────┬─────────────────┘
@@ -499,8 +557,7 @@ docker exec -i apppizzas-mysql-1 mysql -u app -papp_password apppizzas < db/migr
                ▼                         ▼
         ┌───────────────┐         ┌──────────────┐
         │  Next.js app  │◀────────│ realtime WS  │
-        │  (localhost   │         │   :3001      │
-        │   o Docker)   │         │ (Docker)     │
+        │  :80 / :3000  │         │   :3001      │
         │  · API routes │         └──────────────┘
         │  · proxy.ts   │
         └───────┬───────┘
@@ -508,11 +565,13 @@ docker exec -i apppizzas-mysql-1 mysql -u app -papp_password apppizzas < db/migr
                 ▼
          ┌──────────────┐
          │  MySQL 8.0   │
-         │  (Docker)    │
+         │  :3307       │
          └──────────────┘
 
-         ┌──────────────┐
-         │  Cloudinary  │ ← opcional, fallback a /api/upload
-         │   (HTTPS)    │
-         └──────────────┘
+         ┌──────────────┐         ┌──────────────┐
+         │  Cloudinary  │         │  phpMyAdmin  │
+         │   (HTTPS)    │         │   :8080      │
+         └──────────────┘         └──────────────┘
+
+Volúmenes Docker: mysql_data (DB), uploads_data (/app/public/uploads)
 ```

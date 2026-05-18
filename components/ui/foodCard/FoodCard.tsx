@@ -29,10 +29,11 @@ export default function FoodCard({
       <div className="flex flex-col w-full h-full bg-surface rounded-[24px] sm:rounded-[28px] p-3 sm:p-4 shadow-sm hover:shadow-md border border-line-muted transition-all duration-300 cursor-pointer">
         <div className="relative w-full h-[120px] sm:h-[140px]">
           <Image
-            src={image}
+            src={image || "/placeholder-food.png"}
             alt={title}
             fill
             className="object-contain drop-shadow-lg"
+            unoptimized={!!image && !image.startsWith("http")}
           />
         </div>
 

@@ -44,8 +44,8 @@ export default function AdminBanner() {
       toast.success("Banner subido");
       await refresh();
     } catch (e) {
-      console.error(e);
-      toast.error("Error subiendo banner");
+      const msg = e instanceof Error ? e.message : "Error subiendo banner";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,7 @@ export default function AdminBanner() {
           <span className="text-sm text-fg-muted mb-1 block">Imagen del banner</span>
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
             onChange={handleFileChange}
             className="w-full border border-dashed border-line bg-canvas text-fg-muted p-3 rounded-xl cursor-pointer hover:border-brand transition file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-surface-muted file:text-fg-muted hover:file:bg-line"
           />

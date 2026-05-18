@@ -13,12 +13,12 @@ export async function proxy(request: NextRequest) {
 
   if (isAdminPath) {
     if (!session || session.role !== "admin") {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/profile", request.url));
     }
   }
 
   if (isClientDashboard && !session) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/profile", request.url));
   }
 
   return NextResponse.next();

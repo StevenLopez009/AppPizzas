@@ -540,8 +540,7 @@ export default function AdminDashboard() {
                     ))}
                   </div>
 
-                  {/* ACCIONES DEL PEDIDO - VERSIÓN RESPONSIVE PARA PORTÁTILES */}
-                  {/* ACCIONES DEL PEDIDO - VERSIÓN RESPONSIVE CON COLORES DEL ESTADO */}
+                  {/* ACCIONES DEL PEDIDO */}
                   <div className="border-t pt-3 space-y-3 mt-4">
                     {/* Fila 1: Botones de acción principales con colores del estado */}
                     <div className="grid grid-cols-4 gap-2">

@@ -51,7 +51,7 @@ export default function ProductDetailPage({ product, additionals }: Props) {
       image: product.image_url,
       quantity: 1,
       price: totalPrice,
-      size: selectedSize.label,
+      size: selectedSize.size,
       extra: selectedBorder,
       additionals: selectedAdditionals,
       observations,

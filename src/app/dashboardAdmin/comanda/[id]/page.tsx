@@ -88,12 +88,6 @@ export default function ComandaPage() {
           </h1>
           <div className="space-x-3">
             <button
-              onClick={() => window.print()}
-              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition"
-            >
-              Imprimir
-            </button>
-            <button
               onClick={() => router.push("/dashboardAdmin/orders")}
               className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition"
             >

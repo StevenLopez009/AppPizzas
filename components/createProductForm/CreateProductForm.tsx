@@ -6,24 +6,30 @@ import toast from "react-hot-toast";
 import imgProduct from "@/assets/images/createProduct.jpg";
 import { uploadImageToCloudinary } from "@/lib/storage/cloudinary";
 import { api, ApiError } from "@/lib/api";
+import { Plus, Trash2 } from "lucide-react";
 
 interface Category {
   id: string;
   name: string;
 }
 
+interface ProductPrice {
+  size: string;
+  price: number;
+}
+
 export default function CreateProductForm() {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    price: "",
-    pricePersonal: "",
-    priceMediana: "",
-    priceAgua: "",
-    priceLeche: "",
     image_url: "",
     category_id: "",
   });
+
+  const [prices, setPrices] = useState<ProductPrice[]>([
+    { size: "", price: 0 },
+  ]);
+
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -39,9 +45,6 @@ export default function CreateProductForm() {
     (cat) => cat.id === form.category_id,
   );
   const categoryName = selectedCategory?.name.toLowerCase() || "";
-  const isPizza = categoryName.includes("pizza");
-  const isComidaRapida = categoryName.includes("rapida");
-  const isBebida = categoryName.includes("bebida");
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -49,6 +52,33 @@ export default function CreateProductForm() {
     >,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handlePriceChange = (
+    index: number,
+    field: keyof ProductPrice,
+    value: string,
+  ) => {
+    const newPrices = [...prices];
+    if (field === "price") {
+      newPrices[index][field] = parseFloat(value) || 0;
+    } else {
+      newPrices[index][field] = value;
+    }
+    setPrices(newPrices);
+  };
+
+  const addPriceField = () => {
+    setPrices([...prices, { size: "", price: 0 }]);
+  };
+
+  const removePriceField = (index: number) => {
+    if (prices.length > 1) {
+      const newPrices = prices.filter((_, i) => i !== index);
+      setPrices(newPrices);
+    } else {
+      toast.error("Debe tener al menos un tamaño/precio");
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,53 +89,43 @@ export default function CreateProductForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+
     try {
+      // Validar que todos los tamaños tengan nombre y precio
+      const invalidPrices = prices.some((p) => !p.size.trim() || p.price <= 0);
+      if (invalidPrices) {
+        toast.error("Completa todos los tamaños y precios correctamente");
+        setSubmitting(false);
+        return;
+      }
+
       let imageUrl = "";
       if (file) {
         imageUrl = await uploadImageToCloudinary(file);
       }
 
-      let prices: Array<{ label: string; price: number }> = [];
-      if (isPizza) {
-        prices = [
-          { label: "Personal", price: Number(form.pricePersonal) },
-          { label: "Mediana", price: Number(form.priceMediana) },
-        ];
-      } else if (isComidaRapida) {
-        prices = [
-          { label: "Sencillo", price: Number(form.pricePersonal) },
-          { label: "Doble", price: Number(form.priceMediana) },
-        ];
-      } else if (isBebida) {
-        prices = [
-          { label: "Agua", price: Number(form.priceAgua) },
-          { label: "Leche", price: Number(form.priceLeche) },
-        ];
-      } else {
-        prices = [{ label: "", price: Number(form.price) }];
-      }
+      // Filtrar precios vacíos
+      const validPrices = prices.filter((p) => p.size.trim() && p.price > 0);
 
       await api.post("/api/products", {
         name: form.name,
         description: form.description,
-        prices,
+        prices: validPrices,
         image_url: imageUrl,
         category_id: form.category_id,
         category: selectedCategory?.name || "",
       });
 
       toast.success("Producto creado");
+
+      // Resetear formulario
       setForm({
         name: "",
         description: "",
-        price: "",
-        pricePersonal: "",
-        priceMediana: "",
-        priceAgua: "",
-        priceLeche: "",
         image_url: "",
         category_id: "",
       });
+      setPrices([{ size: "", price: 0 }]);
       setFile(null);
     } catch (err) {
       console.error(err);
@@ -123,6 +143,24 @@ export default function CreateProductForm() {
 
   const fieldCls =
     "w-full border border-line bg-canvas text-fg placeholder:text-fg-subtle focus:border-brand-ring focus:ring-2 focus:ring-brand-ring outline-none p-3 rounded-xl transition";
+
+  // Sugerencias de tamaños según categoría
+  const getSizeSuggestions = (): string[] => {
+    if (categoryName.includes("pizza")) {
+      return ["Personal", "Mediana", "Grande", "Familiar"];
+    } else if (
+      categoryName.includes("hamburguesa") ||
+      categoryName.includes("rapida")
+    ) {
+      return ["Sencillo", "Doble", "Mixta"];
+    } else if (categoryName.includes("bebida")) {
+      return ["Agua", "Leche", "1/2 L", "1 L", "1.5 L", "2 L"];
+    } else {
+      return ["Único", "Pequeño", "Mediano", "Grande"];
+    }
+  };
+
+  const sizeSuggestions = getSizeSuggestions();
 
   return (
     <form
@@ -163,6 +201,7 @@ export default function CreateProductForm() {
           value={form.description}
           onChange={handleChange}
           className={`${fieldCls} resize-none`}
+          rows={3}
         />
 
         <select
@@ -180,59 +219,67 @@ export default function CreateProductForm() {
           ))}
         </select>
 
-        {isBebida ? (
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              type="number"
-              name="priceAgua"
-              placeholder="Precio Agua"
-              value={form.priceAgua}
-              onChange={handleChange}
-              className={fieldCls}
-              required
-            />
-            <input
-              type="number"
-              name="priceLeche"
-              placeholder="Precio Leche"
-              value={form.priceLeche}
-              onChange={handleChange}
-              className={fieldCls}
-              required
-            />
+        {/* Sección de Tamaños y Precios Dinámicos */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-semibold text-fg">
+              Tamaños y Precios
+            </label>
+            <button
+              type="button"
+              onClick={addPriceField}
+              className="text-brand hover:text-brand-hover transition flex items-center gap-1 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Agregar tamaño
+            </button>
           </div>
-        ) : isPizza || isComidaRapida ? (
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              type="number"
-              name="pricePersonal"
-              placeholder={isPizza ? "Precio Personal" : "Precio Sencillo"}
-              value={form.pricePersonal}
-              onChange={handleChange}
-              className={fieldCls}
-              required
-            />
-            <input
-              type="number"
-              name="priceMediana"
-              placeholder={isPizza ? "Precio Mediana" : "Precio Doble"}
-              value={form.priceMediana}
-              onChange={handleChange}
-              className={fieldCls}
-              required
-            />
-          </div>
-        ) : (
-          <input
-            type="number"
-            name="price"
-            placeholder="Precio"
-            value={form.price}
-            onChange={handleChange}
-            className={fieldCls}
-            required
-          />
-        )}
+
+          {prices.map((price, index) => (
+            <div key={index} className="flex gap-2 items-start">
+              <div className="flex-1">
+                {/* Input de tamaño con sugerencias */}
+                <input
+                  type="text"
+                  placeholder="Tamaño (ej: Personal, Mediano...)"
+                  value={price.size}
+                  onChange={(e) =>
+                    handlePriceChange(index, "size", e.target.value)
+                  }
+                  list={`size-suggestions-${index}`}
+                  className={fieldCls}
+                  required
+                />
+                <datalist id={`size-suggestions-${index}`}>
+                  {sizeSuggestions.map((suggestion) => (
+                    <option key={suggestion} value={suggestion} />
+                  ))}
+                </datalist>
+              </div>
+              <div className="flex-1">
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Precio"
+                  value={price.price || ""}
+                  onChange={(e) =>
+                    handlePriceChange(index, "price", e.target.value)
+                  }
+                  className={fieldCls}
+                  required
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removePriceField(index)}
+                className="p-3 text-red-500 hover:text-red-700 transition"
+                title="Eliminar tamaño"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+          ))}
+        </div>
 
         <label className="block">
           <span className="text-sm text-fg-muted">Imagen del producto</span>

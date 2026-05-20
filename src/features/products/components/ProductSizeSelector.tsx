@@ -1,10 +1,19 @@
-interface Props {
-  prices: any[];
-  selectedSize: any;
-  onSelect: (size: any) => void;
+interface Price {
+  size: string;
+  price: number;
 }
 
-export default function ProductSizeSelector({ prices, selectedSize, onSelect }: Props) {
+interface Props {
+  prices: Price[];
+  selectedSize: Price;
+  onSelect: (size: Price) => void;
+}
+
+export default function ProductSizeSelector({
+  prices,
+  selectedSize,
+  onSelect,
+}: Props) {
   if (!prices || prices.length <= 1) return null;
 
   return (
@@ -12,17 +21,20 @@ export default function ProductSizeSelector({ prices, selectedSize, onSelect }: 
       <h3 className="font-bold text-fg mb-3">Seleccione un tamaño</h3>
 
       <div className="flex gap-3 overflow-x-auto pb-2 md:flex-wrap">
-        {prices.map((size) => (
+        {prices.map((item) => (
           <button
-            key={size.label}
-            onClick={() => onSelect(size)}
+            key={item.size}
+            onClick={() => onSelect(item)}
             className={`px-6 py-3 rounded-2xl font-semibold transition
-              ${selectedSize?.label === size.label
-                ? "bg-brand text-white"
-                : "bg-surface-muted text-fg hover:bg-line"
+              ${
+                selectedSize?.size === item.size
+                  ? "bg-brand text-white"
+                  : "bg-surface-muted text-fg hover:bg-line"
               }`}
           >
-            {size.label}
+            <div className="flex flex-col items-center">
+              <span>{item.size}</span>
+            </div>
           </button>
         ))}
       </div>

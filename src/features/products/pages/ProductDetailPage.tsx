@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { uuid } from "@/lib/uuid";
-
+import { useRouter } from "next/navigation";
 import ProductGallery from "../components/ProductGallery";
 import ProductInfo from "../components/ProductInfo";
 import ProductSizeSelector from "../components/ProductSizeSelector";
@@ -23,6 +23,8 @@ export default function ProductDetailPage({ product, additionals }: Props) {
   const [selectedBorder, setSelectedBorder] = useState("");
   const [selectedAdditionals, setSelectedAdditionals] = useState<any[]>([]);
   const [observations, setObservations] = useState("");
+
+  const router = useRouter();
 
   const additionalsPrice = selectedAdditionals.reduce(
     (acc, item) => acc + item.price,
@@ -56,6 +58,10 @@ export default function ProductDetailPage({ product, additionals }: Props) {
       additionals: selectedAdditionals,
       observations,
     });
+
+    if (window.innerWidth < 768) {
+      router.push("/dashboard");
+    }
   };
 
   return (

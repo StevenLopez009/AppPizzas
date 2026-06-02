@@ -1,117 +1,171 @@
 "use client";
 
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { CATEGORIES } from "@/lib/categories";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import toast from "react-hot-toast";
 import imgProduct from "@/assets/images/createProduct.jpg";
+import { uploadImageToCloudinary } from "@/lib/storage/cloudinary";
+import { api, ApiError } from "@/lib/api";
+import { Plus, Trash2 } from "lucide-react";
+
+interface Category {
+  id: string;
+  name: string;
+}
+
+interface ProductPrice {
+  size: string;
+  price: number;
+}
 
 export default function CreateProductForm() {
-  const supabase = createClient();
-
   const [form, setForm] = useState({
     name: "",
     description: "",
-    price: "",
-    pricePersonal: "",
-    priceMediana: "",
     image_url: "",
-    category: "",
+    category_id: "",
   });
+
+  const [prices, setPrices] = useState<ProductPrice[]>([
+    { size: "", price: 0 },
+  ]);
+
   const [file, setFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
 
-  const isPizza =
-    form.category === "Pizza Dulce" || form.category === "Pizza Sal";
+  useEffect(() => {
+    api
+      .get<{ categories: { id: string; name: string }[] }>("/api/categories")
+      .then(({ categories }) => setCategories(categories))
+      .catch(() => {});
+  }, []);
 
-  const category = form.category.toLowerCase();
-  const isComidaRapida = category.includes("rapida");
+  const selectedCategory = categories.find(
+    (cat) => cat.id === form.category_id,
+  );
+  const categoryName = selectedCategory?.name.toLowerCase() || "";
 
-  const handleChange = (e: any) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e: any) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
+  const handlePriceChange = (
+    index: number,
+    field: keyof ProductPrice,
+    value: string,
+  ) => {
+    const newPrices = [...prices];
+    if (field === "price") {
+      newPrices[index][field] = parseFloat(value) || 0;
+    } else {
+      newPrices[index][field] = value;
+    }
+    setPrices(newPrices);
+  };
+
+  const addPriceField = () => {
+    setPrices([...prices, { size: "", price: 0 }]);
+  };
+
+  const removePriceField = (index: number) => {
+    if (prices.length > 1) {
+      const newPrices = prices.filter((_, i) => i !== index);
+      setPrices(newPrices);
+    } else {
+      toast.error("Debe tener al menos un tamaño/precio");
     }
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) setFile(selectedFile);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
 
-    let imageUrl = "";
-
-    if (file) {
-      const fileName = `${Date.now()}-${file.name}`;
-
-      const { data, error: uploadError } = await supabase.storage
-        .from("products")
-        .upload(fileName, file);
-
-      if (uploadError) {
-        console.error(uploadError);
-        alert("Error subiendo imagen");
+    try {
+      // Validar que todos los tamaños tengan nombre y precio
+      const invalidPrices = prices.some((p) => !p.size.trim() || p.price <= 0);
+      if (invalidPrices) {
+        toast.error("Completa todos los tamaños y precios correctamente");
+        setSubmitting(false);
         return;
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from("products")
-        .getPublicUrl(fileName);
+      let imageUrl = "";
+      if (file) {
+        imageUrl = await uploadImageToCloudinary(file);
+      }
 
-      imageUrl = publicUrlData.publicUrl;
-    }
+      // Filtrar precios vacíos
+      const validPrices = prices.filter((p) => p.size.trim() && p.price > 0);
 
-    let prices = [];
-
-    if (isPizza) {
-      prices = [
-        { label: "Personal", price: Number(form.pricePersonal) },
-        { label: "Mediana", price: Number(form.priceMediana) },
-      ];
-    } else if (isComidaRapida) {
-      prices = [
-        { label: "Sencillo", price: Number(form.pricePersonal) },
-        { label: "Doble", price: Number(form.priceMediana) },
-      ];
-    } else {
-      prices = [{ label: "", price: Number(form.price) }];
-    }
-
-    const { error } = await supabase.from("products").insert([
-      {
+      await api.post("/api/products", {
         name: form.name,
         description: form.description,
-        prices,
+        prices: validPrices,
         image_url: imageUrl,
-        category: form.category,
-      },
-    ]);
+        category_id: form.category_id,
+        category: selectedCategory?.name || "",
+      });
 
-    if (error) {
-      console.error(error);
-      alert("Error al crear producto");
-    } else {
-      alert("Producto creado ");
+      toast.success("Producto creado");
+
+      // Resetear formulario
       setForm({
         name: "",
         description: "",
-        price: "",
-        pricePersonal: "",
-        priceMediana: "",
         image_url: "",
-        category: "",
+        category_id: "",
       });
+      setPrices([{ size: "", price: 0 }]);
+      setFile(null);
+    } catch (err) {
+      console.error(err);
+      const msg =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "Error al crear producto";
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  const fieldCls =
+    "w-full border border-line bg-canvas text-fg placeholder:text-fg-subtle focus:border-brand-ring focus:ring-2 focus:ring-brand-ring outline-none p-3 rounded-xl transition";
+
+  // Sugerencias de tamaños según categoría
+  const getSizeSuggestions = (): string[] => {
+    if (categoryName.includes("pizza")) {
+      return ["Personal", "Mediana", "Grande", "Familiar"];
+    } else if (
+      categoryName.includes("hamburguesa") ||
+      categoryName.includes("rapida")
+    ) {
+      return ["Sencillo", "Doble", "Mixta"];
+    } else if (categoryName.includes("bebida")) {
+      return ["Agua", "Leche", "1/2 L", "1 L", "1.5 L", "2 L"];
+    } else {
+      return ["Único", "Pequeño", "Mediano", "Grande"];
+    }
+  };
+
+  const sizeSuggestions = getSizeSuggestions();
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full mt-10 mx-auto bg-white rounded-3xl shadow-xl overflow-hidden grid md:grid-cols-2"
+      className="w-full mt-10 mx-auto bg-surface border border-line rounded-3xl shadow-xl overflow-hidden grid md:grid-cols-2"
     >
       <div className="relative h-60 md:h-auto">
         <Image
@@ -121,7 +175,7 @@ export default function CreateProductForm() {
           className="object-cover object-top md:object-center"
           priority
         />
-        <div className="absolute inset-0 flex items-end p-6">
+        <div className="absolute inset-0 flex items-end p-6 bg-gradient-to-t from-black/60 to-transparent rounded-l-3xl">
           <h2 className="text-white text-2xl font-bold">
             Crea un nuevo producto
           </h2>
@@ -129,9 +183,7 @@ export default function CreateProductForm() {
       </div>
 
       <div className="p-6 md:p-10 space-y-5">
-        <h2 className="text-2xl font-bold text-gray-800 md:hidden">
-          Crear Producto
-        </h2>
+        <h2 className="text-2xl font-bold text-fg md:hidden">Crear Producto</h2>
 
         <input
           type="text"
@@ -139,7 +191,7 @@ export default function CreateProductForm() {
           placeholder="Nombre del producto"
           value={form.name}
           onChange={handleChange}
-          className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
+          className={fieldCls}
           required
         />
 
@@ -148,85 +200,103 @@ export default function CreateProductForm() {
           placeholder="Descripción"
           value={form.description}
           onChange={handleChange}
-          className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition resize-none"
+          className={`${fieldCls} resize-none`}
+          rows={3}
         />
 
         <select
-          name="category"
-          value={form.category}
+          name="category_id"
+          value={form.category_id}
           onChange={handleChange}
-          className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
+          className={fieldCls}
           required
         >
           <option value="">Selecciona una categoría</option>
-          {CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
             </option>
           ))}
         </select>
 
-        {isPizza || isComidaRapida ? (
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              type="number"
-              name="pricePersonal"
-              placeholder={
-                isPizza
-                  ? "Precio Personal"
-                  : isComidaRapida
-                    ? "Precio Sencillo"
-                    : ""
-              }
-              value={form.pricePersonal}
-              onChange={handleChange}
-              className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
-              required
-            />
-
-            <input
-              type="number"
-              name="priceMediana"
-              placeholder={
-                isPizza
-                  ? "Precio Mediana"
-                  : isComidaRapida
-                    ? "Precio Doble"
-                    : ""
-              }
-              value={form.priceMediana}
-              onChange={handleChange}
-              className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
-              required
-            />
+        {/* Sección de Tamaños y Precios Dinámicos */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-semibold text-fg">
+              Tamaños y Precios
+            </label>
+            <button
+              type="button"
+              onClick={addPriceField}
+              className="text-brand hover:text-brand-hover transition flex items-center gap-1 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Agregar tamaño
+            </button>
           </div>
-        ) : (
-          <input
-            type="number"
-            name="price"
-            placeholder="Precio"
-            value={form.price}
-            onChange={handleChange}
-            className="w-full border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none p-3 rounded-xl transition"
-            required
-          />
-        )}
+
+          {prices.map((price, index) => (
+            <div key={index} className="flex gap-2 items-start">
+              <div className="flex-1">
+                {/* Input de tamaño con sugerencias */}
+                <input
+                  type="text"
+                  placeholder="Tamaño (ej: Personal, Mediano...)"
+                  value={price.size}
+                  onChange={(e) =>
+                    handlePriceChange(index, "size", e.target.value)
+                  }
+                  list={`size-suggestions-${index}`}
+                  className={fieldCls}
+                  required
+                />
+                <datalist id={`size-suggestions-${index}`}>
+                  {sizeSuggestions.map((suggestion) => (
+                    <option key={suggestion} value={suggestion} />
+                  ))}
+                </datalist>
+              </div>
+              <div className="flex-1">
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Precio"
+                  value={price.price || ""}
+                  onChange={(e) =>
+                    handlePriceChange(index, "price", e.target.value)
+                  }
+                  className={fieldCls}
+                  required
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removePriceField(index)}
+                className="p-3 text-red-500 hover:text-red-700 transition"
+                title="Eliminar tamaño"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+          ))}
+        </div>
 
         <label className="block">
-          <span className="text-sm text-gray-500">Imagen del producto</span>
+          <span className="text-sm text-fg-muted">Imagen del producto</span>
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="w-full mt-1 border border-dashed border-gray-300 p-3 rounded-xl cursor-pointer hover:border-orange-400 transition"
+            className="w-full mt-1 border border-dashed border-line p-3 rounded-xl cursor-pointer hover:border-brand-ring text-fg-muted transition"
           />
         </label>
 
         <button
           type="submit"
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95"
+          disabled={submitting}
+          className="w-full bg-brand hover:bg-brand-hover text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-60"
         >
-          Guardar Producto
+          {submitting ? "Guardando…" : "Guardar Producto"}
         </button>
       </div>
     </form>

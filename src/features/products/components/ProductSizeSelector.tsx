@@ -1,7 +1,12 @@
+interface Price {
+  size: string;
+  price: number;
+}
+
 interface Props {
-  prices: any[];
-  selectedSize: any;
-  onSelect: (size: any) => void;
+  prices: Price[];
+  selectedSize: Price;
+  onSelect: (size: Price) => void;
 }
 
 export default function ProductSizeSelector({
@@ -13,22 +18,23 @@ export default function ProductSizeSelector({
 
   return (
     <div className="mb-5">
-      <h3 className="font-bold text-gray-800 mb-3">Seleccione un tamaño</h3>
+      <h3 className="font-bold text-fg mb-3">Seleccione un tamaño</h3>
 
       <div className="flex gap-3 overflow-x-auto pb-2 md:flex-wrap">
-        {prices.map((size) => (
+        {prices.map((item) => (
           <button
-            key={size.label}
-            onClick={() => onSelect(size)}
+            key={item.size}
+            onClick={() => onSelect(item)}
             className={`px-6 py-3 rounded-2xl font-semibold transition
               ${
-                selectedSize?.label === size.label
-                  ? "bg-orange-500 text-white"
-                  : "bg-gray-100 text-gray-700"
-              }
-            `}
+                selectedSize?.size === item.size
+                  ? "bg-brand text-white"
+                  : "bg-surface-muted text-fg hover:bg-line"
+              }`}
           >
-            {size.label}
+            <div className="flex flex-col items-center">
+              <span>{item.size}</span>
+            </div>
           </button>
         ))}
       </div>

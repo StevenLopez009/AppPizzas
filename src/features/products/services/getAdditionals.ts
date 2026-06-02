@@ -1,10 +1,7 @@
-import { createClient } from "@/lib/supabase/client";
+import { api } from "@/lib/api";
 
 export async function getAdditionals(category: string) {
-  const supabase = createClient();
-
   let dbCategory = "";
-
   const normalized = category.toLowerCase();
 
   if (normalized.includes("pizza")) {
@@ -15,20 +12,15 @@ export async function getAdditionals(category: string) {
     dbCategory = "Com. Rapidas";
   }
 
-  if (!dbCategory) {
+  if (!dbCategory) return [];
+
+  try {
+    const { additionals } = await api.get<{ additionals: unknown[] }>(
+      `/api/additionals?active=1&category=${encodeURIComponent(dbCategory)}`,
+    );
+    return additionals;
+  } catch (e) {
+    console.error(e);
     return [];
   }
-
-  const { data, error } = await supabase
-    .from("additionals")
-    .select("*")
-    .eq("category", dbCategory)
-    .eq("active", true);
-
-  if (error) {
-    console.error(error);
-    return [];
-  }
-
-  return data || [];
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useMenu } from "../hooks/useMenu";
-
 import BannerCarousel from "./BannerCarousel";
 import CategoryList from "./CategoryList";
 import SearchBar from "./SearchBar";

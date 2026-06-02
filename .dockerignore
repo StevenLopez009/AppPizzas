@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.local
+.env.development.local
+.env.production.local
+.DS_Store
+npm-debug.log
+*.log
+README.md
+claude.md
+.cursor
+.vscode
+db/data
+realtime-server/node_modules

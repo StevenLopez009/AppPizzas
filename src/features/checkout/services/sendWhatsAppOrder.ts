@@ -34,7 +34,14 @@ export function sendWhatsAppOrder({
     .map(
       (item) =>
         `${item.quantity} (${item.size}) ${item.name} - ${
-          item.extra || "sin extra"
+          item.additionals?.length > 0
+            ? ` - Adicionales: ${item.additionals
+                .map(
+                  (a: any) =>
+                    `${a.name} (+$${a.price.toLocaleString("es-CO")})`,
+                )
+                .join(", ")}`
+            : ""
         } ${
           item.observations ? `- ${item.observations}` : ""
         } - $${(item.price * item.quantity).toLocaleString("es-CO")}`,
@@ -72,7 +79,7 @@ Domicilio: $${domicilio.toLocaleString("es-CO")}
 Total: $${total.toLocaleString("es-CO")}
 `;
 
-  const phone = "573161534971";
+  const phone = "573168654013";
 
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
-
+import { uuid } from "@/lib/uuid";
+import { useRouter } from "next/navigation";
 import ProductGallery from "../components/ProductGallery";
 import ProductInfo from "../components/ProductInfo";
 import ProductSizeSelector from "../components/ProductSizeSelector";
@@ -18,14 +19,12 @@ interface Props {
 
 export default function ProductDetailPage({ product, additionals }: Props) {
   const { addToCart } = useCart();
-
   const [selectedSize, setSelectedSize] = useState(product.prices[0]);
-
   const [selectedBorder, setSelectedBorder] = useState("");
-
   const [selectedAdditionals, setSelectedAdditionals] = useState<any[]>([]);
-
   const [observations, setObservations] = useState("");
+
+  const router = useRouter();
 
   const additionalsPrice = selectedAdditionals.reduce(
     (acc, item) => acc + item.price,
@@ -36,7 +35,7 @@ export default function ProductDetailPage({ product, additionals }: Props) {
 
   const toggleAdditional = (additional: any) => {
     setSelectedAdditionals((prev) => {
-      const exists = prev.find((item) => item.name === additional.name);
+      const exists = prev.find((item) => item.id === additional.id);
 
       if (exists) {
         return prev.filter((item) => item.name !== additional.name);
@@ -48,21 +47,25 @@ export default function ProductDetailPage({ product, additionals }: Props) {
 
   const handleAddToCart = () => {
     addToCart({
-      id: crypto.randomUUID(),
+      id: uuid(),
       product_id: product.id,
       name: product.name,
       image: product.image_url,
       quantity: 1,
       price: totalPrice,
-      size: selectedSize.label,
+      size: selectedSize.size,
       extra: selectedBorder,
       additionals: selectedAdditionals,
       observations,
     });
+
+    if (window.innerWidth < 768) {
+      router.push("/dashboard");
+    }
   };
 
   return (
-    <div className="max-w-7xl mx-auto min-h-screen bg-white">
+    <div className="max-w-7xl mx-auto min-h-screen bg-canvas">
       <div className="md:grid md:grid-cols-2 md:gap-8">
         <ProductGallery product={product} />
 

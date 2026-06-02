@@ -37,7 +37,7 @@ export const useUserLocation = () => {
         -74.2782851,
       );
 
-      if (distance < 10) {
+      if (distance < 25) {
         setIsInRestaurant(true);
       }
     });

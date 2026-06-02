@@ -2,6 +2,7 @@
 
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 import { useCheckoutForm } from "./useCheckoutForm";
 import { useCheckoutLocation } from "./useCheckoutLocation";
@@ -16,16 +17,13 @@ export function useCheckout() {
   const {
     cart,
     clearCart,
-    setShowOrder,
-    setShowOrderPage,
-    setCurrentOrderId,
     orderType,
   } = useCart();
 
-  const { form, barrio, mesa, setBarrio, setMesa, handleChange } =
+  const { form, barrio, barrioFee, mesa, setBarrio, setMesa, handleChange } =
     useCheckoutForm();
 
-  const { location, getLocation, sendRestaurantLocation } =
+  const { location, locating, savedLocation, getLocation, saveLocation, clearSavedLocation, sendRestaurantLocation } =
     useCheckoutLocation();
 
   const subtotal = cart.reduce(
@@ -33,40 +31,37 @@ export function useCheckout() {
     0,
   );
 
-  const preciosBarrio: Record<string, number> = {
-    prosperidad: 4000,
-    parques: 6000,
-    opalo: 5000,
-    sociego: 3000,
-    otros: 6000,
-  };
-
-  const domicilio = orderType === "domicilio" ? preciosBarrio[barrio] || 0 : 0;
+  const domicilio = orderType === "domicilio" ? barrioFee : 0;
 
   const total = subtotal + domicilio;
 
   const handleSubmit = async () => {
     if (cart.length === 0) {
-      alert("Tu carrito está vacío");
+      toast.error("Tu carrito está vacío");
+      return;
+    }
+
+    if (!orderType) {
+      toast.error("Selecciona el tipo de pedido");
       return;
     }
 
     if (orderType === "domicilio") {
       if (!form.nombre || !form.telefono || !form.direccion || !barrio) {
-        alert("Completa todos los datos");
+        toast.error("Completa todos los datos");
         return;
       }
     }
 
     if (orderType === "recoger") {
       if (!form.nombre || !form.telefono) {
-        alert("Completa todos los datos");
+        toast.error("Completa todos los datos");
         return;
       }
     }
 
     if (orderType === "mesa" && !mesa) {
-      alert("Selecciona una mesa");
+      toast.error("Selecciona una mesa");
       return;
     }
 
@@ -85,31 +80,27 @@ export function useCheckout() {
 
       await createOrderItems(order.id, cart);
 
-      sendWhatsAppOrder({
-        cart,
-        form,
-        barrio,
-        mesa,
-        total,
-        domicilio,
-        location,
-        orderType,
-      });
-
       clearCart();
-
       localStorage.removeItem("order_type");
+      toast.success("Pedido enviado");
 
-      if (window.innerWidth < 768) {
-        router.push(`/dashboard/pedido/${order.id}`);
-      } else {
-        setCurrentOrderId(order.id);
-        setShowOrder(false);
-        setShowOrderPage(true);
-      }
+      // Navigate first so the user stays in the app, then open WhatsApp on top
+      router.push("/my-orders");
+      setTimeout(() => {
+        sendWhatsAppOrder({
+          cart,
+          form,
+          barrio,
+          mesa,
+          total,
+          domicilio,
+          location,
+          orderType,
+        });
+      }, 300);
     } catch (error) {
-      console.log(error);
-      alert("Error creando la orden");
+      console.error(error);
+      toast.error("Error creando la orden");
     }
   };
 
@@ -122,6 +113,8 @@ export function useCheckout() {
     subtotal,
     domicilio,
     location,
+    locating,
+    savedLocation,
     orderType,
 
     setBarrio,
@@ -129,6 +122,8 @@ export function useCheckout() {
 
     handleChange,
     getLocation,
+    saveLocation,
+    clearSavedLocation,
     sendRestaurantLocation,
 
     handleSubmit,

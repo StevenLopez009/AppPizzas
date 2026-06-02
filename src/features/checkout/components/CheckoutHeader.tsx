@@ -9,12 +9,12 @@ export default function CheckoutHeader() {
     <div className="flex items-center gap-4 p-6">
       <button
         onClick={() => router.push("/dashboard")}
-        className="w-10 h-10 rounded-full bg-white shadow flex items-center justify-center"
+        className="w-10 h-10 rounded-full bg-surface shadow border border-line flex items-center justify-center text-fg-muted hover:bg-surface-muted transition"
       >
         ←
       </button>
 
-      <h1 className="text-lg font-bold text-gray-800">Checkout</h1>
+      <h1 className="text-lg font-bold text-fg">Checkout</h1>
     </div>
   );
 }

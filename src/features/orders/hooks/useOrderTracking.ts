@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { api } from "@/lib/api";
+import { useOrdersStream } from "@/lib/realtime/client";
+
+interface OrderSnapshot {
+  status: string;
+  order_type: "domicilio" | "mesa" | "recoger";
+}
 
 export const useOrderTracking = (orderId: string | null) => {
-  const supabase = createClient();
-
   const [status, setStatus] = useState<string | null>(null);
   const [orderType, setOrderType] = useState<
     "domicilio" | "mesa" | "recoger" | null
@@ -13,45 +17,33 @@ export const useOrderTracking = (orderId: string | null) => {
 
   useEffect(() => {
     if (!orderId) return;
-
     localStorage.setItem("last_order_id", orderId);
 
-    const getOrder = async () => {
-      const { data } = await supabase
-        .from("orders")
-        .select("status, order_type")
-        .eq("id", orderId)
-        .single();
-
-      if (data) {
-        setStatus(data.status);
-        setOrderType(data.order_type);
+    let cancelled = false;
+    (async () => {
+      try {
+        const { order } = await api.get<{ order: OrderSnapshot }>(
+          `/api/orders/${encodeURIComponent(orderId)}`,
+        );
+        if (cancelled) return;
+        setStatus(order.status);
+        setOrderType(order.order_type);
+      } catch {
+        // silencio
       }
-    };
-
-    getOrder();
-
-    const channel = supabase
-      .channel("order-" + orderId)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "orders",
-          filter: `id=eq.${orderId}`,
-        },
-        (payload) => {
-          setStatus(payload.new.status);
-          setOrderType(payload.new.order_type);
-        },
-      )
-      .subscribe();
+    })();
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
     };
   }, [orderId]);
+
+  useOrdersStream(orderId, (event) => {
+    if (event.type !== "order.updated" || !event.order) return;
+    const o = event.order as Partial<OrderSnapshot>;
+    if (o.status) setStatus(o.status);
+    if (o.order_type) setOrderType(o.order_type);
+  });
 
   return { status, orderType };
 };

@@ -1,28 +1,25 @@
 import { notFound } from "next/navigation";
 import ProductDetailPage from "@/src/features/products/pages/ProductDetailPage";
-import { getProductById } from "@/src/features/products/services/getProductById";
-import { getAdditionals } from "@/src/features/products/services/getAdditionals";
+import { getProduct } from "@/lib/repos/products";
+import { listAdditionals } from "@/lib/repos/additionals";
 
 interface Props {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 }
 
 export default async function Page({ params }: Props) {
   const { id } = await params;
 
-  const product = await getProductById(id);
+  const product = await getProduct(id);
+  if (!product) return notFound();
 
-  if (!product) {
-    return notFound();
-  }
+  const additionals = await listAdditionals({
+    category_id: product.category_id ?? undefined,
+    onlyActive: true,
+  });
 
-  const additionals = await getAdditionals(product.category);
+  console.log("Product category_id:", product.category_id);
+  console.log("Additionals found:", additionals.length);
 
-  return (
-    <>
-      <ProductDetailPage product={product} additionals={additionals} />;
-    </>
-  );
+  return <ProductDetailPage product={product} additionals={additionals} />;
 }

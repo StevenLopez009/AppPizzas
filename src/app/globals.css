@@ -1,2 +1,73 @@
 @import "tailwindcss";
 
+/* ── Brand (injected from DB at runtime by layout / ThemeBrandSync) ─── */
+:root {
+  --app-brand: #f97316;
+  --app-brand-hover: #d45a0f;
+  --app-brand-active: #a8470c;
+  --app-brand-foreground: #ffffff;
+  --app-brand-surface: #fff7ed;
+  --app-brand-surface-muted: #ffedd5;
+  --app-brand-ring: #fb923c;
+  --app-brand-text: #ea580c;
+  --app-brand-text-strong: #c2410c;
+}
+
+/* ── Secondary semantic tokens — LIGHT mode ──────────────────────────── */
+:root {
+  --app-canvas: #f4f4f5;
+  --app-surface: #ffffff;
+  --app-surface-raised: #ffffff;
+  --app-surface-muted: #f4f4f5;
+  --app-fg: #18181b;
+  --app-fg-muted: #52525b;
+  --app-fg-subtle: #a1a1aa;
+  --app-line: #e4e4e7;
+  --app-line-muted: #f4f4f5;
+  color-scheme: light;
+}
+
+/* ── Secondary semantic tokens — DARK mode ───────────────────────────── */
+.dark {
+  --app-canvas: #0a0a0b;
+  --app-surface: #18181b;
+  --app-surface-raised: #27272a;
+  --app-surface-muted: #1f1f23;
+  --app-fg: #fafafa;
+  --app-fg-muted: #a1a1aa;
+  --app-fg-subtle: #71717a;
+  --app-line: #3f3f46;
+  --app-line-muted: #27272a;
+
+  /* In dark mode brand surfaces should be richer / darker */
+  --app-brand-surface: color-mix(in srgb, var(--app-brand) 18%, #0a0a0b);
+  --app-brand-surface-muted: color-mix(in srgb, var(--app-brand) 12%, #0a0a0b);
+  color-scheme: dark;
+}
+
+/* ── Tailwind theme tokens ────────────────────────────────────────────── */
+@theme inline {
+  /* Brand */
+  --color-brand: var(--app-brand);
+  --color-brand-hover: var(--app-brand-hover);
+  --color-brand-active: var(--app-brand-active);
+  --color-brand-foreground: var(--app-brand-foreground);
+  --color-brand-surface: var(--app-brand-surface);
+  --color-brand-surface-muted: var(--app-brand-surface-muted);
+  --color-brand-ring: var(--app-brand-ring);
+  --color-brand-text: var(--app-brand-text);
+  --color-brand-text-strong: var(--app-brand-text-strong);
+  --color-primary: var(--app-brand);
+  --color-primary-foreground: var(--app-brand-foreground);
+
+  /* Secondary semantic */
+  --color-canvas: var(--app-canvas);
+  --color-surface: var(--app-surface);
+  --color-surface-raised: var(--app-surface-raised);
+  --color-surface-muted: var(--app-surface-muted);
+  --color-fg: var(--app-fg);
+  --color-fg-muted: var(--app-fg-muted);
+  --color-fg-subtle: var(--app-fg-subtle);
+  --color-line: var(--app-line);
+  --color-line-muted: var(--app-line-muted);
+}

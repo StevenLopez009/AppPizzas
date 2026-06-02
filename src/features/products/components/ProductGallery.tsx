@@ -11,21 +11,22 @@ export default function ProductGallery({ product }: { product: any }) {
     <div className="relative md:sticky md:h-[calc(100vh-3rem)]">
       <div className="relative h-[220px] md:h-full">
         <Image
-          src={product.image_url}
+          src={product.image_url || "/placeholder-food.png"}
           alt={product.name}
           fill
           className="object-cover rounded-2xl"
+          unoptimized={!!product.image_url && !product.image_url.startsWith("http")}
         />
 
         <div className="absolute top-4 left-4 right-4 flex justify-between">
           <button
             onClick={() => router.back()}
-            className="p-2 bg-white rounded-full"
+            className="p-2 bg-surface/90 backdrop-blur-sm rounded-full shadow text-fg hover:bg-surface transition"
           >
             <ChevronLeft />
           </button>
 
-          <button className="p-2 bg-white rounded-full">
+          <button className="p-2 bg-surface/90 backdrop-blur-sm rounded-full shadow text-fg hover:bg-surface transition">
             <Heart />
           </button>
         </div>

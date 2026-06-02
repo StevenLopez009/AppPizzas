@@ -1,21 +1,27 @@
-import BottomMenu from "@/components/bottomMenu/BottomMenu";
-import { Heart, Home, ShoppingCart, User } from "lucide-react";
+"use client";
 
-export default function MobileLayout({
-  children,
-  cartCount,
-  goToLastOrder,
-}: any) {
+import BottomMenu from "@/components/bottomMenu/BottomMenu";
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import { Home, ShoppingCart, ClipboardList, User } from "lucide-react";
+
+export default function MobileLayout({ children, cartCount }: any) {
   return (
     <div className="block md:hidden w-full">
-      <main className="p-4 pb-20">{children}</main>
+      <div className="relative flex items-center justify-center px-4 pt-4 pb-2">
+        <h1 className="text-lg font-bold text-fg">La Carreta</h1>
+        <div className="absolute right-4">
+          <ThemeToggle iconOnly />
+        </div>
+      </div>
+
+      <main className="p-4 pb-24">{children}</main>
 
       <div className="fixed bottom-0 w-full">
         <BottomMenu
           defaultActive="home"
           items={[
-            { id: "home", icon: Home, path: "/" },
-            { id: "fav", icon: Heart, onClick: goToLastOrder },
+            { id: "home", icon: Home, path: "/dashboard" },
+            { id: "my-orders", icon: ClipboardList, path: "/my-orders" },
             {
               id: "orders",
               icon: ShoppingCart,

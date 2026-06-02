@@ -2,8 +2,10 @@
 import { ChevronLeft, Pencil, Star } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { uploadImageToCloudinary } from "@/lib/storage/cloudinary";
+import { api } from "@/lib/api";
 
 export default function ProductUpdate({ product }: { product: any }) {
   const [title, setTitle] = useState(() => product?.name || "");
@@ -19,14 +21,6 @@ export default function ProductUpdate({ product }: { product: any }) {
 
   const router = useRouter();
 
-  const supabase = createClient();
-
-  const hasMultiplePrices = product.prices?.length > 1;
-
-  const isPizza =
-    product.category?.toLowerCase().includes("pizza") &&
-    product.prices?.length > 1;
-
   const handleFileChange = (e: any) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
@@ -36,51 +30,28 @@ export default function ProductUpdate({ product }: { product: any }) {
   };
 
   const handleUpdateProduct = async () => {
-    let imageUrl = product.image_url;
-
-    if (file) {
-      const fileName = `products/${Date.now()}-${file.name}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("products")
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) {
-        console.error(uploadError);
-        alert("Error subiendo imagen");
-        return;
+    try {
+      let imageUrl = product.image_url;
+      if (file) {
+        imageUrl = await uploadImageToCloudinary(file);
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from("products")
-        .getPublicUrl(fileName);
-
-      imageUrl = publicUrlData.publicUrl;
-
-      if (product.image_url) {
-        const oldPath = product.image_url.split("/products/")[1];
-
-        if (oldPath) {
-          await supabase.storage.from("products").remove([oldPath]);
-        }
-      }
-    }
-
-    await supabase
-      .from("products")
-      .update({
+      await api.put(`/api/products/${encodeURIComponent(product.id)}`, {
         name: title,
         description,
         prices: editablePrices,
         image_url: imageUrl,
-      })
-      .eq("id", product.id);
+      });
 
-    setIsEditing(false);
-    setFile(null);
-    setPreview(null);
-
-    router.refresh();
+      setIsEditing(false);
+      setFile(null);
+      setPreview(null);
+      toast.success("Producto actualizado");
+      router.refresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Error actualizando producto");
+    }
   };
 
   const handlePriceChange = (index: number, value: string) => {
@@ -90,32 +61,22 @@ export default function ProductUpdate({ product }: { product: any }) {
   };
 
   const handleDeleteProduct = async () => {
-    const confirmDelete = confirm(
-      "¿Seguro que quieres eliminar este producto?",
-    );
-
-    if (!confirmDelete) return;
-
-    const { error } = await supabase
-      .from("products")
-      .delete()
-      .eq("id", product.id);
-
-    if (error) {
-      console.error(error);
-      alert("Error al eliminar el producto");
-      return;
+    if (!confirm("¿Seguro que quieres eliminar este producto?")) return;
+    try {
+      await api.delete(`/api/products/${encodeURIComponent(product.id)}`);
+      toast.success("Producto eliminado");
+      router.push("/dashboardAdmin");
+    } catch (e) {
+      console.error(e);
+      toast.error("Error al eliminar el producto");
     }
-
-    router.push("/dashboardAdmin");
   };
 
   return (
-    <div className="max-w-7xl mx-auto bg-white min-h-screen relative font-sans">
+    <div className="max-w-7xl mx-auto bg-canvas min-h-screen relative font-sans">
       <div className="md:grid md:grid-cols-2 md:gap-8 md:px-6 lg:px-8 md:pt-2">
-        {/* IMAGEN */}
         <div className="relative md:sticky md:h-[calc(100vh-3rem)] md:rounded-2xl md:overflow-hidden">
-          <div className="relative h-[260px] w-full bg-gray-100 md:h-full md:min-h-[500px]">
+          <div className="relative h-[260px] w-full bg-surface-muted md:h-full md:min-h-[500px]">
             <Image
               src={preview || product.image_url || "/placeholder-pizza.jpg"}
               alt={product.name}
@@ -124,107 +85,98 @@ export default function ProductUpdate({ product }: { product: any }) {
               priority
             />
 
-            {/* HEADER */}
             <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
               <button
                 onClick={() => router.back()}
-                className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm active:scale-95 transition"
+                className="p-2 bg-surface/80 backdrop-blur-sm border border-line rounded-full shadow-sm active:scale-95 transition"
               >
-                <ChevronLeft size={20} className="text-gray-700" />
+                <ChevronLeft size={20} className="text-fg" />
               </button>
 
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md"
+                className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md active:scale-95 transition"
               >
                 <Pencil size={16} />
               </button>
             </div>
 
-            {/* INPUT FILE */}
             {isEditing && (
               <div className="absolute bottom-4 left-4 right-4">
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
                   onChange={handleFileChange}
-                  className="w-full bg-white p-2 rounded-xl"
+                  className="w-full bg-surface text-fg border border-line p-2 rounded-xl"
                 />
               </div>
             )}
           </div>
         </div>
 
-        {/* CONTENIDO */}
         <div className="px-6 pt-6 md:px-0 md:pt-0 md:pb-8">
-          {/* categoría + rating */}
           <div className="flex justify-between items-start mb-1">
-            <span className="text-orange-500 font-medium text-sm">
+            <span className="text-brand font-medium text-sm">
               {product.category || "General"}
             </span>
+
             <div className="flex items-center gap-1">
               <Star size={16} className="fill-yellow-400 text-yellow-400" />
-              <span className="font-bold text-sm">4.9</span>
+              <span className="font-bold text-sm text-fg">4.9</span>
             </div>
           </div>
 
-          {/* título */}
           <div className="flex items-center justify-between mb-4 gap-2">
             {isEditing ? (
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleUpdateProduct()}
-                className="text-2xl font-bold text-gray-800 border-b w-full outline-none"
+                className="text-2xl font-bold text-fg border-b border-line bg-transparent w-full outline-none"
                 autoFocus
               />
             ) : (
-              <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
+              <h1 className="text-2xl font-bold text-fg">{title}</h1>
             )}
 
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="bg-gray-900 text-white px-3 py-2 rounded-xl"
+                className="bg-brand text-white px-3 py-2 rounded-xl active:scale-95 transition"
               >
                 <Pencil size={16} />
               </button>
             )}
           </div>
 
-          {/* descripción */}
           <div className="mb-6">
             {isEditing ? (
               <input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="text-sm w-full border-b outline-none"
+                className="text-sm w-full border-b border-line bg-transparent text-fg outline-none"
               />
             ) : (
-              <p className="text-gray-400 text-sm">{description}</p>
+              <p className="text-fg-subtle text-sm">{description}</p>
             )}
           </div>
 
-          {/* precios */}
           {editablePrices?.length > 0 && (
             <div className="mb-6 space-y-3">
               {editablePrices.map((p: any, index: number) => (
-                <div
-                  key={p.label}
-                  className="flex justify-between items-center"
-                >
-                  <span className="text-sm text-gray-600">{p.label}</span>
+                <div key={p.size} className="flex justify-between items-center">
+                  <span className="text-sm text-fg-subtle">{p.size}</span>
 
                   {isEditing ? (
                     <input
                       type="number"
                       value={p.price}
                       onChange={(e) => handlePriceChange(index, e.target.value)}
-                      className="w-24 text-right border-b outline-none"
+                      className="w-24 text-right border-b border-line bg-transparent text-fg outline-none"
                     />
                   ) : (
-                    <span className="font-semibold">
-                      ${p.price.toLocaleString("es-CO")}
+                    <span className="font-semibold text-fg">
+                      ${Number(p.price).toLocaleString("es-CO")}
                     </span>
                   )}
                 </div>
@@ -232,11 +184,10 @@ export default function ProductUpdate({ product }: { product: any }) {
             </div>
           )}
 
-          {/* BOTONES DESKTOP */}
           <div className="hidden md:flex gap-4 mt-6">
             <button
               onClick={handleDeleteProduct}
-              className="w-1/2 bg-red-600 text-white py-4 rounded-2xl font-bold"
+              className="w-1/2 bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-bold transition"
             >
               Eliminar
             </button>
@@ -244,7 +195,7 @@ export default function ProductUpdate({ product }: { product: any }) {
             {isEditing && (
               <button
                 onClick={handleUpdateProduct}
-                className="w-1/2 bg-green-600 text-white py-4 rounded-2xl font-bold"
+                className="w-1/2 bg-green-600 hover:bg-green-700 text-white py-4 rounded-2xl font-bold transition"
               >
                 Guardar
               </button>
@@ -253,11 +204,10 @@ export default function ProductUpdate({ product }: { product: any }) {
         </div>
       </div>
 
-      {/* BARRA MOBILE */}
-      <div className="md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/90 backdrop-blur-md p-6 border-t flex justify-between items-center rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+      <div className="md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-surface/90 backdrop-blur-md p-6 border-t border-line flex justify-between items-center rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
         <button
           onClick={handleDeleteProduct}
-          className="bg-red-600 text-white px-6 py-3 rounded-2xl font-bold"
+          className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-2xl font-bold transition"
         >
           Eliminar
         </button>
@@ -265,7 +215,7 @@ export default function ProductUpdate({ product }: { product: any }) {
         {isEditing && (
           <button
             onClick={handleUpdateProduct}
-            className="bg-green-600 text-white px-6 py-3 rounded-2xl font-bold"
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl font-bold transition"
           >
             Guardar
           </button>

@@ -88,7 +88,80 @@ const styles = StyleSheet.create({
     color: "#d35400",
     fontWeight: "bold",
   },
+  bordeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 20,
+    marginTop: 2,
+    gap: 4,
+  },
+  bordeLabel: {
+    fontSize: 9,
+    color: "#444",
+  },
+  bordeValue: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#f97316",
+    backgroundColor: "#fff7ed",
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  mitadRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 20,
+    marginTop: 2,
+    gap: 4,
+  },
+  mitadName: {
+    fontSize: 9,
+    color: "#444",
+    flex: 1,
+  },
 });
+
+function renderExtra(item: OrderItem) {
+  if (!item.extra || item.extra === "sin extra") return null;
+
+  // Pizza por mitades: "Mitades: A/B | Bordes: x/y | Adicionales: ..."
+  if (item.extra.includes("Mitades:")) {
+    const mitadesMatch = item.extra.match(/Mitades:\s*([^|]+)/);
+    const bordesMatch  = item.extra.match(/Bordes:\s*([^|]+)/);
+    const sabores = mitadesMatch?.[1]?.split("/").map((s) => s.trim()) ?? [];
+    const bordes  = bordesMatch?.[1]?.split("/").map((b) => b.trim())  ?? [];
+
+    return sabores.map((sabor, i) => (
+      <View key={i} style={styles.mitadRow}>
+        <Text style={styles.mitadName}>½ {sabor}</Text>
+        {bordes[i] && bordes[i] !== "normal" ? (
+          <View style={styles.bordeRow}>
+            <Text style={styles.bordeLabel}>borde:</Text>
+            <Text style={styles.bordeValue}>{bordes[i].toUpperCase()}</Text>
+          </View>
+        ) : (
+          <Text style={styles.bordeLabel}>borde: normal</Text>
+        )}
+      </View>
+    ));
+  }
+
+  // Pizza sencilla con borde
+  const borde = item.extra.trim();
+  if (!borde || borde === "normal") {
+    return (
+      <View style={styles.bordeRow}>
+        <Text style={styles.bordeLabel}>Borde: normal</Text>
+      </View>
+    );
+  }
+  return (
+    <View style={styles.bordeRow}>
+      <Text style={styles.bordeLabel}>Borde:</Text>
+      <Text style={styles.bordeValue}>{borde.toUpperCase()}</Text>
+    </View>
+  );
+}
 
 export const KitchenOrderPDF = ({ order }: { order: Order }) => {
   return (
@@ -129,10 +202,8 @@ export const KitchenOrderPDF = ({ order }: { order: Order }) => {
               </Text>
             </View>
 
-            {/* Detalles de Extras */}
-            {item.extra && item.extra !== "sin extra" && (
-              <Text style={styles.detailText}>•(b) {item.extra}</Text>
-            )}
+            {/* Borde(s) resaltados en naranja */}
+            {renderExtra(item)}
 
             {/* Detalles de Adicionales */}
             {item.additionals && item.additionals.length > 0 && (

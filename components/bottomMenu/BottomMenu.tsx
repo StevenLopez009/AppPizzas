@@ -21,10 +21,10 @@ export default function BottomMenu({ items, defaultActive }: BottomMenuProps) {
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md">
-      <div className="bg-gray-100 rounded-3xl px-6 py-4 shadow-xl flex justify-between items-center relative">
+      <div className="bg-surface rounded-3xl px-6 py-4 shadow-xl border border-line flex justify-between items-center relative">
         {/* indicador */}
         <div
-          className="absolute bottom-2 h-1 w-10 bg-orange-500 rounded-full transition-all duration-300"
+          className="absolute bottom-2 h-1 w-10 bg-brand rounded-full transition-all duration-300"
           style={{
             left: `${items.findIndex((i) => i.id === active) * (100 / items.length)}%`,
             transform: "translateX(50%)",
@@ -51,9 +51,7 @@ export default function BottomMenu({ items, defaultActive }: BottomMenuProps) {
             >
               <Icon
                 size={26}
-                className={`transition ${
-                  isActive ? "text-gray-900" : "text-gray-400"
-                }`}
+                className={`transition ${isActive ? "text-fg" : "text-fg-subtle"}`}
               />
               {item.badge !== undefined && item.badge > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-md">

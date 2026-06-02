@@ -7,7 +7,7 @@ import { filterProducts } from "../utils/filterProducts";
 import { shuffleProducts } from "../utils/shuffleProducts";
 
 export function useMenu() {
-  const [foods, setFoods] = useState([]);
+  const [foods, setFoods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [pizzaCategory, setPizzaCategory] = useState<string | null>(null);
@@ -17,7 +17,7 @@ export function useMenu() {
     async function loadProducts() {
       try {
         const data = await getProducts();
-        setFoods(data);
+        setFoods(data as any[]);
       } finally {
         setLoading(false);
       }

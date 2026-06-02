@@ -1,13 +1,12 @@
-import { createClient } from "@/lib/supabase/client";
+import { api } from "@/lib/api";
 
 export async function getProductById(id: string) {
-  const supabase = createClient();
-
-  const { data } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  return data;
+  try {
+    const { product } = await api.get<{ product: unknown }>(
+      `/api/products/${encodeURIComponent(id)}`,
+    );
+    return product;
+  } catch {
+    return null;
+  }
 }

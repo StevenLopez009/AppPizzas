@@ -282,27 +282,54 @@ export async function updateOrder(
     total: number;
   }>,
 ): Promise<Order | null> {
+  const previousOrder = await getOrder(id);
+
+  if (!previousOrder) {
+    return null;
+  }
+
   const fields: string[] = [];
   const values: DbValue[] = [];
+
   if (patch.status !== undefined) {
     fields.push("status = ?");
     values.push(patch.status);
   }
+
   if (patch.discount_percentage !== undefined) {
     fields.push("discount_percentage = ?");
     values.push(patch.discount_percentage);
   }
+
   if (patch.total !== undefined) {
     fields.push("total = ?");
     values.push(patch.total);
   }
-  if (fields.length === 0) return getOrder(id);
+
+  if (fields.length === 0) return previousOrder;
+
   values.push(id);
+
   await db.execute(
     `UPDATE orders SET ${fields.join(", ")} WHERE id = ?`,
     values,
   );
-  return getOrder(id);
+
+  const updatedOrder = await getOrder(id);
+
+  if (!updatedOrder) {
+    return null;
+  }
+
+  if (
+    previousOrder.order_type === "domicilio" &&
+    previousOrder.status !== "enviado" &&
+    updatedOrder.status === "enviado"
+  ) {
+    console.log("Enviar WhatsApp a:", updatedOrder.customer_phone);
+  }
+
+  return updatedOrder;
 }
 
 export async function deleteOrder(id: string): Promise<void> {

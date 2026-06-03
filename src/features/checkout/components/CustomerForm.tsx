@@ -38,6 +38,9 @@ export default function CustomerForm({
   }, []);
 
   useEffect(() => {
+    const data = getSelectableZones();
+    console.log("Zones:", data);
+
     setZones(
       getSelectableZones().sort((a, b) => {
         const typeOrder: Record<string, number> = {

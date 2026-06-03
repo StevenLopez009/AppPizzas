@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay } from "swiper/modules";
+import { Autoplay, Pagination } from "swiper/modules";
 import Image from "next/image";
 import "swiper/css";
+import "swiper/css/pagination";
 import {
   getBanners,
   type Banner,
@@ -31,8 +32,11 @@ export default function BannerCarousel() {
   return (
     <div className="w-full mt-5">
       <Swiper
-        modules={[Autoplay]}
+        modules={[Autoplay, Pagination]}
         autoplay={{ delay: 3000, disableOnInteraction: false }}
+        pagination={{
+          clickable: true,
+        }}
         loop
         spaceBetween={16}
         slidesPerView={1}

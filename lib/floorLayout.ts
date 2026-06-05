@@ -8,6 +8,7 @@ export interface MapZone {
   row: number;
   colSpan: number;
   rowSpan: number;
+  occupied: boolean;
 }
 
 export interface Floor {

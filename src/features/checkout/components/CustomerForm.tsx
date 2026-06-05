@@ -38,28 +38,29 @@ export default function CustomerForm({
   }, []);
 
   useEffect(() => {
-    const data = getSelectableZones();
-    console.log("Zones:", data);
+    api
+      .get<{ zones: any[] }>("/api/map/zones")
+      .then(({ zones }) => {
+        setZones(
+          zones
+            .filter((z) => !z.occupied)
+            .sort((a, b) => {
+              const typeOrder: Record<string, number> = {
+                mesa: 1,
+                vip: 2,
+                barra: 3,
+              };
 
-    setZones(
-      getSelectableZones().sort((a, b) => {
-        const typeOrder: Record<string, number> = {
-          mesa: 1,
-          vip: 2,
-          barra: 3,
-        };
-
-        const typeCompare =
-          (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
-
-        if (typeCompare !== 0) return typeCompare;
-
-        const numA = parseInt(a.label.match(/\d+/)?.[0] || "0", 10);
-        const numB = parseInt(b.label.match(/\d+/)?.[0] || "0", 10);
-
-        return numA - numB;
-      }),
-    );
+              const typeCompare =
+                (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
+              if (typeCompare !== 0) return typeCompare;
+              const numA = parseInt(a.label.match(/\d+/)?.[0] || "0", 10);
+              const numB = parseInt(b.label.match(/\d+/)?.[0] || "0", 10);
+              return numA - numB;
+            }),
+        );
+      })
+      .catch(console.error);
   }, []);
 
   const inputCls =
@@ -133,7 +134,7 @@ export default function CustomerForm({
           >
             <option value="">Selecciona Mesa</option>
             {zones.map((zone) => (
-              <option key={zone.id} value={zone.label}>
+              <option key={zone.id} value={zone.id}>
                 {zone.label}
               </option>
             ))}

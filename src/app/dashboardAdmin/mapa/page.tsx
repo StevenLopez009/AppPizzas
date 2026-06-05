@@ -16,6 +16,7 @@ interface MapZone {
   row: number; // grid row (0-based)
   colSpan: number;
   rowSpan: number;
+  occupied: boolean;
 }
 
 interface Floor {
@@ -273,7 +274,7 @@ export default function MapaPage() {
     );
   }
 
-  function addZone() {
+  async function addZone() {
     if (!addForm?.label.trim()) return;
     const isBarra = addForm.type === "barra";
     const zone: MapZone = {
@@ -284,7 +285,11 @@ export default function MapaPage() {
       row: 0,
       colSpan: isBarra ? 1 : 2,
       rowSpan: isBarra ? 2 : 1,
+      occupied: false,
     };
+
+    await api.post("/api/map/zones", zone);
+
     updateFloors(
       floors.map((f) =>
         f.id !== floor.id ? f : { ...f, zones: [...f.zones, zone] },

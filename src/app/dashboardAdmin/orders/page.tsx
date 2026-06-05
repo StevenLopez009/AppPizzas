@@ -56,7 +56,7 @@ interface Order {
 
 const ORDER_FLOW = {
   domicilio: ["recibido", "cocinando", "enviado", "entregado"],
-  mesa: ["recibido", "cocinando", "entregado"],
+  mesa: ["recibido", "cocinando", "listo_cocina", "entregado"],
   recoger: ["recibido", "cocinando", "recoger"],
 };
 
@@ -83,6 +83,7 @@ export default function AdminDashboard() {
     recibido: "bg-gray-500 text-gray-700",
     cocinando: "bg-yellow-500 text-yellow-800",
     enviado: "bg-blue-500 text-blue-800",
+    listo_cocina: "bg-pink-500 text-pink-800",
     entregado: "bg-green-500 text-green-800",
     recoger: "bg-green-500 text-purple-800",
   };
@@ -404,6 +405,7 @@ export default function AdminDashboard() {
       <div className="max-w-[90rem] mx-auto mt-6 mb-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {filteredOrders.map((order) => {
+            console.log(order);
             const finalTotal =
               order.total -
               (order.total * (order.discount_percentage || 0)) / 100;
@@ -432,9 +434,7 @@ export default function AdminDashboard() {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                     <div className="space-y-1 flex-1">
                       {order.order_type === "mesa" && (
-                        <p className="font-bold text-base sm:text-lg">
-                          Mesa {order.table_number}
-                        </p>
+                        <p className="font-bold text-base sm:text-lg">Mesa</p>
                       )}
                       {order.order_type !== "mesa" && (
                         <>

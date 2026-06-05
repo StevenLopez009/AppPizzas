@@ -23,6 +23,7 @@ export interface Order {
   order_number: number;
   created_at: string;
   order_type: OrderType;
+  table_label: string | null;
   status: string;
   customer_name: string | null;
   customer_phone: string | null;
@@ -45,6 +46,7 @@ interface OrderRow extends RowDataPacket {
   order_number: number;
   created_at: Date;
   order_type: OrderType;
+  table_label: string | null;
   status: string;
   customer_name: string | null;
   customer_phone: string | null;
@@ -118,6 +120,7 @@ function toOrder(row: OrderRow, items: OrderItemRow[]): Order {
         ? row.created_at.toISOString()
         : String(row.created_at),
     order_type: row.order_type,
+    table_label: row.table_label,
     status: row.status,
     customer_name: row.customer_name,
     customer_phone: row.customer_phone,
@@ -185,7 +188,7 @@ export interface NewOrderInput {
   customer_name?: string | null;
   customer_phone?: string | null;
   customer_address?: string | null;
-  table_number?: number | null;
+  table_label?: string | null;
   payment_method?: string | null;
   cash_amount?: number | null;
   subtotal: number;
@@ -228,7 +231,7 @@ export async function createOrderWithItems(
         order.customer_name ?? null,
         order.customer_phone ?? null,
         order.customer_address ?? null,
-        nullableTableNumber(order.table_number),
+        nullableTableNumber(order.table_label),
         order.payment_method ?? null,
         nullableMoney(order.cash_amount),
         finiteMoney(order.subtotal, 0),
@@ -258,6 +261,17 @@ export async function createOrderWithItems(
           item.observations ?? null,
           JSON.stringify(item.additionals ?? []),
         ],
+      );
+    }
+
+    if (order.order_type === "mesa" && order.table_label) {
+      await conn.execute(
+        `
+    UPDATE restaurant_zones
+    SET occupied = 1
+    WHERE label = ?
+    `,
+        [String(order.table_label)],
       );
     }
 

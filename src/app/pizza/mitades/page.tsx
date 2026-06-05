@@ -221,6 +221,7 @@ export default function PizzaMitadesPage() {
       <option value="mora">Mora</option>
       <option value="nucita">Nucita</option>
       <option value="nutela">Nutella</option>
+      <option value="choco arequipe">Choco Arequipe</option>
     </>
   );
 
@@ -388,7 +389,8 @@ export default function PizzaMitadesPage() {
                   <option value="primavera">Primavera</option>
                   <option value="ranchera">Ranchera</option>
                   <option value="uva_pasa_tocineta">Uva pasa tocineta</option>
-                  <option value="vegetariana_3">Vegetariana 3</option>
+                  <option value="vegetariana">Vegetariana</option>
+                  <option value="margarita">Margarita</option>
                   <option value="queso">Queso</option>
                   <option value="dlux">Dlux</option>
                   <option value="atun">Atún</option>

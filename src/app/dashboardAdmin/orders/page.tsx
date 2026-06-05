@@ -434,7 +434,9 @@ export default function AdminDashboard() {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                     <div className="space-y-1 flex-1">
                       {order.order_type === "mesa" && (
-                        <p className="font-bold text-base sm:text-lg">Mesa</p>
+                        <p className="font-bold text-base sm:text-lg">
+                          {order.table_number}
+                        </p>
                       )}
                       {order.order_type !== "mesa" && (
                         <>

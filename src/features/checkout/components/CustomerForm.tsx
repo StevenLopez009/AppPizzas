@@ -134,7 +134,7 @@ export default function CustomerForm({
           >
             <option value="">Selecciona Mesa</option>
             {zones.map((zone) => (
-              <option key={zone.id} value={zone.id}>
+              <option key={zone.id} value={zone.label}>
                 {zone.label}
               </option>
             ))}

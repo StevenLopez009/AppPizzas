@@ -28,7 +28,7 @@ export interface Order {
   customer_name: string | null;
   customer_phone: string | null;
   customer_address: string | null;
-  table_number: number | null;
+  table_number: string | null;
   payment_method: string | null;
   cash_amount: number | null;
   subtotal: number;
@@ -125,7 +125,7 @@ function toOrder(row: OrderRow, items: OrderItemRow[]): Order {
     customer_name: row.customer_name,
     customer_phone: row.customer_phone,
     customer_address: row.customer_address,
-    table_number: row.table_number == null ? null : num(row.table_number),
+    table_number: row.table_number,
     payment_method: row.payment_method,
     cash_amount: row.cash_amount == null ? null : num(row.cash_amount),
     subtotal: num(row.subtotal),

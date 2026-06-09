@@ -12,6 +12,14 @@ export async function createOrder({
   domicilio,
   total,
 }: any) {
+  // Obtener usuario autenticado si existe
+  let userId: string | null = null;
+  try {
+    const user = await api.get<{ user_id: string }>("/api/auth/me");
+    userId = user?.user_id || null;
+  } catch {
+    // Usuario no autenticado, continuar sin user_id
+  }
   const tableNum = orderType === "mesa" && mesa ? String(mesa) : null;
 
   const cashParsed =
@@ -20,6 +28,7 @@ export async function createOrder({
       : NaN;
 
   const orderInput = {
+    user_id: userId,
     order_type: orderType,
     status: form.pago === "digital" ? "pendiente_pago" : "recibido",
     customer_name: orderType === "mesa" ? null : form.nombre,

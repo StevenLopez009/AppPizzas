@@ -1,6 +1,7 @@
 import "server-only";
 import { db, parseJSON, query, queryOne, type DbValue } from "@/lib/db";
 import { uuid } from "@/lib/uuid";
+import { addPointsToUser } from "./userPoints";
 import type { RowDataPacket } from "mysql2";
 
 export type OrderType = "domicilio" | "mesa" | "recoger";
@@ -20,6 +21,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  user_id: string | null;
   order_number: number;
   created_at: string;
   order_type: OrderType;
@@ -43,6 +45,7 @@ export interface Order {
 
 interface OrderRow extends RowDataPacket {
   id: string;
+  user_id: string | null;
   order_number: number;
   created_at: Date;
   order_type: OrderType;
@@ -114,6 +117,7 @@ function nullableCoord(v: unknown): number | null {
 function toOrder(row: OrderRow, items: OrderItemRow[]): Order {
   return {
     id: row.id,
+    user_id: row.user_id,
     order_number: row.order_number,
     created_at:
       row.created_at instanceof Date
@@ -183,6 +187,7 @@ export async function getOrder(id: string): Promise<Order | null> {
 }
 
 export interface NewOrderInput {
+  user_id?: string | null;
   order_type: OrderType;
   status?: string;
   customer_name?: string | null;
@@ -220,12 +225,13 @@ export async function createOrderWithItems(
   try {
     await conn.beginTransaction();
     await conn.execute(
-      `INSERT INTO orders (id, order_type, status, customer_name, customer_phone,
+      `INSERT INTO orders (id, user_id, order_type, status, customer_name, customer_phone,
         customer_address, table_number, payment_method, cash_amount, subtotal,
         neighborhood, delivery_fee, total, discount_percentage, lat, lng)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
+        order.user_id ?? null,
         order.order_type,
         order.status ?? "recibido",
         order.customer_name ?? null,
@@ -285,6 +291,20 @@ export async function createOrderWithItems(
 
   const created = await getOrder(id);
   if (!created) throw new Error("No se pudo crear el pedido");
+
+  // Agregar puntos al usuario (1 punto por cada 100 COP)
+  if (created.user_id) {
+    const points = Math.floor(created.total / 100);
+    if (points > 0) {
+      try {
+        await addPointsToUser(created.user_id, points, created.id);
+      } catch (err) {
+        console.error("Error adding points to user:", err);
+        // No fallar la orden si hay error con puntos
+      }
+    }
+  }
+
   return created;
 }
 

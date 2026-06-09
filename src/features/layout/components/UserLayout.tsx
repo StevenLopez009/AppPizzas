@@ -8,6 +8,7 @@ import MobileLayout from "./MobileLayout";
 import { useCartSummary } from "@/src/core/hooks/useCartSummary";
 import { useLastOrderNavigation } from "@/src/core/navigation/useLastOrderNavigation";
 import { api } from "@/lib/api";
+import { Gift } from "lucide-react";
 
 export default function UserLayout({
   children,
@@ -17,20 +18,37 @@ export default function UserLayout({
   const { showOrder, showOrderPage } = useCart();
   const { cartCount } = useCartSummary();
   const [businessName, setBusinessName] = useState("Pizzas La Carreta");
+  const [dynamicMenu, setDynamicMenu] = useState(menuConfig);
 
   useEffect(() => {
-    api
-      .get<{ businessName: string }>("/api/settings")
-      .then(({ businessName: name }) => {
-        if (name) setBusinessName(name);
-      })
-      .catch(() => {});
+    Promise.all([
+      api.get<{ businessName: string }>("/api/settings").catch(() => ({})),
+      api.get("/api/auth/me").catch(() => null),
+    ]).then(([settings, user]) => {
+      if (settings?.businessName) {
+        setBusinessName(settings.businessName);
+      }
+
+      // Si el usuario está autenticado, agregar "Mis Puntos" al menú
+      if (user?.user_id) {
+        const menu = menuConfig.filter((item) => item.id !== "orders");
+        menu.push({
+          id: "points",
+          label: "Mis Puntos",
+          path: "/dashboard/mi-perfil",
+          icon: Gift,
+        });
+        setDynamicMenu(menu);
+      } else {
+        setDynamicMenu(menuConfig.filter((item) => item.id !== "orders"));
+      }
+    });
   }, []);
 
   return (
     <div className="w-full overflow-x-hidden">
       <DesktopLayout
-        menu={menuConfig.filter((item) => item.id !== "orders")}
+        menu={dynamicMenu}
         title={businessName}
         showOrder={showOrder}
         showOrderPage={showOrderPage}
@@ -38,7 +56,7 @@ export default function UserLayout({
         {children}
       </DesktopLayout>
 
-      <MobileLayout cartCount={cartCount}>
+      <MobileLayout cartCount={cartCount} menu={dynamicMenu}>
         {children}
       </MobileLayout>
     </div>

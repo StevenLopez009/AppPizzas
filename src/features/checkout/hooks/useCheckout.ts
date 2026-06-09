@@ -3,6 +3,7 @@
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { api } from "@/lib/api";
 
 import { useCheckoutForm } from "./useCheckoutForm";
 import { useCheckoutLocation } from "./useCheckoutLocation";
@@ -82,22 +83,46 @@ export function useCheckout() {
 
       clearCart();
       localStorage.removeItem("order_type");
-      toast.success("Pedido enviado");
 
-      // Navigate first so the user stays in the app, then open WhatsApp on top
-      router.push("/my-orders");
-      setTimeout(() => {
-        sendWhatsAppOrder({
-          cart,
-          form,
-          barrio,
-          mesa,
-          total,
-          domicilio,
-          location,
-          orderType,
-        });
-      }, 300);
+      // Si el pago es digital, redirigir a Stripe
+      if (form.pago === "digital") {
+        toast.loading("Redirigiendo a pasarela de pagos...");
+        try {
+          const { sessionId } = await api.post<{ sessionId: string }>(
+            "/api/checkout/sessions",
+            {
+              orderId: order.id,
+              customerEmail: null,
+            },
+          );
+
+          // Redirect to Stripe Checkout
+          if (typeof window !== "undefined") {
+            window.location.href = `https://checkout.stripe.com/pay/${sessionId}`;
+          }
+        } catch (error) {
+          console.error("Error creating Stripe session:", error);
+          toast.error("Error al procesar el pago. Intenta de nuevo.");
+          // Restaurar carrito si falla
+          window.location.reload();
+        }
+      } else {
+        // Pago en efectivo - flujo normal
+        toast.success("Pedido enviado");
+        router.push("/my-orders");
+        setTimeout(() => {
+          sendWhatsAppOrder({
+            cart,
+            form,
+            barrio,
+            mesa,
+            total,
+            domicilio,
+            location,
+            orderType,
+          });
+        }, 300);
+      }
     } catch (error) {
       console.error(error);
       toast.error("Error creando la orden");

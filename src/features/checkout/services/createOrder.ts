@@ -21,7 +21,7 @@ export async function createOrder({
 
   const orderInput = {
     order_type: orderType,
-    status: "recibido",
+    status: form.pago === "digital" ? "pendiente_pago" : "recibido",
     customer_name: orderType === "mesa" ? null : form.nombre,
     customer_phone: orderType === "mesa" ? null : form.telefono,
     customer_address: orderType === "domicilio" ? form.direccion : null,

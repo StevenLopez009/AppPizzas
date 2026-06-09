@@ -280,6 +280,7 @@ export async function updateOrder(
     status: string;
     discount_percentage: number;
     total: number;
+    payment_method: string;
   }>,
 ): Promise<Order | null> {
   const fields: string[] = [];
@@ -295,6 +296,10 @@ export async function updateOrder(
   if (patch.total !== undefined) {
     fields.push("total = ?");
     values.push(patch.total);
+  }
+  if (patch.payment_method !== undefined) {
+    fields.push("payment_method = ?");
+    values.push(patch.payment_method);
   }
   if (fields.length === 0) return getOrder(id);
   values.push(id);

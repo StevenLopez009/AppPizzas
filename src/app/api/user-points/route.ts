@@ -5,7 +5,7 @@ import { getUserPoints, getUserPointsHistory } from "@/lib/repos/userPoints";
 export async function GET(req: Request) {
   try {
     const session = await requireAuth();
-    const userId = session?.user_id;
+    const userId = session?.sub;
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

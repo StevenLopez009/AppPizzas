@@ -38,7 +38,10 @@ export default function UserLayout({
         // Construir menú basado en si está autenticado
         const baseMenu = menuConfig.filter((item) => item.id !== "orders");
 
-        if (userRes?.user_id) {
+        // Verificar si el usuario está autenticado (userRes.user.id o userRes?.id)
+        const isAuthenticated = userRes?.user?.id || userRes?.id;
+
+        if (isAuthenticated) {
           // Usuario autenticado: agregar "Mis Puntos"
           setDynamicMenu([
             ...baseMenu,

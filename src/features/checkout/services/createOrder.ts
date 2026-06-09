@@ -15,8 +15,8 @@ export async function createOrder({
   // Obtener usuario autenticado si existe
   let userId: string | null = null;
   try {
-    const user = await api.get<{ user_id: string }>("/api/auth/me");
-    userId = user?.user_id || null;
+    const response = await api.get<{ user: { id: string } | null }>("/api/auth/me");
+    userId = response?.user?.id || null;
   } catch {
     // Usuario no autenticado, continuar sin user_id
   }

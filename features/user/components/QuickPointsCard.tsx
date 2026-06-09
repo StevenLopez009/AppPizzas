@@ -22,7 +22,7 @@ export function QuickPointsCard() {
   }, []);
 
   // No mostrar si el usuario no está autenticado
-  if (!loading && !user?.user_id) {
+  if (!loading && !user?.id && !user?.user?.id) {
     return null;
   }
 

@@ -25,7 +25,9 @@ export default function OrdersView({
           <ShoppingBasket size={48} className="text-fg-subtle" />
         </div>
         <h2 className="text-xl font-bold text-fg">Tu carrito está vacío</h2>
-        <p className="text-fg-muted mt-2 mb-6">Parece que aún no has añadido ninguna pizza deliciosa.</p>
+        <p className="text-fg-muted mt-2 mb-6">
+          Parece que aún no has añadido ninguna pizza deliciosa.
+        </p>
         <button
           onClick={onGoHome}
           className="bg-brand text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-brand/30"
@@ -79,9 +81,13 @@ export default function OrdersView({
             </div>
 
             <div className="flex flex-col items-center text-fg-muted">
-              <button onClick={() => updateQuantity(item.id, "plus")}><Plus size={16} /></button>
+              <button onClick={() => updateQuantity(item.id, "plus")}>
+                <Plus size={16} />
+              </button>
               <span>{item.quantity}</span>
-              <button onClick={() => updateQuantity(item.id, "minus")}><Minus size={16} /></button>
+              <button onClick={() => updateQuantity(item.id, "minus")}>
+                <Minus size={16} />
+              </button>
             </div>
           </div>
         ))}
@@ -94,7 +100,7 @@ export default function OrdersView({
           <span>${total.toLocaleString("es-CO")}</span>
         </div>
 
-        <div className="flex gap-3 mt-4">
+        <div className=" mt-4">
           {isInRestaurant ? (
             <button
               className="w-full bg-brand-hover text-white py-4 rounded-2xl font-bold"
@@ -103,21 +109,28 @@ export default function OrdersView({
               Pedir
             </button>
           ) : (
-            <>
+            <div className="grid grid-cols-2 gap-3">
               <button
-                className="flex items-center justify-center gap-2 w-full bg-surface-muted text-fg py-3 rounded-2xl font-bold"
+                className="flex items-center justify-center gap-2 bg-surface-muted text-fg py-3 rounded-2xl font-bold"
                 onClick={() => onOrder("recoger")}
               >
                 <Store /> Recoger
               </button>
 
               <button
-                className="flex items-center justify-center gap-2 w-full bg-brand-hover text-white py-3 rounded-2xl font-bold"
+                className="flex items-center justify-center gap-2 bg-brand-hover text-white py-3 rounded-2xl font-bold"
                 onClick={() => onOrder("domicilio")}
               >
                 <Bike /> Domicilio
               </button>
-            </>
+
+              <button
+                className="col-span-2 flex items-center justify-center gap-2 bg-brand-hover text-white py-3 rounded-2xl font-bold"
+                onClick={() => onOrder("mesa")}
+              >
+                Restaurante
+              </button>
+            </div>
           )}
         </div>
       </div>

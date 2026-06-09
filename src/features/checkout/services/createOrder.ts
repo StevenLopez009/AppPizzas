@@ -25,7 +25,7 @@ export async function createOrder({
     customer_name: orderType === "mesa" ? null : form.nombre,
     customer_phone: orderType === "mesa" ? null : form.telefono,
     customer_address: orderType === "domicilio" ? form.direccion : null,
-    table_number: tableNum,
+    table_label: tableNum,
     payment_method: form.pago,
     cash_amount:
       form.pago === "efectivo" &&

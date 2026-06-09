@@ -23,11 +23,12 @@ export interface Order {
   order_number: number;
   created_at: string;
   order_type: OrderType;
+  table_label: string | null;
   status: string;
   customer_name: string | null;
   customer_phone: string | null;
   customer_address: string | null;
-  table_number: number | null;
+  table_number: string | null;
   payment_method: string | null;
   cash_amount: number | null;
   subtotal: number;
@@ -45,6 +46,7 @@ interface OrderRow extends RowDataPacket {
   order_number: number;
   created_at: Date;
   order_type: OrderType;
+  table_label: string | null;
   status: string;
   customer_name: string | null;
   customer_phone: string | null;
@@ -118,11 +120,12 @@ function toOrder(row: OrderRow, items: OrderItemRow[]): Order {
         ? row.created_at.toISOString()
         : String(row.created_at),
     order_type: row.order_type,
+    table_label: row.table_label,
     status: row.status,
     customer_name: row.customer_name,
     customer_phone: row.customer_phone,
     customer_address: row.customer_address,
-    table_number: row.table_number == null ? null : num(row.table_number),
+    table_number: row.table_number,
     payment_method: row.payment_method,
     cash_amount: row.cash_amount == null ? null : num(row.cash_amount),
     subtotal: num(row.subtotal),
@@ -185,7 +188,7 @@ export interface NewOrderInput {
   customer_name?: string | null;
   customer_phone?: string | null;
   customer_address?: string | null;
-  table_number?: number | null;
+  table_label?: string | null;
   payment_method?: string | null;
   cash_amount?: number | null;
   subtotal: number;
@@ -228,7 +231,7 @@ export async function createOrderWithItems(
         order.customer_name ?? null,
         order.customer_phone ?? null,
         order.customer_address ?? null,
-        nullableTableNumber(order.table_number),
+        nullableTableNumber(order.table_label),
         order.payment_method ?? null,
         nullableMoney(order.cash_amount),
         finiteMoney(order.subtotal, 0),
@@ -261,6 +264,17 @@ export async function createOrderWithItems(
       );
     }
 
+    if (order.order_type === "mesa" && order.table_label) {
+      await conn.execute(
+        `
+    UPDATE restaurant_zones
+    SET occupied = 1
+    WHERE label = ?
+    `,
+        [String(order.table_label)],
+      );
+    }
+
     await conn.commit();
   } catch (e) {
     await conn.rollback();
@@ -283,31 +297,59 @@ export async function updateOrder(
     payment_method: string;
   }>,
 ): Promise<Order | null> {
+  const previousOrder = await getOrder(id);
+
+  if (!previousOrder) {
+    return null;
+  }
+
   const fields: string[] = [];
   const values: DbValue[] = [];
+
   if (patch.status !== undefined) {
     fields.push("status = ?");
     values.push(patch.status);
   }
+
   if (patch.discount_percentage !== undefined) {
     fields.push("discount_percentage = ?");
     values.push(patch.discount_percentage);
   }
+
   if (patch.total !== undefined) {
     fields.push("total = ?");
     values.push(patch.total);
   }
+
   if (patch.payment_method !== undefined) {
     fields.push("payment_method = ?");
     values.push(patch.payment_method);
   }
-  if (fields.length === 0) return getOrder(id);
+
+  if (fields.length === 0) return previousOrder;
+
   values.push(id);
+
   await db.execute(
     `UPDATE orders SET ${fields.join(", ")} WHERE id = ?`,
     values,
   );
-  return getOrder(id);
+
+  const updatedOrder = await getOrder(id);
+
+  if (!updatedOrder) {
+    return null;
+  }
+
+  if (
+    previousOrder.order_type === "domicilio" &&
+    previousOrder.status !== "enviado" &&
+    updatedOrder.status === "enviado"
+  ) {
+    console.log("Enviar WhatsApp a:", updatedOrder.customer_phone);
+  }
+
+  return updatedOrder;
 }
 
 export async function deleteOrder(id: string): Promise<void> {

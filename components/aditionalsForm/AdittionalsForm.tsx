@@ -9,7 +9,7 @@ interface Additional {
   id: string;
   name: string;
   price: number;
-  category_id: string | null; // 👈 Cambiado
+  category_id: string | null;
   category_name?: string;
   active: boolean;
 }

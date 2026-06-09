@@ -16,6 +16,7 @@ interface MapZone {
   row: number; // grid row (0-based)
   colSpan: number;
   rowSpan: number;
+  occupied: number;
 }
 
 interface Floor {
@@ -38,7 +39,6 @@ interface ActiveOrder {
 const COLS = 10;
 const ROWS = 8;
 const ACTIVE_STATUSES = new Set(["recibido", "cocinando", "enviado"]);
-const STORAGE_KEY = "restaurant_floor_layout";
 
 const TYPE_LABELS: Record<ZoneType, string> = {
   mesa: "Mesa",
@@ -67,6 +67,7 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 0,
         colSpan: 2,
         rowSpan: 1,
+        occupied: 0,
       },
       {
         id: "VIP 2",
@@ -76,6 +77,7 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 0,
         colSpan: 2,
         rowSpan: 1,
+        occupied: 0,
       },
       {
         id: "Mesa 4",
@@ -85,6 +87,7 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 2,
         colSpan: 2,
         rowSpan: 1,
+        occupied: 0,
       },
       {
         id: "Mesa 3",
@@ -94,6 +97,7 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 3,
         colSpan: 2,
         rowSpan: 1,
+        occupied: 0,
       },
       {
         id: "Mesa 2",
@@ -103,6 +107,7 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 4,
         colSpan: 2,
         rowSpan: 1,
+        occupied: 0,
       },
       {
         id: "Mesa 1",
@@ -112,6 +117,7 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 5,
         colSpan: 2,
         rowSpan: 1,
+        occupied: 0,
       },
       {
         id: "Mesa 5",
@@ -121,6 +127,7 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 2,
         colSpan: 2,
         rowSpan: 1,
+        occupied: 0,
       },
       {
         id: "Mesa 6",
@@ -130,6 +137,7 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 3,
         colSpan: 2,
         rowSpan: 1,
+        occupied: 0,
       },
       {
         id: "Mesa 7",
@@ -139,6 +147,7 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 4,
         colSpan: 2,
         rowSpan: 1,
+        occupied: 0,
       },
       {
         id: "Barra 1",
@@ -148,6 +157,7 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 4,
         colSpan: 1,
         rowSpan: 2,
+        occupied: 0,
       },
       {
         id: "Barra 2",
@@ -157,6 +167,7 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 2,
         colSpan: 1,
         rowSpan: 2,
+        occupied: 0,
       },
       {
         id: "Terraza",
@@ -166,22 +177,12 @@ const DEFAULT_FLOORS: Floor[] = [
         row: 6,
         colSpan: 4,
         rowSpan: 2,
+        occupied: 0,
       },
     ],
   },
 ];
 
-function loadLayout(): Floor[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : DEFAULT_FLOORS;
-  } catch {
-    return DEFAULT_FLOORS;
-  }
-}
-function saveLayout(floors: Floor[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(floors));
-}
 function uid() {
   return Math.random().toString(36).slice(2, 8);
 }
@@ -207,7 +208,23 @@ export default function MapaPage() {
   } | null>(null);
 
   useEffect(() => {
-    setFloors(loadLayout());
+    const loadZones = async () => {
+      const { zones } = await api.get("/api/map/zones");
+
+      setFloors([
+        {
+          id: "piso-1",
+          name: "Piso 1",
+          zones: zones.map((z) => ({
+            ...z,
+            col: z.zoneCol,
+            row: z.zoneRow,
+          })),
+        },
+      ]);
+    };
+
+    loadZones();
   }, []);
 
   const fetchOrders = async () => {
@@ -245,10 +262,9 @@ export default function MapaPage() {
   /* ── Mutators ─────────────────────────────────────────────────────────── */
   function updateFloors(next: Floor[]) {
     setFloors(next);
-    saveLayout(next);
   }
 
-  function moveZone(zoneId: string, col: number, row: number) {
+  async function moveZone(zoneId: string, col: number, row: number) {
     updateFloors(
       floors.map((f) =>
         f.id !== floor.id
@@ -261,6 +277,16 @@ export default function MapaPage() {
             },
       ),
     );
+
+    try {
+      await api.put("/api/map/zones", {
+        id: zoneId,
+        col,
+        row,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   function deleteZone(zoneId: string) {
@@ -273,7 +299,7 @@ export default function MapaPage() {
     );
   }
 
-  function addZone() {
+  async function addZone() {
     if (!addForm?.label.trim()) return;
     const isBarra = addForm.type === "barra";
     const zone: MapZone = {
@@ -284,7 +310,11 @@ export default function MapaPage() {
       row: 0,
       colSpan: isBarra ? 1 : 2,
       rowSpan: isBarra ? 2 : 1,
+      occupied: 0,
     };
+
+    await api.post("/api/map/zones", zone);
+
     updateFloors(
       floors.map((f) =>
         f.id !== floor.id ? f : { ...f, zones: [...f.zones, zone] },
@@ -354,18 +384,19 @@ export default function MapaPage() {
     e.dataTransfer.dropEffect = "move";
   }
 
-  function onDrop(e: React.DragEvent) {
+  async function onDrop(e: React.DragEvent) {
     if (!editMode || !dragging.current) return;
     e.preventDefault();
     const cell = getCell(e.clientX, e.clientY);
     if (!cell) return;
     const col = Math.max(0, cell.col - dragging.current.offsetCol);
     const row = Math.max(0, cell.row - dragging.current.offsetRow);
-    moveZone(dragging.current.zoneId, col, row);
+    await moveZone(dragging.current.zoneId, col, row);
     dragging.current = null;
   }
 
-  const occupiedCount = Object.keys(tableOrders).length;
+  const occupiedCount =
+    floor?.zones.filter((z) => z.occupied === 1).length ?? 0;
   const totalMesas = floor?.zones.filter((z) => z.type === "mesa").length ?? 0;
 
   if (!floor) return null;
@@ -501,7 +532,8 @@ export default function MapaPage() {
         {/* Zones */}
         {floor.zones.map((zone) => {
           const order = tableOrders[zone.label];
-          const occupied = !!order;
+          const occupied = Number(zone.occupied) === 1;
+          console.log(zone, zone.occupied);
 
           return (
             <div
@@ -548,7 +580,7 @@ export default function MapaPage() {
               <span className="font-bold text-xs md:text-sm leading-tight text-center px-1">
                 {zone.label}
               </span>
-              {occupied && (
+              {occupied && order && (
                 <span className="text-[9px] md:text-[11px] opacity-90 mt-0.5">
                   #{order.order_number}
                 </span>
@@ -560,17 +592,26 @@ export default function MapaPage() {
 
       {/* Edit toolbar */}
       {editMode && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-4">
           {addForm ? (
             <div className="flex flex-wrap items-end gap-3">
               <div>
-                <label className="text-xs text-gray-400 mb-1 block">Tipo</label>
+                <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                  Tipo
+                </label>
                 <select
                   value={addForm.type}
                   onChange={(e) =>
                     setAddForm({ ...addForm, type: e.target.value as ZoneType })
                   }
-                  className="border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none"
+                  className="
+                        border border-gray-200 dark:border-gray-700
+                        bg-white dark:bg-gray-800
+                        text-gray-900 dark:text-gray-100
+                        rounded-xl px-3 py-2 text-sm
+                        outline-none
+                        focus:ring-2 focus:ring-brand/20
+                        "
                 >
                   {(Object.keys(TYPE_LABELS) as ZoneType[]).map((t) => (
                     <option key={t} value={t}>
@@ -580,7 +621,7 @@ export default function MapaPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-400 mb-1 block">
+                <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
                   Nombre
                 </label>
                 <input
@@ -594,7 +635,16 @@ export default function MapaPage() {
                     if (e.key === "Escape") setAddForm(null);
                   }}
                   placeholder="Ej. Mesa 8"
-                  className="border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand/20 w-40"
+                  className="
+                        border border-gray-200 dark:border-gray-700
+                        bg-white dark:bg-gray-800
+                        text-gray-900 dark:text-gray-100
+                        placeholder:text-gray-400 dark:placeholder:text-gray-500
+                        rounded-xl px-3 py-2 text-sm
+                        outline-none
+                        focus:ring-2 focus:ring-brand/20
+                        w-40
+                        "
                 />
               </div>
               <button
@@ -605,20 +655,35 @@ export default function MapaPage() {
               </button>
               <button
                 onClick={() => setAddForm(null)}
-                className="px-4 py-2 rounded-xl text-sm border border-gray-200 text-gray-500"
+                className="
+                px-4 py-2 rounded-xl text-sm
+                border border-gray-200 dark:border-gray-700
+                bg-white dark:bg-gray-800
+                text-gray-600 dark:text-gray-300
+                hover:bg-gray-50 dark:hover:bg-gray-700
+                transition
+                "
               >
                 Cancelar
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-3 flex-wrap">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Arrastra las mesas para reposicionarlas. Doble clic en el piso
                 para renombrarlo.
               </p>
               <button
                 onClick={() => setAddForm({ type: "mesa", label: "" })}
-                className="flex items-center gap-1.5 bg-brand/10 text-brand px-4 py-2 rounded-xl text-sm font-semibold hover:bg-brand/20 transition"
+                className="
+                    flex items-center gap-1.5
+                    bg-brand/10 dark:bg-brand/20
+                    text-brand
+                    px-4 py-2 rounded-xl
+                    text-sm font-semibold
+                    hover:bg-brand/20 dark:hover:bg-brand/30
+                    transition
+                    "
               >
                 <Plus size={14} /> Agregar elemento
               </button>
@@ -681,7 +746,7 @@ export default function MapaPage() {
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-bold text-gray-700">
-                      Mesa {o.table_number}
+                      {o.table_number}
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-orange-100 text-orange-700">
                       {o.status}

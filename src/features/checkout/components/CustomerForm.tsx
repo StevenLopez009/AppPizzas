@@ -38,29 +38,44 @@ export default function CustomerForm({
   }, []);
 
   useEffect(() => {
-    setZones(
-      getSelectableZones().sort((a, b) => {
-        const typeOrder: Record<string, number> = {
-          mesa: 1,
-          vip: 2,
-          barra: 3,
-        };
+    api
+      .get<{ zones: any[] }>("/api/map/zones")
+      .then(({ zones }) => {
+        setZones(
+          zones
+            .filter((z) => !z.occupied)
+            .sort((a, b) => {
+              const typeOrder: Record<string, number> = {
+                mesa: 1,
+                vip: 2,
+                barra: 3,
+              };
 
-        const typeCompare =
-          (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
-
-        if (typeCompare !== 0) return typeCompare;
-
-        const numA = parseInt(a.label.match(/\d+/)?.[0] || "0", 10);
-        const numB = parseInt(b.label.match(/\d+/)?.[0] || "0", 10);
-
-        return numA - numB;
-      }),
-    );
+              const typeCompare =
+                (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
+              if (typeCompare !== 0) return typeCompare;
+              const numA = parseInt(a.label.match(/\d+/)?.[0] || "0", 10);
+              const numB = parseInt(b.label.match(/\d+/)?.[0] || "0", 10);
+              return numA - numB;
+            }),
+        );
+      })
+      .catch(console.error);
   }, []);
 
   const inputCls =
     "w-full p-4 outline-none bg-transparent text-fg placeholder:text-fg-subtle";
+
+  const selectCls = `
+  w-full p-4 outline-none
+  bg-transparent text-fg
+  border-0
+  appearance-none
+  cursor-pointer
+  transition
+  focus:bg-surface-muted
+`;
+
   const dividerCls = "divide-y divide-line";
 
   return (
@@ -99,7 +114,7 @@ export default function CustomerForm({
             <select
               value={barrio}
               onChange={(e) => setBarrio(e.target.value)}
-              className={`${inputCls} cursor-pointer`}
+              className={selectCls}
             >
               <option value="">Selecciona tu barrio</option>
               {barrios.map((b) => (
@@ -115,7 +130,7 @@ export default function CustomerForm({
           <select
             value={mesa}
             onChange={(e) => setMesa(e.target.value)}
-            className={`${inputCls} cursor-pointer`}
+            className={selectCls}
           >
             <option value="">Selecciona Mesa</option>
             {zones.map((zone) => (

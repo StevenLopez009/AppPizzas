@@ -7,7 +7,7 @@ interface Props {
 
 const ORDER_FLOW = {
   domicilio: ["recibido", "cocinando", "enviado", "entregado"],
-  mesa: ["recibido", "cocinando", "entregado"],
+  mesa: ["recibido", "cocinando", "listo_cocina", "entregado"],
   recoger: ["recibido", "cocinando", "listo_para_recoger"],
 };
 
@@ -15,6 +15,7 @@ const STATUS_LABELS: Record<string, string> = {
   recibido: "Recibido",
   cocinando: "Preparando",
   enviado: "En camino",
+  listo_cocina: "Listo en Cocina",
   entregado: "Entregado",
   listo_para_recoger: "Listo",
 };
@@ -22,6 +23,7 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_ICONS: Record<string, string> = {
   recibido: "📋",
   cocinando: "👨‍🍳",
+  listo_cocina: "👨‍🍳",
   enviado: "🛵",
   entregado: "✅",
   listo_para_recoger: "🏁",
@@ -70,8 +72,8 @@ function OrderTrackingTime({ status, orderType }: Props) {
                       isCompleted
                         ? "bg-brand border-brand text-white shadow-md"
                         : isCurrent
-                        ? "bg-white border-brand text-brand shadow-lg scale-110 ring-4 ring-brand/20"
-                        : "bg-gray-50 border-gray-200 text-gray-300"
+                          ? "bg-white border-brand text-brand shadow-lg scale-110 ring-4 ring-brand/20"
+                          : "bg-gray-50 border-gray-200 text-gray-300"
                     }
                   `}
                 >
@@ -115,7 +117,9 @@ function OrderTrackingTime({ status, orderType }: Props) {
                 <div className="flex-1 h-[2px] mt-6 mx-1 rounded-full overflow-hidden bg-gray-200">
                   <div
                     className="h-full bg-brand rounded-full transition-all duration-700"
-                    style={{ width: isCompleted ? "100%" : isCurrent ? "50%" : "0%" }}
+                    style={{
+                      width: isCompleted ? "100%" : isCurrent ? "50%" : "0%",
+                    }}
                   />
                 </div>
               )}
@@ -132,15 +136,15 @@ function OrderTrackingTime({ status, orderType }: Props) {
             : "bg-brand-surface text-brand-text"
         }`}
       >
-        {
-          {
-            recibido: "Hemos recibido tu pedido y lo estamos procesando",
-            cocinando: "Estamos preparando tu comida con cariño",
-            enviado: "Tu pedido va en camino, ¡ya casi llega!",
-            entregado: "¡Tu pedido fue entregado! Buen provecho 🎉",
-            listo_para_recoger: "Tu pedido está listo, puedes pasar a recogerlo 🏁",
-          }[status] ?? "Procesando tu pedido..."
-        }
+        {{
+          recibido: "Hemos recibido tu pedido y lo estamos procesando",
+          cocinando: "Estamos preparando tu comida con cariño",
+          enviado: "Tu pedido va en camino, ¡ya casi llega!",
+          entregado: "¡Tu pedido fue entregado! Buen provecho 🎉",
+          listo_cocina: "Tu pedido esta listo , pasa a la barra y disfruta !! ",
+          listo_para_recoger:
+            "Tu pedido está listo, puedes pasar a recogerlo 🏁",
+        }[status] ?? "Procesando tu pedido..."}
       </div>
     </div>
   );

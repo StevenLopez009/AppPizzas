@@ -26,6 +26,7 @@ export default function ProductBorderSelector({ value, onChange }: Props) {
         <option value="mora">Mora</option>
         <option value="nucita">Nucita</option>
         <option value="nutela">Nutella</option>
+        <option value="choco arequipe">Choco Arequipe</option>
       </select>
     </div>
   );

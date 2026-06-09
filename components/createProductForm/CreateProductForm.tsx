@@ -165,7 +165,7 @@ export default function CreateProductForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full mt-10 mx-auto bg-surface border border-line rounded-3xl shadow-xl overflow-hidden grid md:grid-cols-2"
+      className="w-full mt-0 mx-auto bg-surface border border-line rounded-3xl shadow-xl overflow-hidden grid md:grid-cols-2"
     >
       <div className="relative h-60 md:h-auto">
         <Image
@@ -294,7 +294,7 @@ export default function CreateProductForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-brand hover:bg-brand-hover text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-60"
+          className="w-full mb-20 md:mb-0 bg-brand hover:bg-brand-hover text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-60"
         >
           {submitting ? "Guardando…" : "Guardar Producto"}
         </button>

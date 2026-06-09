@@ -26,7 +26,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(
-      { sessionId: session.id, clientSecret: session.client_secret },
+      {
+        url: session.url,
+      },
       { status: 201 },
     );
   } catch (error) {

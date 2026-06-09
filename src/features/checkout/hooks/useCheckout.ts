@@ -15,17 +15,20 @@ import { sendWhatsAppOrder } from "../services/sendWhatsAppOrder";
 export function useCheckout() {
   const router = useRouter();
 
-  const {
-    cart,
-    clearCart,
-    orderType,
-  } = useCart();
+  const { cart, clearCart, orderType } = useCart();
 
   const { form, barrio, barrioFee, mesa, setBarrio, setMesa, handleChange } =
     useCheckoutForm();
 
-  const { location, locating, savedLocation, getLocation, saveLocation, clearSavedLocation, sendRestaurantLocation } =
-    useCheckoutLocation();
+  const {
+    location,
+    locating,
+    savedLocation,
+    getLocation,
+    saveLocation,
+    clearSavedLocation,
+    sendRestaurantLocation,
+  } = useCheckoutLocation();
 
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
@@ -88,7 +91,7 @@ export function useCheckout() {
       if (form.pago === "digital") {
         toast.loading("Redirigiendo a pasarela de pagos...");
         try {
-          const { sessionId } = await api.post<{ sessionId: string }>(
+          const { url } = await api.post<{ url: string }>(
             "/api/checkout/sessions",
             {
               orderId: order.id,
@@ -96,10 +99,7 @@ export function useCheckout() {
             },
           );
 
-          // Redirect to Stripe Checkout
-          if (typeof window !== "undefined") {
-            window.location.href = `https://checkout.stripe.com/pay/${sessionId}`;
-          }
+          window.location.href = url;
         } catch (error) {
           console.error("Error creating Stripe session:", error);
           toast.error("Error al procesar el pago. Intenta de nuevo.");

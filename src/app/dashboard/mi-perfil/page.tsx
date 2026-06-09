@@ -8,7 +8,7 @@ import { LogOut } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface User {
-  user_id: string;
+  id: string;
   email: string;
   name: string | null;
 }
@@ -17,18 +17,24 @@ export default function MiPerfilPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await api.get<User>("/api/auth/me");
-        if (response) {
-          setUser(response);
+        const response = await api.get<{ user: User | null }>("/api/auth/me");
+
+        if (response?.user) {
+          setUser(response.user);
+          setError(null);
         } else {
-          router.push("/profile");
+          setError("Usuario no autenticado");
+          setTimeout(() => router.push("/profile"), 1500);
         }
-      } catch {
-        router.push("/profile");
+      } catch (err) {
+        console.error("Error fetching user:", err);
+        setError("Error al cargar el perfil");
+        setTimeout(() => router.push("/profile"), 1500);
       } finally {
         setLoading(false);
       }
@@ -53,6 +59,21 @@ export default function MiPerfilPage() {
         <div className="max-w-2xl mx-auto animate-pulse">
           <div className="h-8 bg-surface rounded w-32 mb-4" />
           <div className="h-32 bg-surface rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-canvas p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-2xl p-6">
+            <p className="text-red-700 dark:text-red-400 font-semibold">{error}</p>
+            <p className="text-red-600 dark:text-red-400 text-sm mt-2">
+              Redirigiendo a login...
+            </p>
+          </div>
         </div>
       </div>
     );

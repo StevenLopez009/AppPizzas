@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_name       VARCHAR(255)  NULL,
   customer_phone      VARCHAR(32)   NULL,
   customer_address    VARCHAR(500)  NULL,
-  table_number        INT           NULL,
+  table_number        VARCHAR(100)  NULL,
   payment_method      VARCHAR(40)   NULL,
   cash_amount         DECIMAL(12,2) NULL,
   subtotal            DECIMAL(12,2) NOT NULL DEFAULT 0,

@@ -39,18 +39,16 @@ export async function POST(req: Request) {
 
         // Actualizar orden a "recibido" si está en "pendiente_pago"
         if (order.status === "pendiente_pago") {
-          await updateOrder(orderId, { status: "recibido" });
+          const updatedOrder = await updateOrder(orderId, { status: "recibido" });
 
           // Notificar en tiempo real
-          await notifyRealtime({
-            event: "order.updated",
-            data: {
-              id: orderId,
-              status: "recibido",
-              payment_method: "stripe",
-              payment_intent_id: paymentIntent.id,
-            },
-          });
+          if (updatedOrder) {
+            await notifyRealtime({
+              type: "order.updated",
+              orderId: orderId,
+              order: updatedOrder,
+            });
+          }
         }
 
         break;
@@ -63,20 +61,18 @@ export async function POST(req: Request) {
         if (!orderId) break;
 
         // Actualizar orden a "pago_rechazado"
-        await updateOrder(orderId, {
+        const updatedOrder = await updateOrder(orderId, {
           status: "pago_rechazado",
-          payment_method: "stripe",
         });
 
         // Notificar
-        await notifyRealtime({
-          event: "order.updated",
-          data: {
-            id: orderId,
-            status: "pago_rechazado",
-            error: paymentIntent.last_payment_error?.message,
-          },
-        });
+        if (updatedOrder) {
+          await notifyRealtime({
+            type: "order.updated",
+            orderId: orderId,
+            order: updatedOrder,
+          });
+        }
 
         break;
       }
@@ -91,15 +87,15 @@ export async function POST(req: Request) {
           const orderId = paymentIntent.metadata?.order_id;
 
           if (orderId) {
-            await updateOrder(orderId, { status: "reembolsado" });
+            const updatedOrder = await updateOrder(orderId, { status: "reembolsado" });
 
-            await notifyRealtime({
-              event: "order.updated",
-              data: {
-                id: orderId,
-                status: "reembolsado",
-              },
-            });
+            if (updatedOrder) {
+              await notifyRealtime({
+                type: "order.updated",
+                orderId: orderId,
+                order: updatedOrder,
+              });
+            }
           }
         }
 

@@ -12,14 +12,3 @@ export function getStripe() {
   }
   return stripePromise;
 }
-
-export async function redirectToCheckout(sessionId: string) {
-  const stripe = await getStripe();
-  if (!stripe) throw new Error("Stripe is not available");
-
-  const { error } = await stripe.redirectToCheckout({ sessionId });
-
-  if (error) {
-    throw new Error(error.message || "Failed to redirect to checkout");
-  }
-}

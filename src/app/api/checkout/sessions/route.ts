@@ -1,15 +1,8 @@
 import { NextResponse } from "next/server";
 import { createCheckoutSession } from "@/lib/stripe/server";
 import { getOrder } from "@/lib/repos/orders";
-import { requireAuth } from "@/lib/auth/cookies";
 
 export async function POST(req: Request) {
-  try {
-    await requireAuth();
-  } catch {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
   try {
     const { orderId, customerEmail } = (await req.json()) as {
       orderId: string;
@@ -28,7 +21,7 @@ export async function POST(req: Request) {
     const session = await createCheckoutSession({
       orderId,
       orderTotal: order.total,
-      customerEmail: customerEmail || order.customer_email || undefined,
+      customerEmail: customerEmail || undefined,
       orderNumber: order.order_number,
     });
 

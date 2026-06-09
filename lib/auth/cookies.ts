@@ -39,6 +39,14 @@ export async function clearSessionCookie() {
   });
 }
 
+export async function requireAuth() {
+  const session = await getSession();
+  if (!session) {
+    throw Object.assign(new Error("unauthorized"), { status: 401 });
+  }
+  return session;
+}
+
 export async function requireAdmin() {
   const session = await getSession();
   if (!session || session.role !== "admin") {

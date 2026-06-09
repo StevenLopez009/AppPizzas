@@ -19,6 +19,7 @@ import {
   Map,
   Sun,
   Moon,
+  Gift,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { usePathname, useRouter } from "next/navigation";
@@ -76,6 +77,12 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
       icon: Palette,
       path: "/dashboardAdmin/appearance",
       label: "Apariencia",
+    },
+    {
+      id: "points",
+      icon: Gift,
+      path: "/dashboardAdmin/points",
+      label: "Puntos",
     },
     {
       id: "calculadora",
@@ -309,6 +316,12 @@ export default function AdminLayout({
       label: "Categorías",
       icon: Tag,
       path: "/dashboardAdmin/categories",
+    },
+    {
+      id: "points",
+      label: "Puntos",
+      icon: Gift,
+      path: "/dashboardAdmin/points",
     },
     {
       id: "appearance",

@@ -12,33 +12,48 @@ export default function AppearanceAdminPage() {
   const [businessName, setBusinessName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+
+  const { theme, toggleTheme, setBrand } = useTheme();
 
   useEffect(() => {
     (async () => {
       try {
-        const data = await api.get<{ themePrimary: string; businessName: string }>(
-          "/api/settings",
-        );
-        setHex(data.themePrimary);
+        const data = await api.get<{
+          themePrimary: string;
+          businessName: string;
+        }>("/api/settings");
+
+        const color = data.themePrimary || "#F97316";
+
+        setHex(color);
         setBusinessName(data.businessName);
-        applyBrandTheme(data.themePrimary);
+
+        // Actualizar contexto + CSS
+        setBrand(color);
+        applyBrandTheme(color);
       } catch {
         toast.error("No se pudo cargar la configuración");
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [setBrand]);
 
   const onSave = async () => {
     setSaving(true);
     try {
-      const data = await api.patch<{ themePrimary: string; businessName: string }>(
-        "/api/settings",
-        { themePrimary: hex, businessName },
-      );
+      const data = await api.patch<{
+        themePrimary: string;
+        businessName: string;
+      }>("/api/settings", {
+        themePrimary: hex,
+        businessName,
+      });
+
+      // Actualizar contexto + CSS
+      setBrand(data.themePrimary);
       applyBrandTheme(data.themePrimary);
+
       toast.success("Configuración guardada");
     } catch (e) {
       if (e instanceof ApiError) toast.error(e.message);
@@ -87,7 +102,6 @@ export default function AppearanceAdminPage() {
               value={hex.startsWith("#") ? hex : `#${hex}`}
               onChange={(e) => setHex(e.target.value.toUpperCase())}
               className="h-12 w-20 cursor-pointer rounded-lg border border-white/20 bg-transparent"
-              aria-label="Selector de color principal"
             />
             <input
               type="text"
@@ -123,7 +137,9 @@ export default function AppearanceAdminPage() {
           <span className="flex-1 text-left">
             {theme === "dark" ? "Modo claro" : "Modo oscuro"}
           </span>
-          <span className="text-xs text-gray-400 capitalize">{theme === "dark" ? "Activo: oscuro" : "Activo: claro"}</span>
+          <span className="text-xs text-gray-400 capitalize">
+            {theme === "dark" ? "Activo: oscuro" : "Activo: claro"}
+          </span>
         </button>
       </div>
     </div>

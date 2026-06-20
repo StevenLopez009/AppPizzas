@@ -89,3 +89,27 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: "Error updating zone" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    }
+
+    await query(
+      `
+      DELETE FROM restaurant_zones
+      WHERE id = ?
+      `,
+      [id],
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Error deleting zone" }, { status: 500 });
+  }
+}

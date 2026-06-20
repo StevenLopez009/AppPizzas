@@ -12,6 +12,7 @@ export async function GET(req: Request) {
       id: user.id,
       email: user.email,
       name: user.name,
+      phone: user.phone,
       points: user.points,
       created_at:
         user.created_at instanceof Date

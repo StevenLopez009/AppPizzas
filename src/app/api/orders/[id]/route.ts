@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
-import {
-  deleteOrder,
-  getOrder,
-  updateOrder,
-} from "@/lib/repos/orders";
+import { deleteOrder, getOrder, updateOrder } from "@/lib/repos/orders";
 import { notifyRealtime } from "@/lib/realtime/notify";
+import { query } from "@/lib/db";
 
 export async function GET(
   _req: Request,
@@ -22,9 +19,42 @@ export async function PATCH(
 ) {
   const { id } = await params;
   const patch = (await req.json()) as Parameters<typeof updateOrder>[1];
+
   const order = await updateOrder(id, patch);
   if (!order) return NextResponse.json({ error: "not found" }, { status: 404 });
-  await notifyRealtime({ type: "order.updated", orderId: id, order });
+
+  if (order.order_type === "mesa") {
+    if (order.status === "entregado") {
+      await query(
+        `
+        UPDATE restaurant_zones
+        SET occupied = 0
+        WHERE label = ?
+        `,
+        [order.table_number],
+      );
+    }
+
+    // opcional pero recomendado:
+    // si vuelve a estado activo → ocupar mesa
+    else {
+      await query(
+        `
+        UPDATE restaurant_zones
+        SET occupied = 1
+        WHERE label = ?
+        `,
+        [order.table_number],
+      );
+    }
+  }
+
+  await notifyRealtime({
+    type: "order.updated",
+    orderId: id,
+    order,
+  });
+
   return NextResponse.json({ order });
 }
 

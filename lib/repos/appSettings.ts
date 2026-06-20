@@ -48,24 +48,20 @@ function normalizeHex(value: string): string | null {
   return `#${h.toUpperCase()}`;
 }
 
-export async function getSettings(): Promise<{ themePrimary: string; businessName: string }> {
-  try {
-    await ensureAppSettingsTable();
-    const row = await queryOne<AppSettingsRow>(
-      "SELECT theme_primary, business_name FROM app_settings WHERE id = 1 LIMIT 1",
-    );
-    const hex = row?.theme_primary;
-    const name = row?.business_name;
-    return {
-      themePrimary: (hex && normalizeHex(hex)) || normalizeHex(DEFAULT_THEME_PRIMARY)!,
-      businessName: (name && name.trim()) || DEFAULT_BUSINESS_NAME,
-    };
-  } catch {
-    return {
-      themePrimary: normalizeHex(DEFAULT_THEME_PRIMARY)!,
-      businessName: DEFAULT_BUSINESS_NAME,
-    };
-  }
+export async function getSettings() {
+  await ensureAppSettingsTable();
+
+  const row = await queryOne(
+    `SELECT theme_primary, business_name
+     FROM app_settings
+     WHERE id = 1
+     LIMIT 1`,
+  );
+
+  return {
+    themePrimary: row?.theme_primary,
+    businessName: row?.business_name,
+  };
 }
 
 export async function getThemePrimary(): Promise<string> {
@@ -84,7 +80,7 @@ export async function setSettings(patch: {
     throw Object.assign(new Error("color inválido"), { status: 400 });
   }
   const newHex = hex ?? current.themePrimary;
-  const newName = (patch.businessName?.trim()) || current.businessName;
+  const newName = patch.businessName?.trim() || current.businessName;
 
   await db.execute(
     `INSERT INTO app_settings (id, theme_primary, business_name) VALUES (1, ?, ?)

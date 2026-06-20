@@ -7,18 +7,34 @@ type Theme = "light" | "dark";
 interface ThemeCtx {
   theme: Theme;
   toggleTheme: () => void;
+  brand: string;
+  setBrand: (color: string) => void;
 }
 
-const ThemeContext = createContext<ThemeCtx>({ theme: "dark", toggleTheme: () => {} });
+const ThemeContext = createContext<ThemeCtx>({
+  theme: "dark",
+  toggleTheme: () => {},
+  brand: "#15da57",
+  setBrand: () => {},
+});
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
+  const [brand, setBrandState] = useState("#15da57");
 
+  // Cargar desde localStorage al inicio
   useEffect(() => {
-    const stored = localStorage.getItem("app-theme") as Theme | null;
-    const resolved: Theme = stored ?? "dark";
-    setTheme(resolved);
-    applyTheme(resolved);
+    const savedTheme = localStorage.getItem("app-theme") as Theme | null;
+    const savedBrand = localStorage.getItem("brand-color");
+
+    if (savedTheme) {
+      setTheme(savedTheme);
+      applyTheme(savedTheme);
+    }
+    if (savedBrand) {
+      setBrandState(savedBrand);
+      document.documentElement.style.setProperty("--brand", savedBrand);
+    }
   }, []);
 
   const toggleTheme = () => {
@@ -30,8 +46,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const setBrand = (color: string) => {
+    setBrandState(color);
+    localStorage.setItem("brand-color", color);
+    document.documentElement.style.setProperty("--brand", color);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, brand, setBrand }}>
       {children}
     </ThemeContext.Provider>
   );

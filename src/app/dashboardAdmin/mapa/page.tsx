@@ -54,135 +54,6 @@ const TYPE_FREE: Record<ZoneType, string> = {
   zona: "bg-gray-200 border-gray-300 text-gray-500",
 };
 
-const DEFAULT_FLOORS: Floor[] = [
-  {
-    id: "piso-1",
-    name: "Piso 1",
-    zones: [
-      {
-        id: "VIP 1",
-        label: "VIP 1",
-        type: "vip",
-        col: 1,
-        row: 0,
-        colSpan: 2,
-        rowSpan: 1,
-        occupied: 0,
-      },
-      {
-        id: "VIP 2",
-        label: "VIP 2",
-        type: "vip",
-        col: 5,
-        row: 0,
-        colSpan: 2,
-        rowSpan: 1,
-        occupied: 0,
-      },
-      {
-        id: "Mesa 4",
-        label: "Mesa 4",
-        type: "mesa",
-        col: 1,
-        row: 2,
-        colSpan: 2,
-        rowSpan: 1,
-        occupied: 0,
-      },
-      {
-        id: "Mesa 3",
-        label: "Mesa 3",
-        type: "mesa",
-        col: 1,
-        row: 3,
-        colSpan: 2,
-        rowSpan: 1,
-        occupied: 0,
-      },
-      {
-        id: "Mesa 2",
-        label: "Mesa 2",
-        type: "mesa",
-        col: 1,
-        row: 4,
-        colSpan: 2,
-        rowSpan: 1,
-        occupied: 0,
-      },
-      {
-        id: "Mesa 1",
-        label: "Mesa 1",
-        type: "mesa",
-        col: 1,
-        row: 5,
-        colSpan: 2,
-        rowSpan: 1,
-        occupied: 0,
-      },
-      {
-        id: "Mesa 5",
-        label: "Mesa 5",
-        type: "mesa",
-        col: 5,
-        row: 2,
-        colSpan: 2,
-        rowSpan: 1,
-        occupied: 0,
-      },
-      {
-        id: "Mesa 6",
-        label: "Mesa 6",
-        type: "mesa",
-        col: 5,
-        row: 3,
-        colSpan: 2,
-        rowSpan: 1,
-        occupied: 0,
-      },
-      {
-        id: "Mesa 7",
-        label: "Mesa 7",
-        type: "mesa",
-        col: 5,
-        row: 4,
-        colSpan: 2,
-        rowSpan: 1,
-        occupied: 0,
-      },
-      {
-        id: "Barra 1",
-        label: "Barra 1",
-        type: "barra",
-        col: 0,
-        row: 4,
-        colSpan: 1,
-        rowSpan: 2,
-        occupied: 0,
-      },
-      {
-        id: "Barra 2",
-        label: "Barra 2",
-        type: "barra",
-        col: 0,
-        row: 2,
-        colSpan: 1,
-        rowSpan: 2,
-        occupied: 0,
-      },
-      {
-        id: "Terraza",
-        label: "Terraza",
-        type: "zona",
-        col: 5,
-        row: 6,
-        colSpan: 4,
-        rowSpan: 2,
-        occupied: 0,
-      },
-    ],
-  },
-];
-
 function uid() {
   return Math.random().toString(36).slice(2, 8);
 }
@@ -289,14 +160,23 @@ export default function MapaPage() {
     }
   }
 
-  function deleteZone(zoneId: string) {
-    updateFloors(
-      floors.map((f) =>
-        f.id !== floor.id
-          ? f
-          : { ...f, zones: f.zones.filter((z) => z.id !== zoneId) },
-      ),
-    );
+  async function deleteZone(zoneId: string) {
+    try {
+      await api.delete(`/api/map/zones?id=${zoneId}`);
+
+      updateFloors(
+        floors.map((f) =>
+          f.id !== floor.id
+            ? f
+            : {
+                ...f,
+                zones: f.zones.filter((z) => z.id !== zoneId),
+              },
+        ),
+      );
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async function addZone() {

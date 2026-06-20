@@ -27,9 +27,18 @@ export async function getUserPoints(userId: string): Promise<number> {
 }
 
 /** Obtener todos los usuarios con sus puntos (para admin) */
-export async function getAllUsersWithPoints(): Promise<(RowDataPacket & { id: string; email: string; name: string | null; points: number; created_at: Date })[]> {
+export async function getAllUsersWithPoints(): Promise<
+  (RowDataPacket & {
+    id: string;
+    email: string;
+    name: string | null;
+    points: number;
+    phone: number;
+    created_at: Date;
+  })[]
+> {
   const rows = await query(
-    "SELECT id, email, name, points, created_at FROM users ORDER BY points DESC, created_at DESC",
+    "SELECT id, email, name, phone, points, created_at FROM users ORDER BY points DESC, created_at DESC",
   );
   return rows;
 }
@@ -45,10 +54,10 @@ export async function addPointsToUser(
     await conn.beginTransaction();
 
     // Actualizar puntos del usuario
-    await conn.execute(
-      "UPDATE users SET points = points + ? WHERE id = ?",
-      [points, userId],
-    );
+    await conn.execute("UPDATE users SET points = points + ? WHERE id = ?", [
+      points,
+      userId,
+    ]);
 
     // Registrar en historial
     await conn.execute(
@@ -86,10 +95,10 @@ export async function deductPointsFromUser(
     }
 
     // Restar puntos del usuario
-    await conn.execute(
-      "UPDATE users SET points = points - ? WHERE id = ?",
-      [points, userId],
-    );
+    await conn.execute("UPDATE users SET points = points - ? WHERE id = ?", [
+      points,
+      userId,
+    ]);
 
     // Registrar en historial (como negativo)
     await conn.execute(
@@ -107,7 +116,9 @@ export async function deductPointsFromUser(
 }
 
 /** Obtener historial de puntos del usuario */
-export async function getUserPointsHistory(userId: string): Promise<PointsHistoryEntry[]> {
+export async function getUserPointsHistory(
+  userId: string,
+): Promise<PointsHistoryEntry[]> {
   const rows = await query<RowDataPacket & PointsHistoryEntry>(
     `SELECT id, user_id, amount, reason, order_id, created_at
      FROM user_points_history
@@ -142,7 +153,10 @@ export async function updateUserPoints(
   try {
     await conn.beginTransaction();
 
-    await conn.execute("UPDATE users SET points = ? WHERE id = ?", [newPoints, userId]);
+    await conn.execute("UPDATE users SET points = ? WHERE id = ?", [
+      newPoints,
+      userId,
+    ]);
 
     await conn.execute(
       "INSERT INTO user_points_history (id, user_id, amount, reason) VALUES (?, ?, ?, ?)",

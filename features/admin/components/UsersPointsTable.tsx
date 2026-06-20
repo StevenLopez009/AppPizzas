@@ -9,6 +9,7 @@ interface UserWithPoints {
   id: string;
   email: string;
   name: string | null;
+  phone: number;
   points: number;
   created_at: string;
 }
@@ -81,10 +82,13 @@ export function UsersPointsTable() {
           <thead className="bg-surface-muted border-b border-line">
             <tr>
               <th className="px-6 py-3 text-left text-sm font-semibold text-fg">
-                Email
+                Nombre
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-fg">
-                Nombre
+                Telefono
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-fg">
+                Email
               </th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-fg">
                 Puntos
@@ -97,10 +101,11 @@ export function UsersPointsTable() {
           <tbody className="divide-y divide-line">
             {users.map((user) => (
               <tr key={user.id} className="hover:bg-surface-muted/50">
-                <td className="px-6 py-4 text-sm text-fg">{user.email}</td>
                 <td className="px-6 py-4 text-sm text-fg">
                   {user.name || "-"}
                 </td>
+                <td className="px-6 py-4 text-sm text-fg">{user.phone}</td>
+                <td className="px-6 py-4 text-sm text-fg">{user.email}</td>
                 <td className="px-6 py-4 text-right">
                   {editingId === user.id ? (
                     <div className="flex gap-2 justify-end">

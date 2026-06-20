@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "@/context/ThemeContext";
+import { useEffect, useState } from "react";
 
 import {
   BarChart,
@@ -34,14 +35,12 @@ interface Props {
 }
 
 export default function SalesStats({ orders }: Props) {
-  const { theme } = useTheme();
-
+  const { theme, brand: brandColor } = useTheme(); // ← Tomamos brand directamente del contexto
   const isDark = theme === "dark";
 
   // =========================
   // COLORES DINÁMICOS
   // =========================
-
   const chartGrid = isDark ? "#27272a" : "#e5e7eb";
   const chartText = isDark ? "#a1a1aa" : "#6b7280";
   const tooltipBg = isDark ? "#18181b" : "#ffffff";
@@ -51,12 +50,10 @@ export default function SalesStats({ orders }: Props) {
   // =========================
   // VENTAS POR DÍA
   // =========================
-
   const salesByDayMap: Record<string, number> = {};
 
   orders.forEach((order) => {
     const day = new Date(order.created_at).toLocaleDateString("es-CO");
-
     salesByDayMap[day] = (salesByDayMap[day] || 0) + finalTotal(order);
   });
 
@@ -66,20 +63,8 @@ export default function SalesStats({ orders }: Props) {
   }));
 
   // =========================
-  // MÉTODOS DE PAGO
-  // =========================
-
-  const paymentMap: Record<string, number> = {};
-
-  orders.forEach((order) => {
-    paymentMap[order.payment_method] =
-      (paymentMap[order.payment_method] || 0) + 1;
-  });
-
-  // =========================
   // PRODUCTOS MÁS VENDIDOS
   // =========================
-
   const productsMap: Record<string, number> = {};
 
   orders.forEach((order) => {
@@ -90,17 +75,13 @@ export default function SalesStats({ orders }: Props) {
   });
 
   const topProducts = Object.entries(productsMap)
-    .map(([name, quantity]) => ({
-      name,
-      quantity,
-    }))
+    .map(([name, quantity]) => ({ name, quantity }))
     .sort((a, b) => b.quantity - a.quantity)
     .slice(0, 5);
 
   // =========================
   // TICKET PROMEDIO
   // =========================
-
   const averageTicket =
     orders.length > 0
       ? orders.reduce((acc, o) => acc + finalTotal(o), 0) / orders.length
@@ -111,7 +92,6 @@ export default function SalesStats({ orders }: Props) {
       {/* HEADER */}
       <div className="bg-surface border border-line rounded-3xl p-5 shadow-sm transition-colors duration-300">
         <h2 className="text-2xl font-bold text-fg">Estadísticas</h2>
-
         <p className="text-sm text-fg-muted mt-1">Resumen de ventas</p>
       </div>
 
@@ -119,7 +99,6 @@ export default function SalesStats({ orders }: Props) {
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm transition-colors duration-300">
           <p className="text-xs text-fg-muted">Ventas</p>
-
           <h2 className="text-lg font-bold text-fg mt-1">
             $
             {orders
@@ -130,13 +109,11 @@ export default function SalesStats({ orders }: Props) {
 
         <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm transition-colors duration-300">
           <p className="text-xs text-fg-muted">Pedidos</p>
-
           <h2 className="text-lg font-bold text-fg mt-1">{orders.length}</h2>
         </div>
 
         <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm transition-colors duration-300">
           <p className="text-xs text-fg-muted">Ticket Prom.</p>
-
           <h2 className="text-lg font-bold text-fg mt-1">
             ${Math.round(averageTicket).toLocaleString("es-CO")}
           </h2>
@@ -144,37 +121,21 @@ export default function SalesStats({ orders }: Props) {
 
         <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm transition-colors duration-300">
           <p className="text-xs text-fg-muted">Productos</p>
-
           <h2 className="text-lg font-bold text-fg mt-1">
             {topProducts.reduce((acc, p) => acc + p.quantity, 0)}
           </h2>
         </div>
       </div>
 
-      {/* VENTAS */}
+      {/* VENTAS POR DÍA */}
       <div className="bg-surface border border-line rounded-3xl p-4 shadow-sm transition-colors duration-300">
         <h3 className="font-semibold text-fg mb-4">Ventas por día</h3>
-
         <div className="h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={salesByDay}>
               <CartesianGrid stroke={chartGrid} strokeDasharray="3 3" />
-
-              <XAxis
-                dataKey="day"
-                tick={{
-                  fontSize: 10,
-                  fill: chartText,
-                }}
-              />
-
-              <YAxis
-                tick={{
-                  fontSize: 10,
-                  fill: chartText,
-                }}
-              />
-
+              <XAxis dataKey="day" tick={{ fontSize: 10, fill: chartText }} />
+              <YAxis tick={{ fontSize: 10, fill: chartText }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: tooltipBg,
@@ -183,11 +144,10 @@ export default function SalesStats({ orders }: Props) {
                   color: tooltipText,
                 }}
               />
-
               <Line
                 type="monotone"
                 dataKey="total"
-                stroke="#f97316"
+                stroke={brandColor}
                 strokeWidth={2}
               />
             </LineChart>
@@ -198,27 +158,12 @@ export default function SalesStats({ orders }: Props) {
       {/* TOP PRODUCTOS */}
       <div className="bg-surface border border-line rounded-3xl p-4 shadow-sm transition-colors duration-300">
         <h3 className="font-semibold text-fg mb-4">Top productos</h3>
-
         <div className="h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={topProducts}>
               <CartesianGrid stroke={chartGrid} strokeDasharray="3 3" />
-
-              <XAxis
-                dataKey="name"
-                tick={{
-                  fontSize: 10,
-                  fill: chartText,
-                }}
-              />
-
-              <YAxis
-                tick={{
-                  fontSize: 10,
-                  fill: chartText,
-                }}
-              />
-
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: chartText }} />
+              <YAxis tick={{ fontSize: 10, fill: chartText }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: tooltipBg,
@@ -227,8 +172,7 @@ export default function SalesStats({ orders }: Props) {
                   color: tooltipText,
                 }}
               />
-
-              <Bar dataKey="quantity" fill="#fb923c" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="quantity" fill={brandColor} radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

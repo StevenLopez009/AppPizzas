@@ -64,7 +64,7 @@ export default function AdminDashboard() {
   }>({});
   const [activeDiscount, setActiveDiscount] = useState<string | null>(null);
   const [discounts, setDiscounts] = useState<Record<string, number>>({});
-  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [extraName, setExtraName] = useState("");
   const [extraPrice, setExtraPrice] = useState("");
   const [pendingStatus, setPendingStatus] = useState<Record<string, string>>(
@@ -266,8 +266,31 @@ export default function AdminDashboard() {
     setSelectedOrder(null);
   };
 
+  const handleDeleteItem = async (orderId: string, itemId: string) => {
+    try {
+      const { order: updated } = await api.delete<{
+        order: Order;
+      }>(
+        `/api/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}`,
+      );
+
+      if (updated) {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === updated.id ? updated : o)),
+        );
+
+        setSelectedOrder(updated);
+      }
+
+      toast.success("Producto eliminado");
+    } catch (error) {
+      console.error(error);
+      toast.error("Error eliminando producto");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-canvas p-3 sm:p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen">
       {/* Header responsivo */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-fg">
@@ -395,8 +418,8 @@ export default function AdminDashboard() {
       </div>
 
       {/* Grid de pedidos responsivo */}
-      <div className="max-w-[90rem] mx-auto mt-6 mb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+      <div className="w-full mt-6 mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-2">
           {filteredOrders.map((order) => {
             console.log(order);
             const finalTotal =
@@ -603,7 +626,7 @@ export default function AdminDashboard() {
                       {/* Botón de agregar extra */}
                       <button
                         onClick={() => {
-                          setSelectedOrder(order.id);
+                          setSelectedOrder(order);
                           setExtraName("");
                           setExtraPrice("");
                         }}
@@ -657,10 +680,39 @@ export default function AdminDashboard() {
       {selectedOrder && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-surface border border-line p-4 sm:p-6 rounded-2xl w-full max-w-[90%] sm:max-w-[400px] space-y-4 shadow-2xl">
+            {selectedOrder?.order_items?.length > 0 && (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                <h3 className="font-semibold">Productos del pedido</h3>
+
+                {selectedOrder.order_items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between border rounded-lg p-2"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {item.quantity}x {item.product_name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        ${item.price.toLocaleString("es-CO")}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        handleDeleteItem(selectedOrder.id, item.id)
+                      }
+                      className="bg-red-500 text-white px-2 py-1 rounded"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <h2 className="text-base sm:text-lg font-bold text-fg">
               Agregar producto extra
             </h2>
-
             <input
               type="text"
               placeholder="Nombre"

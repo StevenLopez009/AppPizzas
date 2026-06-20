@@ -376,6 +376,36 @@ export async function deleteOrder(id: string): Promise<void> {
   await db.execute("DELETE FROM orders WHERE id = ?", [id]);
 }
 
+export async function deleteOrderItem(orderId: string, itemId: string) {
+  await db.execute(
+    `
+    DELETE FROM order_items
+    WHERE id = ? AND order_id = ?
+    `,
+    [itemId, orderId],
+  );
+
+  const sumRow = await queryOne<RowDataPacket & { total: string | number }>(
+    `
+    SELECT COALESCE(SUM(price * quantity), 0) AS total
+    FROM order_items
+    WHERE order_id = ?
+    `,
+    [orderId],
+  );
+
+  const newTotal = num(sumRow?.total);
+
+  await db.execute(
+    `
+    UPDATE orders
+    SET total = ?
+    WHERE id = ?
+    `,
+    [newTotal, orderId],
+  );
+}
+
 export async function addOrderItem(
   orderId: string,
   item: NewOrderItemInput,

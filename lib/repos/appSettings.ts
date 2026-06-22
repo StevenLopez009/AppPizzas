@@ -2,42 +2,66 @@ import "server-only";
 
 import type { RowDataPacket } from "mysql2";
 import { db, queryOne } from "@/lib/db";
-import { DEFAULT_THEME_PRIMARY } from "@/lib/theme/brandCssVars";
-
-const DEFAULT_BUSINESS_NAME = "Pizzas La Carreta";
 
 interface AppSettingsRow extends RowDataPacket {
   theme_primary: string;
   business_name: string;
+  store_open: number;
 }
 
 let schemaEnsured = false;
 
 async function ensureAppSettingsTable(): Promise<void> {
   if (schemaEnsured) return;
+
   await db.execute(`
     CREATE TABLE IF NOT EXISTS app_settings (
       id             TINYINT UNSIGNED NOT NULL PRIMARY KEY DEFAULT 1,
       theme_primary  VARCHAR(7)       NOT NULL DEFAULT '#F97316',
       business_name  VARCHAR(120)     NOT NULL DEFAULT 'Pizzas La Carreta',
+      store_open     TINYINT(1)       NOT NULL DEFAULT 1,
       updated_at     TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       CONSTRAINT chk_app_settings_singleton CHECK (id = 1)
     ) ENGINE=InnoDB
   `);
+
   await db.execute(
-    `INSERT IGNORE INTO app_settings (id, theme_primary, business_name)
-     VALUES (1, '#F97316', 'Pizzas La Carreta')`,
+    `INSERT IGNORE INTO app_settings (id, theme_primary, business_name, store_open)
+     VALUES (1, '#F97316', 'Pizzas La Carreta', 1)`,
   );
-  // Add column if it doesn't exist yet (MySQL 8 has no ADD COLUMN IF NOT EXISTS)
-  const [cols] = await db.execute<import("mysql2").RowDataPacket[]>(
-    `SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'app_settings' AND COLUMN_NAME = 'business_name'`,
+
+  // business_name
+  const [colsName] = await db.execute<RowDataPacket[]>(
+    `SELECT COUNT(*) AS cnt
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME = 'app_settings'
+     AND COLUMN_NAME = 'business_name'`,
   );
-  if ((cols as import("mysql2").RowDataPacket[])[0]?.cnt === 0) {
-    await db.execute(
-      `ALTER TABLE app_settings ADD COLUMN business_name VARCHAR(120) NOT NULL DEFAULT 'Pizzas La Carreta'`,
-    );
+
+  if (colsName[0]?.cnt === 0) {
+    await db.execute(`
+      ALTER TABLE app_settings
+      ADD COLUMN business_name VARCHAR(120) NOT NULL DEFAULT 'Pizzas La Carreta'
+    `);
   }
+
+  // store_open
+  const [colsStore] = await db.execute<RowDataPacket[]>(
+    `SELECT COUNT(*) AS cnt
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME = 'app_settings'
+     AND COLUMN_NAME = 'store_open'`,
+  );
+
+  if (colsStore[0]?.cnt === 0) {
+    await db.execute(`
+      ALTER TABLE app_settings
+      ADD COLUMN store_open TINYINT(1) NOT NULL DEFAULT 1
+    `);
+  }
+
   schemaEnsured = true;
 }
 
@@ -51,27 +75,34 @@ function normalizeHex(value: string): string | null {
 export async function getSettings() {
   await ensureAppSettingsTable();
 
-  const row = await queryOne(
-    `SELECT theme_primary, business_name
+  const row = await queryOne<AppSettingsRow>(
+    `SELECT theme_primary, business_name, store_open
      FROM app_settings
      WHERE id = 1
      LIMIT 1`,
   );
 
   return {
-    themePrimary: row?.theme_primary,
-    businessName: row?.business_name,
+    themePrimary: row?.theme_primary ?? "#F97316",
+    businessName: row?.business_name ?? "Pizzas La Carreta",
+    storeOpen: Boolean(row?.store_open ?? 1),
   };
 }
 
 export async function getThemePrimary(): Promise<string> {
-  return (await getSettings()).themePrimary;
+  const settings = await getSettings();
+  return settings.themePrimary ?? "#F97316";
 }
 
 export async function setSettings(patch: {
   themePrimary?: string;
   businessName?: string;
-}): Promise<{ themePrimary: string; businessName: string }> {
+  storeOpen?: boolean;
+}): Promise<{
+  themePrimary: string;
+  businessName: string;
+  storeOpen: boolean;
+}> {
   await ensureAppSettingsTable();
 
   const current = await getSettings();
@@ -81,13 +112,23 @@ export async function setSettings(patch: {
   }
   const newHex = hex ?? current.themePrimary;
   const newName = patch.businessName?.trim() || current.businessName;
+  const newStoreOpen =
+    patch.storeOpen !== undefined ? patch.storeOpen : current.storeOpen;
 
   await db.execute(
-    `INSERT INTO app_settings (id, theme_primary, business_name) VALUES (1, ?, ?)
-     ON DUPLICATE KEY UPDATE theme_primary = VALUES(theme_primary), business_name = VALUES(business_name)`,
-    [newHex, newName],
+    `INSERT INTO app_settings (id, theme_primary, business_name, store_open)
+     VALUES (1, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE
+       theme_primary = VALUES(theme_primary),
+       business_name = VALUES(business_name),
+       store_open = VALUES(store_open)`,
+    [newHex, newName, newStoreOpen ? 1 : 0],
   );
-  return { themePrimary: newHex, businessName: newName };
+  return {
+    themePrimary: newHex,
+    businessName: newName,
+    storeOpen: newStoreOpen,
+  };
 }
 
 export async function setThemePrimary(raw: string): Promise<string> {

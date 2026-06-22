@@ -234,6 +234,20 @@ export default function AdminDashboard() {
     { domicilio: 0, mesa: 0, recoger: 0 },
   );
 
+  const salesByPaymentMethod = filteredOrders.reduce(
+    (acc, order) => {
+      const method = order.payment_method || "Sin definir";
+
+      const total =
+        order.total - (order.total * (order.discount_percentage || 0)) / 100;
+
+      acc[method] = (acc[method] || 0) + total;
+
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
   const handleAddExtra = async () => {
     if (!extraName || !extraPrice || !selectedOrder) {
       toast.error("Completa los campos");
@@ -242,7 +256,7 @@ export default function AdminDashboard() {
 
     try {
       const { order: updated } = await api.post<{ order: Order }>(
-        `/api/orders/${encodeURIComponent(selectedOrder)}/items`,
+        `/api/orders/${encodeURIComponent(selectedOrder.id)}/items`,
         {
           product_name: extraName,
           quantity: 1,
@@ -366,6 +380,26 @@ export default function AdminDashboard() {
         ))}
       </div>
 
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {Object.entries(salesByPaymentMethod).map(([method, total]) => (
+          <div
+            key={method}
+            className="bg-surface border border-line rounded-2xl p-4 shadow-md"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs tracking-wide text-fg-muted">
+                {method}
+              </span>
+
+              <span className="h-2 w-2 rounded-full bg-green-500" />
+            </div>
+
+            <p className="mt-3 text-2xl font-bold text-fg">
+              ${Number(total).toLocaleString("es-CO")}
+            </p>
+          </div>
+        ))}
+      </div>
       {/* Botones de filtros rápidos */}
       <div className="flex gap-2 mt-4 flex-wrap mb-6">
         {[

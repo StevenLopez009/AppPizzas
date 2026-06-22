@@ -8,6 +8,7 @@ import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { getThemePrimary } from "@/lib/repos/appSettings";
 import { buildBrandCssVars } from "@/lib/theme/brandCssVars";
+import { SettingsProvider } from "@/context/SettingsContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,13 +34,8 @@ export default async function RootLayout({
   const brandStyle = buildBrandCssVars(themePrimary) as CSSProperties;
 
   return (
-    <html
-      lang="es"
-      style={brandStyle}
-      suppressHydrationWarning
-    >
+    <html lang="es" style={brandStyle} suppressHydrationWarning>
       <head>
-        {/* Anti-flicker: apply stored theme class before first paint */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){var t=localStorage.getItem('app-theme')||'dark';document.documentElement.classList.add(t==='light'?'light':'dark');})();`,
@@ -51,10 +47,12 @@ export default async function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider>
-          <UserProvider>
-            <CartProvider>{children}</CartProvider>
-            <Toaster />
-          </UserProvider>
+          <SettingsProvider>
+            <UserProvider>
+              <CartProvider>{children}</CartProvider>
+              <Toaster />
+            </UserProvider>
+          </SettingsProvider>
         </ThemeProvider>
       </body>
     </html>

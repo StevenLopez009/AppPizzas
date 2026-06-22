@@ -18,6 +18,7 @@ export async function PATCH(req: Request) {
     const body = (await req.json()) as {
       themePrimary?: string;
       businessName?: string;
+      storeOpen?: boolean;
     };
     const updated = await setSettings(body);
     return NextResponse.json(updated);

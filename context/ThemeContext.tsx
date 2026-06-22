@@ -22,7 +22,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
   const [brand, setBrandState] = useState("#15da57");
 
-  // Cargar desde localStorage al inicio
   useEffect(() => {
     const savedTheme = localStorage.getItem("app-theme") as Theme | null;
     const savedBrand = localStorage.getItem("brand-color");

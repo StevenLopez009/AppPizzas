@@ -92,14 +92,7 @@ export default function PizzaMitadesPage() {
     { label: "Personal", price: 19000 },
   ];
 
-  const additionalsPizzaList = [
-    { name: "Queso Mozarella", price: 5000 },
-    { name: "Jalapeños", price: 2000 },
-    { name: "Peperoni", price: 3000 },
-    { name: "Pollo", price: 4000 },
-    { name: "Carne Desmechada", price: 2000 },
-    { name: "Jamon", price: 2000 },
-  ];
+  const additionalsPizzaList = [{ name: "Queso Mozarella", price: 5000 }];
 
   const router = useRouter();
 

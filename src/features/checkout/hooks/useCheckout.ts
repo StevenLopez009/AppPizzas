@@ -14,9 +14,7 @@ import { sendWhatsAppOrder } from "../services/sendWhatsAppOrder";
 
 export function useCheckout() {
   const router = useRouter();
-
   const { cart, clearCart, orderType } = useCart();
-
   const { form, barrio, barrioFee, mesa, setBarrio, setMesa, handleChange } =
     useCheckoutForm();
 
@@ -141,16 +139,13 @@ export function useCheckout() {
     locating,
     savedLocation,
     orderType,
-
     setBarrio,
     setMesa,
-
     handleChange,
     getLocation,
     saveLocation,
     clearSavedLocation,
     sendRestaurantLocation,
-
     handleSubmit,
   };
 }

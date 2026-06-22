@@ -31,21 +31,19 @@ export function sendWhatsAppOrder({
   orderType,
 }: SendWhatsAppOrderProps) {
   const items = cart
-    .map(
-      (item) =>
-        `${item.quantity} (${item.size}) ${item.name} - ${
-          item.additionals?.length > 0
-            ? ` - Adicionales: ${item.additionals
-                .map(
-                  (a: any) =>
-                    `${a.name} (+$${a.price.toLocaleString("es-CO")})`,
-                )
-                .join(", ")}`
-            : ""
-        } ${
-          item.observations ? `- ${item.observations}` : ""
-        } - $${(item.price * item.quantity).toLocaleString("es-CO")}`,
-    )
+    .map((item) => {
+      return `${item.quantity} (${item.size}) ${item.name}
+${item.extra ? `${item.extra}` : ""}
+${
+  item.additionals?.length > 0
+    ? `Adicionales: ${item.additionals
+        .map((a: any) => `${a.name} (+$${a.price.toLocaleString("es-CO")})`)
+        .join(", ")}`
+    : ""
+}
+${item.observations ? `Observaciones: ${item.observations}` : ""}
+- $${(item.price * item.quantity).toLocaleString("es-CO")}`;
+    })
     .join("\n");
 
   const montoEfectivoTexto =

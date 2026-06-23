@@ -31,7 +31,9 @@ export default function Sidebar({
       <div className="mb-10">
         <h1 className="text-xl font-semibold text-fg">
           {title.split(" ")[0]}{" "}
-          <span className="text-brand">{title.split(" ").slice(1).join(" ")}</span>
+          <span className="text-brand">
+            {title.split(" ").slice(1).join(" ")}
+          </span>
         </h1>
       </div>
 

@@ -12,6 +12,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  console.log("POST /api/orders ejecutado");
   try {
     const body = (await req.json()) as {
       order: Parameters<typeof createOrderWithItems>[0];

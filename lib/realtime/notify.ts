@@ -9,6 +9,11 @@ const URL = process.env.REALTIME_INTERNAL_URL;
 const TOKEN = process.env.REALTIME_INTERNAL_TOKEN;
 
 export async function notifyRealtime(event: RealtimeEvent) {
+  console.log("[notifyRealtime]", {
+    URL,
+    TOKEN: !!TOKEN,
+    event,
+  });
   if (!URL || !TOKEN) return;
   try {
     await fetch(`${URL}/notify`, {

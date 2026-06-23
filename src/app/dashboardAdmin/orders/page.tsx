@@ -71,6 +71,7 @@ export default function AdminDashboard() {
     {},
   );
   const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(true);
 
   const STATUS_STYLES: Record<string, string> = {
     recibido: "bg-gray-500 text-gray-700",
@@ -312,6 +313,7 @@ export default function AdminDashboard() {
         </h1>
 
         {/* Filtros en layout responsivo */}
+
         <div className="flex flex-col sm:flex-row gap-3">
           <Popover>
             <PopoverTrigger asChild>
@@ -360,46 +362,62 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Stats cards responsivos */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        {[
-          { label: "Ventas", value: `$${totalSales.toLocaleString("es-CO")}` },
-          { label: "Domicilios", value: byType.domicilio },
-          { label: "Mesa", value: byType.mesa },
-          { label: "Recoger", value: byType.recoger },
-        ].map(({ label, value }) => (
-          <div
-            key={label}
-            className="bg-surface border border-line p-3 sm:p-4 rounded-xl shadow-sm"
-          >
-            <p className="text-xs sm:text-sm text-fg-muted">{label}</p>
-            <p className="text-base sm:text-xl font-bold text-fg break-words">
-              {value}
-            </p>
+      {open && (
+        <>
+          {/* Stats cards responsivos */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            {[
+              {
+                label: "Ventas",
+                value: `$${totalSales.toLocaleString("es-CO")}`,
+              },
+              { label: "Domicilios", value: byType.domicilio },
+              { label: "Mesa", value: byType.mesa },
+              { label: "Recoger", value: byType.recoger },
+            ].map(({ label, value }) => (
+              <div
+                key={label}
+                className="bg-surface border border-line p-3 sm:p-4 rounded-xl shadow-sm"
+              >
+                <p className="text-xs sm:text-sm text-fg-muted">{label}</p>
+                <p className="text-base sm:text-xl font-bold text-fg break-words">
+                  {value}
+                </p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {Object.entries(salesByPaymentMethod).map(([method, total]) => (
-          <div
-            key={method}
-            className="bg-surface border border-line rounded-2xl p-4 shadow-md"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs tracking-wide text-fg-muted">
-                {method}
-              </span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {Object.entries(salesByPaymentMethod).map(([method, total]) => {
+              const isMainMethod =
+                method.toLowerCase().includes("efectivo") ||
+                method.toLowerCase().includes("digital");
 
-              <span className="h-2 w-2 rounded-full bg-green-500" />
-            </div>
+              return (
+                <div
+                  key={method}
+                  className={`bg-surface border border-line rounded-2xl p-4 shadow-md ${
+                    isMainMethod ? "col-span-2" : ""
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs tracking-wide text-fg-muted">
+                      {method}
+                    </span>
 
-            <p className="mt-3 text-2xl font-bold text-fg">
-              ${Number(total).toLocaleString("es-CO")}
-            </p>
+                    <span className="h-2 w-2 rounded-full bg-green-500" />
+                  </div>
+
+                  <p className="mt-3 text-2xl font-bold text-fg">
+                    ${Number(total).toLocaleString("es-CO")}
+                  </p>
+                </div>
+              );
+            })}
           </div>
-        ))}
-      </div>
+        </>
+      )}
+
       {/* Botones de filtros rápidos */}
       <div className="flex gap-2 mt-4 flex-wrap mb-6">
         {[
@@ -434,6 +452,10 @@ export default function AdminDashboard() {
               });
             },
           },
+          {
+            label: "Ocultar",
+            onClick: () => setOpen((prev) => !prev),
+          },
         ].map(({ label, onClick }) => (
           <button
             key={label}
@@ -455,7 +477,6 @@ export default function AdminDashboard() {
       <div className="w-full mt-6 mb-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-2">
           {filteredOrders.map((order) => {
-            console.log(order);
             const finalTotal =
               order.total -
               (order.total * (order.discount_percentage || 0)) / 100;

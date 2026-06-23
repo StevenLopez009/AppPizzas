@@ -2,7 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
-type Handler = (event: { type: string; orderId?: string; order?: unknown }) => void;
+type Handler = (event: {
+  type: string;
+  orderId?: string;
+  order?: unknown;
+}) => void;
 
 export function useOrdersStream(orderId: string | null, onEvent: Handler) {
   const handlerRef = useRef(onEvent);

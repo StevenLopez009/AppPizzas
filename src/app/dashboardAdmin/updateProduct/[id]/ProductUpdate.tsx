@@ -18,6 +18,10 @@ export default function ProductUpdate({ product }: { product: any }) {
   );
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [ingredients, setIngredients] = useState<string[]>(
+    () => product?.ingredients || [],
+  );
+  const [newIngredient, setNewIngredient] = useState("");
 
   const router = useRouter();
 
@@ -40,6 +44,7 @@ export default function ProductUpdate({ product }: { product: any }) {
         name: title,
         description,
         prices: editablePrices,
+        ingredients,
         image_url: imageUrl,
       });
 
@@ -70,6 +75,22 @@ export default function ProductUpdate({ product }: { product: any }) {
       console.error(e);
       toast.error("Error al eliminar el producto");
     }
+  };
+
+  const handleIngredientChange = (index: number, value: string) => {
+    const updated = [...ingredients];
+    updated[index] = value;
+    setIngredients(updated);
+  };
+
+  const handleAddIngredient = () => {
+    if (!newIngredient.trim()) return;
+    setIngredients((prev) => [...prev, newIngredient.trim()]);
+    setNewIngredient("");
+  };
+
+  const handleRemoveIngredient = (index: number) => {
+    setIngredients((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -183,6 +204,53 @@ export default function ProductUpdate({ product }: { product: any }) {
               ))}
             </div>
           )}
+
+          <div className="mb-6">
+            <h3 className="font-semibold text-fg mb-3">Ingredientes</h3>
+
+            {ingredients.map((ingredient, index) => (
+              <div key={index} className="flex items-center gap-2 mb-2">
+                {isEditing ? (
+                  <>
+                    <input
+                      value={ingredient}
+                      onChange={(e) =>
+                        handleIngredientChange(index, e.target.value)
+                      }
+                      className="flex-1 border border-line rounded-xl px-3 py-2 bg-transparent"
+                    />
+
+                    <button
+                      onClick={() => handleRemoveIngredient(index)}
+                      className="bg-red-500 text-white px-3 py-2 rounded-xl"
+                    >
+                      X
+                    </button>
+                  </>
+                ) : (
+                  <span className="text-sm text-fg-subtle">• {ingredient}</span>
+                )}
+              </div>
+            ))}
+
+            {isEditing && (
+              <div className="flex gap-2 mt-3">
+                <input
+                  value={newIngredient}
+                  onChange={(e) => setNewIngredient(e.target.value)}
+                  placeholder="Nuevo ingrediente"
+                  className="flex-1 border border-line rounded-xl px-3 py-2 bg-transparent"
+                />
+
+                <button
+                  onClick={handleAddIngredient}
+                  className="bg-green-600 text-white px-4 rounded-xl"
+                >
+                  Agregar
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="hidden md:flex gap-4 mt-6">
             <button

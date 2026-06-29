@@ -2,6 +2,7 @@
 
 import imgDelivery from "@/assets/images/bannerDelivery.png";
 import imgPickup from "@/assets/images/image.jpg";
+import toast from "react-hot-toast";
 
 export default function CheckoutLocationCard({
   orderType,
@@ -13,6 +14,38 @@ export default function CheckoutLocationCard({
   clearSavedLocation,
   sendRestaurantLocation,
 }: any) {
+  const handleRequestLocation = () => {
+    toast.custom((t) => (
+      <div className="bg-white rounded-2xl shadow-xl p-4 w-[320px] border">
+        <p className="font-semibold text-gray-900 mb-2">
+          📍 Compartir ubicación
+        </p>
+
+        <p className="text-sm text-gray-600 mb-4">
+          ¿Deseas compartir tu ubicación para un domicilio mas rapido?
+        </p>
+
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700"
+          >
+            No
+          </button>
+
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              getLocation(false);
+            }}
+            className="px-4 py-2 rounded-lg bg-brand text-white"
+          >
+            Sí
+          </button>
+        </div>
+      </div>
+    ));
+  };
   return (
     <div className="px-6">
       <div className="rounded-3xl overflow-hidden shadow bg-brand-surface-muted h-44">
@@ -35,7 +68,7 @@ export default function CheckoutLocationCard({
                   </p>
                   <button
                     type="button"
-                    onClick={() => getLocation(false)}
+                    onClick={handleRequestLocation}
                     disabled={locating}
                     className="mt-3 bg-brand-hover text-white px-4 py-2 rounded-xl disabled:opacity-60 text-sm"
                   >
@@ -47,7 +80,9 @@ export default function CheckoutLocationCard({
               {/* Estado 2: ubicación obtenida pero no guardada */}
               {location && !savedLocation && (
                 <>
-                  <p className="text-sm font-semibold text-black">✓ Ubicación obtenida</p>
+                  <p className="text-sm font-semibold text-black">
+                    ✓ Ubicación obtenida
+                  </p>
                   <p className="text-xs text-gray-600 mt-0.5">
                     {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
                   </p>
@@ -64,7 +99,9 @@ export default function CheckoutLocationCard({
               {/* Estado 3: ubicación guardada cargada */}
               {location && savedLocation && (
                 <>
-                  <p className="text-sm font-semibold text-black">📍 Ubicación guardada</p>
+                  <p className="text-sm font-semibold text-black">
+                    📍 Ubicación guardada
+                  </p>
                   <p className="text-xs text-gray-600 mt-0.5">
                     {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
                   </p>

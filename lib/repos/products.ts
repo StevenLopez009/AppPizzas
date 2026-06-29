@@ -110,44 +110,51 @@ export async function updateProduct(
 ): Promise<Product | null> {
   const fields: string[] = [];
   const values: DbValue[] = [];
+
   if (patch.name !== undefined) {
     fields.push("name = ?");
     values.push(patch.name);
   }
+
   if (patch.description !== undefined) {
     fields.push("description = ?");
     values.push(patch.description);
   }
+
   if (patch.prices !== undefined) {
     fields.push("prices = ?");
     values.push(JSON.stringify(patch.prices));
   }
+
   if (patch.image_url !== undefined) {
     fields.push("image_url = ?");
     values.push(patch.image_url);
   }
+
   if (patch.category_id !== undefined) {
-    if (patch.category_id !== undefined) {
-      fields.push("category_id = ?");
-      values.push(patch.category_id);
-    }
-
-    if (patch.category !== undefined) {
-      fields.push("category = ?");
-      values.push(patch.category);
-    }
-
-    if (patch.ingredients !== undefined) {
-      fields.push("ingredients = ?");
-      values.push(JSON.stringify(patch.ingredients));
-    }
+    fields.push("category_id = ?");
+    values.push(patch.category_id);
   }
+
+  if (patch.category !== undefined) {
+    fields.push("category = ?");
+    values.push(patch.category);
+  }
+
+  if (patch.ingredients !== undefined) {
+    fields.push("ingredients = ?");
+    values.push(JSON.stringify(patch.ingredients));
+  }
+
   if (fields.length === 0) return getProduct(id);
+
   values.push(id);
+
   await db.execute(
     `UPDATE products SET ${fields.join(", ")} WHERE id = ?`,
     values,
   );
+
   return getProduct(id);
 }
 

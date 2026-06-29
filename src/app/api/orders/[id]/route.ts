@@ -33,11 +33,7 @@ export async function PATCH(
         `,
         [order.table_number],
       );
-    }
-
-    // opcional pero recomendado:
-    // si vuelve a estado activo → ocupar mesa
-    else {
+    } else {
       await query(
         `
         UPDATE restaurant_zones

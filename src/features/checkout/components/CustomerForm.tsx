@@ -126,18 +126,30 @@ export default function CustomerForm({
         )}
 
         {orderType === "mesa" && (
-          <select
-            value={mesa}
-            onChange={(e) => setMesa(e.target.value)}
-            className={selectCls}
-          >
-            <option value="">Selecciona Mesa</option>
-            {zones.map((zone) => (
-              <option key={zone.id} value={zone.label}>
-                {zone.label}
-              </option>
-            ))}
-          </select>
+          <>
+            <div>
+              <select
+                value={mesa}
+                onChange={(e) => setMesa(e.target.value)}
+                className={selectCls}
+              >
+                <option value="">Selecciona Mesa ⬇</option>
+                {zones.map((zone) => (
+                  <option key={zone.id} value={zone.label}>
+                    {zone.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <input
+              name="telefono"
+              value={form.telefono}
+              onChange={handleChange}
+              placeholder="Teléfono"
+              className={inputCls}
+            />
+          </>
         )}
       </div>
     </div>

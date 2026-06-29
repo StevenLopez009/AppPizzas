@@ -156,6 +156,34 @@ export default function AdminDashboard() {
         `/api/orders/${encodeURIComponent(order.id)}`,
         { status },
       );
+      if (order.customer_phone) {
+        let message = "";
+
+        switch (status) {
+          case "listo_cocina":
+            message = `Hola apreciado cliente ,
+          Tu pedido con el codigo #${order.order_number} ya está listo pasa a la barra y
+          ¡Disfruta!`;
+            break;
+
+          case "enviado":
+            message = `Hola ${order.customer_name},
+          Tu pedido con el codigo #${order.order_number} ya salió en camino.
+          En unos minutos llegará a tu dirección.
+          ¡Gracias por tu compra!`;
+            break;
+          default:
+            break;
+        }
+
+        if (message) {
+          window.open(
+            `https://wa.me/57${order.customer_phone}?text=${encodeURIComponent(message)}`,
+            "_blank",
+          );
+        }
+      }
+
       setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
       setPendingStatus((prev) => {
         const next = { ...prev };

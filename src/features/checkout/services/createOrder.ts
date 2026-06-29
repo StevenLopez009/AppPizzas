@@ -34,7 +34,7 @@ export async function createOrder({
     order_type: orderType,
     status: form.pago === "digital" ? "pendiente_pago" : "recibido",
     customer_name: orderType === "mesa" ? null : form.nombre,
-    customer_phone: orderType === "mesa" ? null : form.telefono,
+    customer_phone: form.telefono,
     customer_address: orderType === "domicilio" ? form.direccion : null,
     table_label: tableNum,
     payment_method: form.pago,

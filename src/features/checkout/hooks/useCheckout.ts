@@ -62,9 +62,11 @@ export function useCheckout() {
       }
     }
 
-    if (orderType === "mesa" && !mesa) {
-      toast.error("Selecciona una mesa");
-      return;
+    if (orderType === "mesa") {
+      if (!mesa || !form.telefono?.trim()) {
+        toast.error("Completa todos los datos");
+        return;
+      }
     }
 
     try {

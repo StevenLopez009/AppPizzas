@@ -1,6 +1,14 @@
 "use client";
 
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Image,
+} from "@react-pdf/renderer";
+import imgFactura from "@/assets/images/logo.png";
 
 interface OrderItem {
   id: string;
@@ -40,6 +48,12 @@ const styles = StyleSheet.create({
   mainHeader: {
     marginBottom: 15,
     textAlign: "center",
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginBottom: 10,
+    alignSelf: "center",
   },
   businessName: {
     fontSize: 16,
@@ -234,6 +248,8 @@ const styles = StyleSheet.create({
   },
 });
 
+console.log(imgFactura);
+
 // Función para calcular el total de un item incluyendo additionals
 const calculateItemTotal = (item: OrderItem): number => {
   return item.price * item.quantity;
@@ -277,6 +293,7 @@ export const InvoicePDF = ({ order }: { order: Order }) => {
         {/* HEADER */}
         <View style={styles.mainHeader}>
           <Text style={styles.businessName}>PIZZAS LA CARRETA</Text>
+          <Image style={styles.logo} src={imgFactura.src} />
           <Text style={styles.nit}>NIT: 1032377521</Text>
           <Text style={styles.address}>CRA 21 # 3A SUR -62 SOCIEGO</Text>
           <Text style={styles.address}>Tel: 3192888121</Text>

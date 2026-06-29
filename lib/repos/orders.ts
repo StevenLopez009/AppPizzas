@@ -419,7 +419,7 @@ export async function addOrderItem(
   await db.execute(
     `INSERT INTO order_items (id, order_id, product_id, product_name, price,
       quantity, size, extra, observations, additionals, ingredients)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       itemId,
       orderId,

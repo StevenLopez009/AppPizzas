@@ -80,6 +80,7 @@ export default function AdminDashboard() {
     listo_cocina: "bg-pink-500 text-pink-800",
     entregado: "bg-green-500 text-green-800",
     recoger: "bg-green-500 text-purple-800",
+    cancelado: "bg-red-500 text-red-800",
   };
 
   async function refreshOrders() {
@@ -118,22 +119,6 @@ export default function AdminDashboard() {
 
   const openKitchenOrder = (orderId: string) => {
     window.open(`/dashboardAdmin/comanda/${orderId}`, "_blank");
-  };
-
-  const deleteOrder = async (orderId: string, customerName: string) => {
-    const confirmDelete = window.confirm(
-      `¿Estás seguro de eliminar el pedido de ${customerName}?\n\nEsta acción no se puede deshacer.`,
-    );
-    if (!confirmDelete) return;
-
-    try {
-      await api.delete(`/api/orders/${encodeURIComponent(orderId)}`);
-      setOrders((prev) => prev.filter((o) => o.id !== orderId));
-      toast.success("Pedido eliminado");
-    } catch (e) {
-      console.error("Error eliminando pedido:", e);
-      toast.error("Error al eliminar el pedido. Intenta de nuevo.");
-    }
   };
 
   if (loading) return <p className="p-10 text-center">Cargando pedidos...</p>;
@@ -230,6 +215,7 @@ export default function AdminDashboard() {
   });
 
   const totalSales = filteredOrders.reduce((acc, o) => {
+    if (o.status === "cancelado") return acc;
     const final = o.total - (o.total * (o.discount_percentage || 0)) / 100;
     return acc + final;
   }, 0);
@@ -265,6 +251,7 @@ export default function AdminDashboard() {
 
   const salesByPaymentMethod = filteredOrders.reduce(
     (acc, order) => {
+      if (order.status === "cancelado") return acc;
       const method = order.payment_method || "Sin definir";
 
       const total =
@@ -309,26 +296,27 @@ export default function AdminDashboard() {
     setSelectedOrder(null);
   };
 
-  const handleDeleteItem = async (orderId: string, itemId: string) => {
+  const cancelOrder = async (order: Order) => {
+    const confirmCancel = window.confirm(
+      `¿Cancelar el pedido #${order.order_number}?`,
+    );
+
+    if (!confirmCancel) return;
+
     try {
-      const { order: updated } = await api.delete<{
-        order: Order;
-      }>(
-        `/api/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}`,
+      const { order: updated } = await api.patch<{ order: Order }>(
+        `/api/orders/${encodeURIComponent(order.id)}`,
+        {
+          status: "cancelado",
+        },
       );
 
-      if (updated) {
-        setOrders((prev) =>
-          prev.map((o) => (o.id === updated.id ? updated : o)),
-        );
+      setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
 
-        setSelectedOrder(updated);
-      }
-
-      toast.success("Producto eliminado");
+      toast.success("Pedido cancelado");
     } catch (error) {
       console.error(error);
-      toast.error("Error eliminando producto");
+      toast.error("Error cancelando pedido");
     }
   };
 
@@ -505,6 +493,7 @@ export default function AdminDashboard() {
       <div className="w-full mt-6 mb-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-2">
           {filteredOrders.map((order) => {
+            const isCancelled = order.status === "cancelado";
             const finalTotal =
               order.total -
               (order.total * (order.discount_percentage || 0)) / 100;
@@ -528,7 +517,13 @@ export default function AdminDashboard() {
                   </span>
                 </div>
 
-                <div className="p-4 sm:p-5 flex flex-col flex-1 justify-between">
+                <div
+                  className={`p-4 sm:p-5 flex flex-col flex-1 justify-between ${
+                    isCancelled
+                      ? "opacity-60 line-through decoration-2 decoration-red-500"
+                      : ""
+                  }`}
+                >
                   {/* Info del pedido */}
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                     <div className="space-y-1 flex-1">
@@ -648,11 +643,10 @@ export default function AdminDashboard() {
                       {activeDiscount !== order.id ? (
                         <>
                           <button
-                            onClick={() =>
-                              deleteOrder(order.id, order.customer_name)
-                            }
+                            onClick={() => cancelOrder(order)}
+                            disabled={order.status === "cancelado"}
                             className={`${STATUS_STYLES[order.status] || "bg-gray-500 hover:bg-gray-600"} text-white py-2 rounded-xl font-semibold text-sm shadow-md transition-all duration-200 active:scale-95 flex items-center justify-center`}
-                            title="Eliminar"
+                            title="Cancelar pedido"
                           >
                             <TrashIcon className="w-4 h-4" />
                           </button>
@@ -782,10 +776,10 @@ export default function AdminDashboard() {
                     </div>
 
                     <button
-                      onClick={() =>
-                        handleDeleteItem(selectedOrder.id, item.id)
-                      }
-                      className="bg-red-500 text-white px-2 py-1 rounded"
+                      onClick={() => cancelOrder(selectedOrder)}
+                      disabled={selectedOrder.status === "cancelado"}
+                      className="bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white py-2 rounded-xl font-semibold text-sm shadow-md transition-all duration-200 active:scale-95 flex items-center justify-center"
+                      title="Cancelar pedido"
                     >
                       <TrashIcon className="w-4 h-4" />
                     </button>

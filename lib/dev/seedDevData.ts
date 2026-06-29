@@ -30,7 +30,9 @@ export async function clearDevSeed() {
   );
 
   // 2. productos del seed
-  await db.execute("DELETE FROM products WHERE name LIKE ?", [`${DEV_PREFIX}%`]);
+  await db.execute("DELETE FROM products WHERE name LIKE ?", [
+    `${DEV_PREFIX}%`,
+  ]);
 }
 
 interface ProductSeed {
@@ -114,7 +116,14 @@ export async function insertDevSeed() {
     await db.execute(
       `INSERT INTO products (id, name, description, prices, image_url, category)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [p.id, p.name, p.description, JSON.stringify(p.prices), p.image_url, p.category],
+      [
+        p.id,
+        p.name,
+        p.description,
+        JSON.stringify(p.prices),
+        p.image_url,
+        p.category,
+      ],
     );
   }
 

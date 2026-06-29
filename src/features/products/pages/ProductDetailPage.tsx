@@ -57,6 +57,7 @@ export default function ProductDetailPage({ product, additionals }: Props) {
       extra: selectedBorder,
       additionals: selectedAdditionals,
       observations,
+      ingredients: product.ingredients ?? [],
     });
 
     if (window.innerWidth < 768) {

@@ -11,6 +11,7 @@ interface OrderItem {
   extra?: string | null;
   observations?: string | null;
   additionals?: Array<{ name: string; price: number }> | null;
+  ingredients?: string[];
 }
 
 interface Order {
@@ -23,7 +24,10 @@ interface Order {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 15,
+    paddingTop: 15,
+    paddingBottom: 15,
+    paddingLeft: 45,
+    paddingRight: 45,
     backgroundColor: "#ffffff",
     fontFamily: "Helvetica",
   },
@@ -72,7 +76,7 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 9,
     color: "#444",
-    marginLeft: 20, // Alineado debajo del nombre, dejando espacio a la cantidad
+    marginLeft: 20,
     marginTop: 1,
   },
   observationBox: {
@@ -119,6 +123,26 @@ const styles = StyleSheet.create({
     color: "#444",
     flex: 1,
   },
+
+  ingredientsContainer: {
+    marginLeft: 20,
+    marginTop: 4,
+    padding: 6,
+    backgroundColor: "#f8fafc",
+    borderRadius: 4,
+  },
+
+  ingredientsTitle: {
+    fontSize: 9,
+    fontWeight: "bold",
+    marginBottom: 3,
+  },
+
+  ingredientItem: {
+    fontSize: 9,
+    color: "#333",
+    marginBottom: 1,
+  },
 });
 
 function renderExtra(item: OrderItem) {
@@ -127,9 +151,9 @@ function renderExtra(item: OrderItem) {
   // Pizza por mitades: "Mitades: A/B | Bordes: x/y | Adicionales: ..."
   if (item.extra.includes("Mitades:")) {
     const mitadesMatch = item.extra.match(/Mitades:\s*([^|]+)/);
-    const bordesMatch  = item.extra.match(/Bordes:\s*([^|]+)/);
+    const bordesMatch = item.extra.match(/Bordes:\s*([^|]+)/);
     const sabores = mitadesMatch?.[1]?.split("/").map((s) => s.trim()) ?? [];
-    const bordes  = bordesMatch?.[1]?.split("/").map((b) => b.trim())  ?? [];
+    const bordes = bordesMatch?.[1]?.split("/").map((b) => b.trim()) ?? [];
 
     return sabores.map((sabor, i) => (
       <View key={i} style={styles.mitadRow}>
@@ -204,6 +228,18 @@ export const KitchenOrderPDF = ({ order }: { order: Order }) => {
 
             {/* Borde(s) resaltados en naranja */}
             {renderExtra(item)}
+
+            {item.ingredients && item.ingredients.length > 0 && (
+              <View style={styles.ingredientsContainer}>
+                <Text style={styles.ingredientsTitle}>INGREDIENTES</Text>
+
+                {item.ingredients.map((ingredient, idx) => (
+                  <Text key={idx} style={styles.ingredientItem}>
+                    • {ingredient}
+                  </Text>
+                ))}
+              </View>
+            )}
 
             {/* Detalles de Adicionales */}
             {item.additionals && item.additionals.length > 0 && (

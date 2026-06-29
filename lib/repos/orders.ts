@@ -17,6 +17,7 @@ export interface OrderItem {
   extra: string | null;
   observations: string | null;
   additionals: Array<{ name: string; price: number }>;
+  ingredients: string[];
 }
 
 export interface Order {
@@ -64,6 +65,7 @@ interface OrderRow extends RowDataPacket {
   discount_percentage: string;
   lat: string | null;
   lng: string | null;
+  ingredients: unknown;
 }
 
 interface OrderItemRow extends RowDataPacket {
@@ -77,6 +79,7 @@ interface OrderItemRow extends RowDataPacket {
   extra: string | null;
   observations: string | null;
   additionals: unknown;
+  ingredients: unknown;
 }
 
 const num = (v: unknown): number =>
@@ -155,6 +158,7 @@ function toOrder(row: OrderRow, items: OrderItemRow[]): Order {
           i.additionals,
           [],
         ),
+        ingredients: parseJSON<string[]>(i.ingredients, []),
       })),
   };
 }
@@ -214,6 +218,7 @@ export interface NewOrderItemInput {
   extra?: string | null;
   observations?: string | null;
   additionals?: Array<{ name: string; price: number }>;
+  ingredients?: string[];
 }
 
 export async function createOrderWithItems(
@@ -253,8 +258,8 @@ export async function createOrderWithItems(
     for (const item of items) {
       await conn.execute(
         `INSERT INTO order_items (id, order_id, product_id, product_name, price,
-          quantity, size, extra, observations, additionals)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          quantity, size, extra, observations, additionals, ingredients)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           uuid(),
           id,
@@ -266,6 +271,7 @@ export async function createOrderWithItems(
           item.extra ?? null,
           item.observations ?? null,
           JSON.stringify(item.additionals ?? []),
+          JSON.stringify(item.ingredients ?? []),
         ],
       );
     }
@@ -394,16 +400,15 @@ export async function deleteOrderItem(orderId: string, itemId: string) {
     [orderId],
   );
 
-  const newTotal = num(sumRow?.total);
+  const order = await getOrder(orderId);
+  const subtotal = num(sumRow?.total);
+  const newTotal = subtotal + (order?.delivery_fee ?? 0);
 
-  await db.execute(
-    `
-    UPDATE orders
-    SET total = ?
-    WHERE id = ?
-    `,
-    [newTotal, orderId],
-  );
+  await db.execute("UPDATE orders SET subtotal = ?, total = ? WHERE id = ?", [
+    subtotal,
+    newTotal,
+    orderId,
+  ]);
 }
 
 export async function addOrderItem(
@@ -413,7 +418,7 @@ export async function addOrderItem(
   const itemId = uuid();
   await db.execute(
     `INSERT INTO order_items (id, order_id, product_id, product_name, price,
-      quantity, size, extra, observations, additionals)
+      quantity, size, extra, observations, additionals, ingredients)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       itemId,
@@ -426,6 +431,7 @@ export async function addOrderItem(
       item.extra ?? null,
       item.observations ?? null,
       JSON.stringify(item.additionals ?? []),
+      JSON.stringify(item.ingredients ?? []),
     ],
   );
 
@@ -433,8 +439,13 @@ export async function addOrderItem(
     "SELECT COALESCE(SUM(price * quantity), 0) AS total FROM order_items WHERE order_id = ?",
     [orderId],
   );
-  const newTotal = num(sumRow?.total);
-  await db.execute("UPDATE orders SET total = ? WHERE id = ?", [
+
+  const order = await getOrder(orderId);
+  const subtotal = num(sumRow?.total);
+  const newTotal = subtotal + (order?.delivery_fee ?? 0);
+
+  await db.execute("UPDATE orders SET subtotal = ?, total = ? WHERE id = ?", [
+    subtotal,
     newTotal,
     orderId,
   ]);
@@ -459,5 +470,6 @@ export async function addOrderItem(
       row.additionals,
       [],
     ),
+    ingredients: parseJSON<string[]>(row.ingredients, []),
   };
 }

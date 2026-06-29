@@ -17,6 +17,7 @@ export interface ProductRow extends RowDataPacket {
   category_id: string | null;
   category: string | null;
   created_at: Date;
+  ingredients: unknown;
 }
 
 export interface Product {
@@ -28,6 +29,7 @@ export interface Product {
   category_id: string | null;
   category: string | null;
   created_at: string;
+  ingredients: string[];
 }
 
 function toProduct(row: ProductRow): Product {
@@ -43,6 +45,7 @@ function toProduct(row: ProductRow): Product {
       row.created_at instanceof Date
         ? row.created_at.toISOString()
         : String(row.created_at),
+    ingredients: parseJSON<string[]>(row.ingredients, []),
   };
 }
 
@@ -68,13 +71,23 @@ export interface NewProduct {
   image_url?: string | null;
   category_id?: string | null;
   category?: string | null;
+  ingredients?: string[];
 }
 
 export async function createProduct(input: NewProduct): Promise<Product> {
   const id = uuid();
   await db.execute(
-    `INSERT INTO products (id, name, description, prices, image_url, category_id, category)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO products (
+    id,
+    name,
+    description,
+    prices,
+    image_url,
+    category_id,
+    category,
+    ingredients
+  )
+   VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       input.name,
@@ -83,6 +96,7 @@ export async function createProduct(input: NewProduct): Promise<Product> {
       input.image_url ?? null,
       input.category_id ?? null,
       input.category ?? null,
+      JSON.stringify(input.ingredients ?? []),
     ],
   );
   const created = await getProduct(id);
@@ -121,6 +135,11 @@ export async function updateProduct(
     if (patch.category !== undefined) {
       fields.push("category = ?");
       values.push(patch.category);
+    }
+
+    if (patch.ingredients !== undefined) {
+      fields.push("ingredients = ?");
+      values.push(JSON.stringify(patch.ingredients));
     }
   }
   if (fields.length === 0) return getProduct(id);

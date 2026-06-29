@@ -63,6 +63,7 @@ export async function createOrder({
     extra: item.extra || null,
     observations: item.observations || null,
     additionals: item.additionals || [],
+    ingredients: item.ingredients || [],
   }));
 
   const { order } = await api.post<{

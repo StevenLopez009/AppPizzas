@@ -22,6 +22,7 @@ export async function POST(req: Request) {
       image_url?: string;
       category_id?: string;
       category?: string;
+      ingredients?: string[];
     };
 
     if (!body.name) {
@@ -35,6 +36,7 @@ export async function POST(req: Request) {
       image_url: body.image_url ?? null,
       category_id: body.category_id ?? null,
       category: body.category ?? null,
+      ingredients: body.ingredients ?? [],
     });
 
     return NextResponse.json({ product }, { status: 201 });

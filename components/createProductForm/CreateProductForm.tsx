@@ -33,6 +33,7 @@ export default function CreateProductForm() {
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [ingredients, setIngredients] = useState<string[]>([""]);
 
   useEffect(() => {
     api
@@ -114,6 +115,7 @@ export default function CreateProductForm() {
         image_url: imageUrl,
         category_id: form.category_id,
         category: selectedCategory?.name || "",
+        ingredients: ingredients.filter((i) => i.trim()),
       });
 
       toast.success("Producto creado");
@@ -218,6 +220,51 @@ export default function CreateProductForm() {
             </option>
           ))}
         </select>
+
+        {categoryName.includes("pizza") && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-semibold text-fg">
+                Ingredientes
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setIngredients([...ingredients, ""])}
+                className="flex items-center gap-1 text-sm text-brand"
+              >
+                <Plus className="w-4 h-4" />
+                Agregar ingrediente
+              </button>
+            </div>
+
+            {ingredients.map((ingredient, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Ej: Queso mozzarella"
+                  value={ingredient}
+                  onChange={(e) => {
+                    const updated = [...ingredients];
+                    updated[index] = e.target.value;
+                    setIngredients(updated);
+                  }}
+                  className={fieldCls}
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setIngredients(ingredients.filter((_, i) => i !== index))
+                  }
+                  className="text-red-500"
+                >
+                  <Trash2 />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Sección de Tamaños y Precios Dinámicos */}
         <div className="space-y-3">

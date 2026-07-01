@@ -23,7 +23,8 @@ function buildPool(): Pool {
 }
 
 export const db: Pool =
-  global.__apppizzas_mysql_pool__ ?? (global.__apppizzas_mysql_pool__ = buildPool());
+  global.__apppizzas_mysql_pool__ ??
+  (global.__apppizzas_mysql_pool__ = buildPool());
 
 export type DbValue = string | number | bigint | boolean | Date | Buffer | null;
 
@@ -43,10 +44,6 @@ export async function queryOne<T extends RowDataPacket = RowDataPacket>(
   return rows[0] ?? null;
 }
 
-/**
- * MySQL JSON columns return strings via mysql2 unless `JSON.parse` se aplica.
- * Helper para parsear de forma defensiva.
- */
 export function parseJSON<T = unknown>(value: unknown, fallback: T): T {
   if (value == null) return fallback;
   if (typeof value !== "string") return value as T;

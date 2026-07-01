@@ -18,7 +18,9 @@ export function useOrdersStream(orderId: string | null, onEvent: Handler) {
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
     const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const baseUrl = `${proto}//${window.location.hostname}:3001`;
+    const baseUrl =
+      process.env.NEXT_PUBLIC_REALTIME_WS_URL ??
+      `${proto}//${window.location.hostname}:3001`;
     const path = orderId ? `/orders/${orderId}` : "/orders";
 
     const connect = () => {

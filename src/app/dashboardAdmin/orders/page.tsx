@@ -104,7 +104,7 @@ export default function AdminDashboard() {
       setOrders((prev) =>
         prev.find((o) => o.id === incoming.id) ? prev : [incoming, ...prev],
       );
-      router;
+      router.refresh();
     } else if (event.type === "order.updated" && event.order) {
       const updated = event.order as Order;
       setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));

@@ -296,6 +296,29 @@ export default function AdminDashboard() {
     setSelectedOrder(null);
   };
 
+  const handleDeleteItem = async (orderId: string, itemId: string) => {
+    try {
+      const { order: updated } = await api.delete<{
+        order: Order;
+      }>(
+        `/api/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}`,
+      );
+
+      if (updated) {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === updated.id ? updated : o)),
+        );
+
+        setSelectedOrder(updated);
+      }
+
+      toast.success("Producto eliminado");
+    } catch (error) {
+      console.error(error);
+      toast.error("Error eliminando producto");
+    }
+  };
+
   const cancelOrder = async (order: Order) => {
     const confirmCancel = window.confirm(
       `¿Cancelar el pedido #${order.order_number}?`,
@@ -776,10 +799,11 @@ export default function AdminDashboard() {
                     </div>
 
                     <button
-                      onClick={() => cancelOrder(selectedOrder)}
-                      disabled={selectedOrder.status === "cancelado"}
+                      onClick={() =>
+                        handleDeleteItem(selectedOrder.id, item.id)
+                      }
                       className="bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white py-2 rounded-xl font-semibold text-sm shadow-md transition-all duration-200 active:scale-95 flex items-center justify-center"
-                      title="Cancelar pedido"
+                      title="Eliminar producto"
                     >
                       <TrashIcon className="w-4 h-4" />
                     </button>

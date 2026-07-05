@@ -40,6 +40,7 @@ interface Order {
   lng?: number | null;
   total: number;
   status: string;
+  cancel_reason?: string | null;
   table_number?: number | null;
   order_type: "domicilio" | "mesa" | "recoger";
   order_items: OrderItem[];
@@ -71,7 +72,9 @@ export default function AdminDashboard() {
     {},
   );
   const [search, setSearch] = useState("");
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
 
   const STATUS_STYLES: Record<string, string> = {
     recibido: "bg-gray-500 text-gray-700",
@@ -318,25 +321,29 @@ export default function AdminDashboard() {
       toast.error("Error eliminando producto");
     }
   };
+  const cancelOrder = async () => {
+    if (!orderToCancel) return;
 
-  const cancelOrder = async (order: Order) => {
-    const confirmCancel = window.confirm(
-      `¿Cancelar el pedido #${order.order_number}?`,
-    );
-
-    if (!confirmCancel) return;
+    if (!cancelReason.trim()) {
+      toast.error("Debes escribir el motivo de la cancelación");
+      return;
+    }
 
     try {
       const { order: updated } = await api.patch<{ order: Order }>(
-        `/api/orders/${encodeURIComponent(order.id)}`,
+        `/api/orders/${encodeURIComponent(orderToCancel.id)}`,
         {
           status: "cancelado",
+          cancel_reason: cancelReason,
         },
       );
 
       setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
 
       toast.success("Pedido cancelado");
+
+      setOrderToCancel(null);
+      setCancelReason("");
     } catch (error) {
       console.error(error);
       toast.error("Error cancelando pedido");
@@ -542,9 +549,7 @@ export default function AdminDashboard() {
 
                 <div
                   className={`p-4 sm:p-5 flex flex-col flex-1 justify-between ${
-                    isCancelled
-                      ? "opacity-60 line-through decoration-2 decoration-red-500"
-                      : ""
+                    isCancelled ? "opacity-60" : ""
                   }`}
                 >
                   {/* Info del pedido */}
@@ -624,7 +629,13 @@ export default function AdminDashboard() {
                   </div>
 
                   {/* Items del pedido */}
-                  <div className="border-t pt-3 pb-3 space-y-2">
+                  <div
+                    className={`border-t pt-3 pb-3 space-y-2 ${
+                      isCancelled
+                        ? "line-through decoration-2 decoration-red-500"
+                        : ""
+                    }`}
+                  >
                     {order.order_items?.map((item) => (
                       <div
                         key={item.id}
@@ -658,6 +669,16 @@ export default function AdminDashboard() {
                       </div>
                     ))}
                   </div>
+                  {order.status === "cancelado" && order.cancel_reason && (
+                    <div className="mt-2 rounded-lg bg-red-50 border border-red-200 p-2">
+                      <p className="text-xs font-semibold text-red-700">
+                        Motivo de cancelación
+                      </p>
+                      <p className="text-sm text-red-600">
+                        {order.cancel_reason}
+                      </p>
+                    </div>
+                  )}
 
                   {/* ACCIONES DEL PEDIDO */}
                   <div className="border-t pt-3 space-y-3 mt-4">
@@ -666,7 +687,10 @@ export default function AdminDashboard() {
                       {activeDiscount !== order.id ? (
                         <>
                           <button
-                            onClick={() => cancelOrder(order)}
+                            onClick={() => {
+                              setOrderToCancel(order);
+                              setCancelReason("");
+                            }}
                             disabled={order.status === "cancelado"}
                             className={`${STATUS_STYLES[order.status] || "bg-gray-500 hover:bg-gray-600"} text-white py-2 rounded-xl font-semibold text-sm shadow-md transition-all duration-200 active:scale-95 flex items-center justify-center`}
                             title="Cancelar pedido"
@@ -842,6 +866,45 @@ export default function AdminDashboard() {
                 className="flex-1 bg-green-500 text-white py-2 rounded-xl hover:bg-green-600 transition text-sm sm:text-base"
               >
                 Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {orderToCancel && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface border border-line rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h2 className="text-xl font-bold">
+              Cancelar pedido #{orderToCancel.order_number}
+            </h2>
+
+            <p className="text-sm text-fg-muted">
+              Escribe el motivo de la cancelación.
+            </p>
+
+            <textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              rows={4}
+              className="w-full rounded-xl border border-line bg-canvas p-3 outline-none focus:ring-2 focus:ring-red-500"
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setOrderToCancel(null);
+                  setCancelReason("");
+                }}
+                className="px-4 py-2 rounded-xl border"
+              >
+                Cerrar
+              </button>
+
+              <button
+                onClick={cancelOrder}
+                className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700"
+              >
+                Confirmar cancelación
               </button>
             </div>
           </div>

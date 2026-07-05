@@ -114,7 +114,7 @@ export default function OrdersView({
                 className="flex items-center justify-center gap-2 bg-surface-muted text-fg py-3 rounded-2xl font-bold"
                 onClick={() => onOrder("recoger")}
               >
-                <Store /> Recoger
+                <Store /> Llevar
               </button>
 
               <button

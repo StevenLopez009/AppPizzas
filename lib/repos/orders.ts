@@ -28,6 +28,7 @@ export interface Order {
   order_type: OrderType;
   table_label: string | null;
   status: string;
+  cancel_reason: string | null;
   customer_name: string | null;
   customer_phone: string | null;
   customer_address: string | null;
@@ -52,6 +53,7 @@ interface OrderRow extends RowDataPacket {
   order_type: OrderType;
   table_label: string | null;
   status: string;
+  cancel_reason: string | null;
   customer_name: string | null;
   customer_phone: string | null;
   customer_address: string | null;
@@ -129,6 +131,7 @@ function toOrder(row: OrderRow, items: OrderItemRow[]): Order {
     order_type: row.order_type,
     table_label: row.table_label,
     status: row.status,
+    cancel_reason: row.cancel_reason,
     customer_name: row.customer_name,
     customer_phone: row.customer_phone,
     customer_address: row.customer_address,
@@ -318,6 +321,7 @@ export async function updateOrder(
   id: string,
   patch: Partial<{
     status: string;
+    cancel_reason: string;
     discount_percentage: number;
     total: number;
     payment_method: string;
@@ -335,6 +339,11 @@ export async function updateOrder(
   if (patch.status !== undefined) {
     fields.push("status = ?");
     values.push(patch.status);
+  }
+
+  if (patch.cancel_reason !== undefined) {
+    fields.push("cancel_reason = ?");
+    values.push(patch.cancel_reason);
   }
 
   if (patch.discount_percentage !== undefined) {

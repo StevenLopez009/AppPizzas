@@ -87,9 +87,10 @@ export function useCheckout() {
       clearCart();
       localStorage.removeItem("order_type");
 
-      // Si el pago es digital, redirigir a Stripe
-      if (form.pago === "digital") {
+      // Solo enviar a la pasarela si NO es un pedido de mesa
+      if (form.pago === "digital" && orderType !== "mesa") {
         toast.loading("Redirigiendo a pasarela de pagos...");
+
         try {
           const { url } = await api.post<{ url: string }>(
             "/api/checkout/sessions",
@@ -100,29 +101,31 @@ export function useCheckout() {
           );
 
           window.location.href = url;
+          return;
         } catch (error) {
           console.error("Error creating Stripe session:", error);
           toast.error("Error al procesar el pago. Intenta de nuevo.");
-          // Restaurar carrito si falla
           window.location.reload();
+          return;
         }
-      } else {
-        // Pago en efectivo - flujo normal
-        toast.success("Pedido enviado");
-        router.push("/my-orders");
-        setTimeout(() => {
-          sendWhatsAppOrder({
-            cart,
-            form,
-            barrio,
-            mesa,
-            total,
-            domicilio,
-            location,
-            orderType,
-          });
-        }, 300);
       }
+
+      // Pago en efectivo o pedido de mesa
+      toast.success("Pedido enviado");
+      router.push("/my-orders");
+
+      setTimeout(() => {
+        sendWhatsAppOrder({
+          cart,
+          form,
+          barrio,
+          mesa,
+          total,
+          domicilio,
+          location,
+          orderType,
+        });
+      }, 300);
     } catch (error) {
       console.error(error);
       toast.error("Error creando la orden");

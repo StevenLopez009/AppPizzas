@@ -11,6 +11,7 @@ import ProductBorderSelector from "../components/ProductBorderSelector";
 import ProductAdditionals from "../components/ProductAdditionals";
 import ProductObservation from "../components/ProductObservation";
 import ProductFooter from "../components/ProductFooter";
+import toast from "react-hot-toast";
 
 interface Props {
   product: any;
@@ -46,6 +47,12 @@ export default function ProductDetailPage({ product, additionals }: Props) {
   };
 
   const handleAddToCart = () => {
+    const isPizza = product.category?.toLowerCase().includes("pizza");
+
+    if (isPizza && !selectedBorder) {
+      toast.error("Debes seleccionar un borde para la pizza");
+      return;
+    }
     addToCart({
       id: uuid(),
       product_id: product.id,

@@ -11,6 +11,7 @@ export async function createOrder({
   subtotal,
   domicilio,
   total,
+  paymentProof,
 }: any) {
   // Obtener usuario autenticado si existe
   let userId: string | null = null;
@@ -38,6 +39,7 @@ export async function createOrder({
     customer_address: orderType === "domicilio" ? form.direccion : null,
     table_label: tableNum,
     payment_method: form.pago,
+    payment_proof: paymentProof,
     cash_amount:
       form.pago === "efectivo" &&
       form.montoEfectivo &&

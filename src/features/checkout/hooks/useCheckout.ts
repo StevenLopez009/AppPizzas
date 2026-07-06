@@ -3,7 +3,6 @@
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { api } from "@/lib/api";
 
 import { useCheckoutForm } from "./useCheckoutForm";
 import { useCheckoutLocation } from "./useCheckoutLocation";
@@ -70,6 +69,26 @@ export function useCheckout() {
     }
 
     try {
+      let paymentProof: string | null = null;
+
+      if (form.pago === "digital" && form.comprobante) {
+        const formData = new FormData();
+        formData.append("file", form.comprobante);
+
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          toast.error("No se pudo subir el comprobante");
+          return;
+        }
+
+        const { url } = await response.json();
+        paymentProof = url;
+        console.log("paymentProof:", paymentProof);
+      }
       const order = await createOrder({
         cart,
         form,
@@ -80,35 +99,13 @@ export function useCheckout() {
         subtotal,
         domicilio,
         total,
+        paymentProof,
       });
 
       await createOrderItems(order.id, cart);
 
       clearCart();
       localStorage.removeItem("order_type");
-
-      // Solo enviar a la pasarela si NO es un pedido de mesa
-      if (form.pago === "digital" && orderType !== "mesa") {
-        toast.loading("Redirigiendo a pasarela de pagos...");
-
-        try {
-          const { url } = await api.post<{ url: string }>(
-            "/api/checkout/sessions",
-            {
-              orderId: order.id,
-              customerEmail: null,
-            },
-          );
-
-          window.location.href = url;
-          return;
-        } catch (error) {
-          console.error("Error creating Stripe session:", error);
-          toast.error("Error al procesar el pago. Intenta de nuevo.");
-          window.location.reload();
-          return;
-        }
-      }
 
       // Pago en efectivo o pedido de mesa
       toast.success("Pedido enviado");

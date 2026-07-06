@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 
-interface DbBarrio { id: string; name: string; delivery_fee: number }
+interface DbBarrio {
+  id: string;
+  name: string;
+  delivery_fee: number;
+}
 
 const FORM_KEY = "saved_checkout_form";
 
@@ -12,6 +16,15 @@ interface SavedForm {
   telefono: string;
   direccion: string;
   barrio: string;
+}
+
+interface CheckoutForm {
+  nombre: string;
+  telefono: string;
+  direccion: string;
+  pago: string;
+  montoEfectivo: string;
+  comprobante: File | null;
 }
 
 function loadSavedForm(): SavedForm | null {
@@ -29,7 +42,8 @@ export function useCheckoutForm() {
   const [barriosList, setBarriosList] = useState<DbBarrio[]>([]);
 
   useEffect(() => {
-    api.get<{ barrios: DbBarrio[] }>("/api/barrios")
+    api
+      .get<{ barrios: DbBarrio[] }>("/api/barrios")
       .then(({ barrios }) => setBarriosList(barrios))
       .catch(() => {});
   }, []);
@@ -40,6 +54,7 @@ export function useCheckoutForm() {
     direccion: "",
     pago: "efectivo",
     montoEfectivo: "",
+    comprobante: null,
   });
 
   // Load saved form data on mount
@@ -79,7 +94,8 @@ export function useCheckoutForm() {
     persistForm(form, value);
   };
 
-  const barrioFee = barriosList.find((b) => b.name === barrio)?.delivery_fee ?? 0;
+  const barrioFee =
+    barriosList.find((b) => b.name === barrio)?.delivery_fee ?? 0;
 
   return {
     form,

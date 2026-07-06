@@ -43,6 +43,7 @@ export interface Order {
   lat: number | null;
   lng: number | null;
   order_items: OrderItem[];
+  payment_proof: string | null;
 }
 
 interface OrderRow extends RowDataPacket {
@@ -68,6 +69,7 @@ interface OrderRow extends RowDataPacket {
   lat: string | null;
   lng: string | null;
   ingredients: unknown;
+  payment_proof: string | null;
 }
 
 interface OrderItemRow extends RowDataPacket {
@@ -145,6 +147,7 @@ function toOrder(row: OrderRow, items: OrderItemRow[]): Order {
     discount_percentage: num(row.discount_percentage),
     lat: row.lat == null ? null : num(row.lat),
     lng: row.lng == null ? null : num(row.lng),
+    payment_proof: row.payment_proof,
     order_items: items
       .filter((i) => i.order_id === row.id)
       .map((i) => ({
@@ -210,6 +213,7 @@ export interface NewOrderInput {
   discount_percentage?: number;
   lat?: number | null;
   lng?: number | null;
+  payment_proof?: string | null;
 }
 
 export interface NewOrderItemInput {
@@ -235,8 +239,8 @@ export async function createOrderWithItems(
     await conn.execute(
       `INSERT INTO orders (id, user_id, order_type, status, customer_name, customer_phone,
         customer_address, table_number, payment_method, cash_amount, subtotal,
-        neighborhood, delivery_fee, total, discount_percentage, lat, lng)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        neighborhood,payment_proof,delivery_fee, total, discount_percentage, lat, lng)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         order.user_id ?? null,
@@ -250,6 +254,7 @@ export async function createOrderWithItems(
         nullableMoney(order.cash_amount),
         finiteMoney(order.subtotal, 0),
         order.neighborhood ?? null,
+        order.payment_proof ?? null,
         finiteMoney(order.delivery_fee ?? 0, 0),
         finiteMoney(order.total, 0),
         finiteMoney(order.discount_percentage ?? 0, 0),

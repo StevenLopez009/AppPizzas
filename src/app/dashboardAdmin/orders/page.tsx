@@ -55,15 +55,19 @@ const ORDER_FLOW = {
   recoger: ["recibido", "cocinando", "recoger"],
 };
 
+const getTodayRange = () => {
+  const today = new Date();
+  const from = new Date(today);
+  from.setHours(0, 0, 0, 0);
+  const to = new Date(today);
+  to.setHours(23, 59, 59, 999);
+  return { from, to };
+};
+
 export default function AdminDashboard() {
   const router = useRouter();
-
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState<{
-    from?: Date;
-    to?: Date;
-  }>({});
   const [activeDiscount, setActiveDiscount] = useState<string | null>(null);
   const [discounts, setDiscounts] = useState<Record<string, number>>({});
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -76,6 +80,7 @@ export default function AdminDashboard() {
   const [open, setOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
   const [cancelReason, setCancelReason] = useState("");
+  const [dateRange, setDateRange] = useState(getTodayRange);
 
   const STATUS_STYLES: Record<string, string> = {
     recibido: "bg-gray-500 text-gray-700",
@@ -470,14 +475,7 @@ export default function AdminDashboard() {
         {[
           {
             label: "Hoy",
-            onClick: () => {
-              const today = new Date();
-              const start = new Date(today);
-              start.setHours(0, 0, 0, 0);
-              const end = new Date(today);
-              end.setHours(23, 59, 59, 999);
-              setDateRange({ from: start, to: end });
-            },
+            onClick: () => setDateRange(getTodayRange()),
           },
           {
             label: "Esta semana",

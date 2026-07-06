@@ -67,6 +67,10 @@ export function useCheckout() {
         return;
       }
     }
+    if (form.pago === "digital" && orderType !== "mesa" && !form.comprobante) {
+      toast.error("Debes subir el comprobante de pago.");
+      return;
+    }
 
     try {
       let paymentProof: string | null = null;

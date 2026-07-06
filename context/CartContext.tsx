@@ -61,21 +61,24 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const addToCart = (newItem: CartItem) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find(
-        (item) =>
+      const existingItem = prevCart.find((item) => {
+        return (
           item.product_id === newItem.product_id &&
           item.size === newItem.size &&
           item.extra === newItem.extra &&
-          item.additionals?.[0]?.name === newItem.additionals?.[0]?.name,
-      );
+          item.observations === newItem.observations &&
+          JSON.stringify(item.additionals ?? []) ===
+            JSON.stringify(newItem.additionals ?? [])
+        );
+      });
 
       if (existingItem) {
         return prevCart.map((item) =>
-          item.product_id === newItem.product_id &&
-          item.size === newItem.size &&
-          item.extra === newItem.extra &&
-          item.additionals?.[0]?.name === newItem.additionals?.[0]?.name
-            ? { ...item, quantity: item.quantity + newItem.quantity }
+          item.id === existingItem.id
+            ? {
+                ...item,
+                quantity: item.quantity + newItem.quantity,
+              }
             : item,
         );
       }
@@ -83,11 +86,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       return [...prevCart, newItem];
     });
 
-    // Volver al carrito cuando se añade un producto
     setShowOrder(false);
     setShowOrderPage(false);
   };
-
   const updateQuantity = (id: string, action: "plus" | "minus") => {
     setCart((prevCart) =>
       prevCart

@@ -81,6 +81,12 @@ export default function AdminDashboard() {
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [dateRange, setDateRange] = useState(getTodayRange);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedBorder, setSelectedBorder] = useState("");
 
   const STATUS_STYLES: Record<string, string> = {
     recibido: "bg-gray-500 text-gray-700",
@@ -90,6 +96,40 @@ export default function AdminDashboard() {
     entregado: "bg-green-500 text-green-800",
     recoger: "bg-green-500 text-purple-800",
     cancelado: "bg-red-500 text-red-800",
+  };
+
+  const BORDERS = [
+    { name: "Normal", price: 0 },
+    { name: "Queso Crema", price: 5000 },
+    { name: "Arequipe", price: 5000 },
+    { name: "Bocadillo", price: 5000 },
+    { name: "Chocolate", price: 6000 },
+    { name: "Chocolate Blanco", price: 6000 },
+    { name: "Fresa", price: 5000 },
+    { name: "Frutos Amarillos", price: 6000 },
+    { name: "Frutos Rojos", price: 6000 },
+    { name: "Melocotón", price: 6000 },
+    { name: "Mora", price: 5000 },
+    { name: "Nucita", price: 6000 },
+    { name: "Nutella", price: 7000 },
+    { name: "Choco Arequipe", price: 7000 },
+  ];
+
+  const isPizza =
+    selectedCategory === "Pizza Sal" || selectedCategory === "Pizza Dulce";
+
+  const updatePrice = (productId: string, size: string, borderName: string) => {
+    const product = products.find((p) => p.id === productId);
+
+    if (!product) return;
+
+    const selectedPrice = product.prices.find((p: any) => p.size === size);
+
+    if (!selectedPrice) return;
+
+    const border = BORDERS.find((b) => b.name === borderName)?.price ?? 0;
+
+    setExtraPrice(String(selectedPrice.price + border));
   };
 
   async function refreshOrders() {
@@ -103,9 +143,26 @@ export default function AdminDashboard() {
     }
   }
 
+  const loadProducts = async () => {
+    try {
+      const { categories } = await api.get("/api/categories");
+      const { products } = await api.get("/api/products");
+
+      setCategories(categories);
+      setProducts(products);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     refreshOrders();
+    loadProducts();
   }, []);
+
+  const filteredProducts = products.filter(
+    (p) => p.category === selectedCategory,
+  );
 
   useOrdersStream(null, (event) => {
     if (event.type === "order.created" && event.order) {
@@ -272,7 +329,14 @@ export default function AdminDashboard() {
     },
     {} as Record<string, number>,
   );
-
+  const resetForm = () => {
+    setSelectedCategory("");
+    setSelectedProduct("");
+    setSelectedSize("");
+    setSelectedBorder("");
+    setExtraName("");
+    setExtraPrice("");
+  };
   const handleAddExtra = async () => {
     if (!extraName || !extraPrice || !selectedOrder) {
       toast.error("Completa los campos");
@@ -286,7 +350,8 @@ export default function AdminDashboard() {
           product_name: extraName,
           quantity: 1,
           price: Number(extraPrice),
-          size: "extra",
+          size: selectedSize || "extra",
+          extra: isPizza ? `Borde: ${selectedBorder}` : null,
         },
       );
       if (updated) {
@@ -294,6 +359,7 @@ export default function AdminDashboard() {
           prev.map((o) => (o.id === updated.id ? updated : o)),
         );
       }
+      resetForm();
       toast.success("Extra agregado");
     } catch (e) {
       console.error(e);
@@ -847,6 +913,143 @@ export default function AdminDashboard() {
             <h2 className="text-base sm:text-lg font-bold text-fg">
               Agregar producto extra
             </h2>
+            <select
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setSelectedProduct("");
+              }}
+              className="
+    w-full
+    rounded-xl
+    border
+    border-line
+    bg-canvas
+    px-3
+    py-2
+    text-fg
+    shadow-sm
+    outline-none
+    transition
+    focus:border-brand
+    focus:ring-2
+    focus:ring-brand-ring
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+  "
+            >
+              <option value="">Seleccionar categoría...</option>
+
+              {categories.map((c) => (
+                <option key={c.id} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedProduct}
+              onChange={(e) => {
+                const product = products.find((p) => p.id === e.target.value);
+
+                setSelectedProduct(e.target.value);
+                setSelectedSize("");
+
+                if (product) {
+                  setExtraName(product.name);
+
+                  // Si solo tiene un precio lo asigna automáticamente
+                  if (product.prices.length === 1) {
+                    setSelectedSize(product.prices[0].size);
+                    setExtraPrice(String(product.prices[0].price));
+                  } else {
+                    setExtraPrice("");
+                  }
+                }
+              }}
+              disabled={!selectedCategory}
+              className="
+    w-full
+    rounded-xl
+    border
+    border-line
+    bg-canvas
+    px-3
+    py-2
+    text-fg
+    shadow-sm
+    outline-none
+    transition
+    focus:border-brand
+    focus:ring-2
+    focus:ring-brand-ring
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+  "
+            >
+              <option value="">Seleccionar producto...</option>
+
+              {filteredProducts.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedSize}
+              disabled={!selectedProduct}
+              onChange={(e) => {
+                const sizeSelected = e.target.value;
+
+                setSelectedSize(sizeSelected);
+
+                const product = products.find((p) => p.id === selectedProduct);
+                if (!product) return;
+
+                const price = product.prices.find(
+                  (x: any) => x.size === sizeSelected,
+                );
+
+                if (!price) return;
+
+                const border = BORDERS.find((b) => b.name === selectedBorder);
+
+                setExtraPrice(String(price.price + (border?.price ?? 0)));
+              }}
+              className="w-full rounded-xl border border-line bg-canvas px-3 py-2 text-fg focus:ring-2 focus:ring-brand-ring"
+            >
+              <option value="">Seleccionar tamaño...</option>
+
+              {products
+                .find((p) => p.id === selectedProduct)
+                ?.prices.map((price: any) => (
+                  <option key={price.size} value={price.size}>
+                    {price.size} - ${price.price.toLocaleString("es-CO")}
+                  </option>
+                ))}
+            </select>
+            {isPizza && (
+              <select
+                value={selectedBorder}
+                onChange={(e) => {
+                  const border = e.target.value;
+
+                  setSelectedBorder(border);
+
+                  updatePrice(selectedProduct, selectedSize, border);
+                }}
+                className="w-full rounded-xl border border-line bg-canvas text-fg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-ring"
+              >
+                {BORDERS.map((b) => (
+                  <option key={b.name} value={b.name}>
+                    {b.name}{" "}
+                    {b.price > 0
+                      ? `(+$${b.price.toLocaleString("es-CO")})`
+                      : ""}
+                  </option>
+                ))}
+              </select>
+            )}
             <input
               type="text"
               placeholder="Nombre"

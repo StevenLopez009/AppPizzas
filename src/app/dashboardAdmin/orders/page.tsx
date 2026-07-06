@@ -33,6 +33,7 @@ interface Order {
   customer_name: string;
   customer_phone: string;
   payment_method: string;
+  payment_proof: string | null;
   cash_amount?: number | null;
   customer_address: string;
   neighborhood: string;
@@ -573,6 +574,16 @@ export default function AdminDashboard() {
                           </p>
                         </>
                       )}
+                      {order.payment_proof && (
+                        <a
+                          href={order.payment_proof}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center rounded-md py-1 text-sm text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors"
+                        >
+                          comprobante
+                        </a>
+                      )}
 
                       <p className="text-xs sm:text-sm text-fg-muted">
                         {order.payment_method}
@@ -580,7 +591,7 @@ export default function AdminDashboard() {
                       <p className="text-xs sm:text-sm text-fg-muted">
                         {order.cash_amount
                           ? `Paga con $${Number(order.cash_amount).toLocaleString("es-CO")}`
-                          : "No especificado"}
+                          : ""}
                       </p>
 
                       {order.order_type === "domicilio" && (

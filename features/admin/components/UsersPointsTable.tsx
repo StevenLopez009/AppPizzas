@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import toast from "react-hot-toast";
-import { Trash2, RefreshCw } from "lucide-react";
+import { Trash2, RefreshCw, BrushCleaning } from "lucide-react";
 
 interface UserWithPoints {
   id: string;
@@ -65,6 +65,29 @@ export function UsersPointsTable() {
       return;
     }
     await handleUpdatePoints(userId, 0);
+  }
+
+  async function handleDeleteUser(userId: string) {
+    const confirmed = confirm(
+      "¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setUpdating(userId);
+
+      await api.delete(`/api/admin/users/${userId}`);
+
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+
+      toast.success("Usuario eliminado");
+    } catch (err) {
+      console.error(err);
+      toast.error("Error eliminando usuario");
+    } finally {
+      setUpdating(null);
+    }
   }
 
   if (loading) {
@@ -151,6 +174,14 @@ export function UsersPointsTable() {
                       disabled={updating === user.id || user.points === 0}
                       className="p-2 hover:bg-red-500/20 rounded text-red-600 dark:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Eliminar todos los puntos"
+                    >
+                      <BrushCleaning size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      disabled={updating === user.id}
+                      className="p-2 hover:bg-red-500/20 rounded text-red-600 disabled:opacity-50"
+                      title="Eliminar usuario"
                     >
                       <Trash2 size={18} />
                     </button>

@@ -171,3 +171,26 @@ export async function updateUserPoints(
     conn.release();
   }
 }
+
+export async function deleteUser(userId: string): Promise<void> {
+  const conn = await db.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // Eliminar historial de puntos
+    await conn.execute("DELETE FROM user_points_history WHERE user_id = ?", [
+      userId,
+    ]);
+
+    // Eliminar usuario
+    await conn.execute("DELETE FROM users WHERE id = ?", [userId]);
+
+    await conn.commit();
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
+}

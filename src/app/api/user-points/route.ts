@@ -17,6 +17,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ points, history });
   } catch (error) {
     console.error("[/api/user-points GET]", error);
-    return NextResponse.json({ error: "Error fetching points" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Error fetching points" },
+      { status: 500 },
+    );
   }
 }

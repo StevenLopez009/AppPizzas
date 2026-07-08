@@ -35,7 +35,7 @@ export default function PaymentSection({
           />
         </div>
 
-        {form.pago === "efectivo" && (
+        {form.pago === "efectivo" && orderType !== "mesa" && (
           <div className="p-4">
             <input
               type="number"
@@ -54,7 +54,7 @@ export default function PaymentSection({
         )}
 
         <div className="flex items-center justify-between p-4">
-          <p className="font-semibold text-fg">Nequi o Tarjeta</p>
+          <p className="font-semibold text-fg">Pago Digital</p>
           <input
             type="radio"
             name="pago"

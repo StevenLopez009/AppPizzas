@@ -137,7 +137,8 @@ function OrderTrackingTime({ status, orderType }: Props) {
         }`}
       >
         {{
-          recibido: "Hemos recibido tu pedido y lo estamos procesando",
+          recibido:
+            "¡Lo bueno se hace esperar! Disfruta de tu juego favorito mientras terminamos de darle el toque final a tu pedido.",
           cocinando: "Estamos preparando tu comida con cariño",
           enviado: "Tu pedido va en camino, ¡ya casi llega!",
           entregado: "¡Tu pedido fue entregado! Buen provecho 🎉",

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { UsersPointsTable } from "@/features/admin/components/UsersPointsTable";
+import { UsersCounter } from "@/features/admin/components/UsersCounter";
 
 export const metadata: Metadata = {
   title: "Gestión de Puntos - Admin",
@@ -15,10 +16,13 @@ export default function PointsPage() {
         </p>
       </div>
 
+      <UsersCounter />
       <UsersPointsTable />
 
       <div className="bg-surface-muted rounded-2xl border border-line p-6">
-        <h2 className="text-lg font-semibold text-fg mb-4">Sistema de Puntos</h2>
+        <h2 className="text-lg font-semibold text-fg mb-4">
+          Sistema de Puntos
+        </h2>
         <ul className="space-y-3 text-sm text-fg-muted">
           <li className="flex items-start gap-3">
             <span className="text-brand font-bold">•</span>

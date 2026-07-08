@@ -34,7 +34,7 @@ export async function createOrder({
     user_id: userId,
     order_type: orderType,
     status: "recibido",
-    customer_name: orderType === "mesa" ? null : form.nombre,
+    customer_name: form.nombre,
     customer_phone: form.telefono,
     customer_address: orderType === "domicilio" ? form.direccion : null,
     table_label: tableNum,

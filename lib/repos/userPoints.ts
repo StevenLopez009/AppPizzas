@@ -194,3 +194,50 @@ export async function deleteUser(userId: string): Promise<void> {
     conn.release();
   }
 }
+
+export async function syncOrderPoints(
+  userId: string,
+  orderId: string,
+  previousTotal: number,
+  newTotal: number,
+) {
+  const previousPoints = Math.floor(previousTotal / 100);
+  const newPoints = Math.floor(newTotal / 100);
+
+  const diff = newPoints - previousPoints;
+
+  if (diff === 0) return;
+
+  const conn = await db.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    await conn.execute("UPDATE users SET points = points + ? WHERE id = ?", [
+      diff,
+      userId,
+    ]);
+
+    await conn.execute(
+      `INSERT INTO user_points_history
+      (id, user_id, amount, reason, order_id)
+      VALUES (?, ?, ?, ?, ?)`,
+      [uuid(), userId, diff, "order_update", orderId],
+    );
+
+    await conn.commit();
+  } catch (e) {
+    await conn.rollback();
+    throw e;
+  } finally {
+    conn.release();
+  }
+}
+/** Obtener los usuarios registradps */
+export async function getUsersCount(): Promise<number> {
+  const row = await queryOne<RowDataPacket & { total: number }>(
+    "SELECT COUNT(*) AS total FROM users",
+  );
+
+  return Number(row?.total ?? 0);
+}

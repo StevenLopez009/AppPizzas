@@ -141,6 +141,13 @@ export default function CustomerForm({
                 ))}
               </select>
             </div>
+            <input
+              name="nombre"
+              value={form.nombre}
+              onChange={handleChange}
+              placeholder="Nombre"
+              className={inputCls}
+            />
 
             <input
               name="telefono"

@@ -35,7 +35,7 @@ interface Props {
 }
 
 export default function SalesStats({ orders }: Props) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const { theme, brand: brandColor } = useTheme();
   const isDark = theme === "dark";
 

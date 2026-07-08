@@ -2,6 +2,7 @@
 
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import toast from "react-hot-toast";
 
 import { useCheckoutForm } from "./useCheckoutForm";
@@ -13,6 +14,7 @@ import { sendWhatsAppOrder } from "../services/sendWhatsAppOrder";
 
 export function useCheckout() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const { cart, clearCart, orderType } = useCart();
   const { form, barrio, barrioFee, mesa, setBarrio, setMesa, handleChange } =
     useCheckoutForm();
@@ -37,6 +39,8 @@ export function useCheckout() {
   const total = subtotal + domicilio;
 
   const handleSubmit = async () => {
+    if (loading) return;
+
     if (cart.length === 0) {
       toast.error("Tu carrito está vacío");
       return;
@@ -71,6 +75,8 @@ export function useCheckout() {
       toast.error("Debes subir el comprobante de pago.");
       return;
     }
+
+    setLoading(true);
 
     try {
       let paymentProof: string | null = null;
@@ -130,6 +136,8 @@ export function useCheckout() {
     } catch (error) {
       console.error(error);
       toast.error("Error creando la orden");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -153,5 +161,6 @@ export function useCheckout() {
     clearSavedLocation,
     sendRestaurantLocation,
     handleSubmit,
+    loading,
   };
 }

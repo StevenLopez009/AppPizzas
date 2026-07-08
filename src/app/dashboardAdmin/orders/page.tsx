@@ -212,16 +212,16 @@ export default function AdminDashboard() {
 
         switch (status) {
           case "listo_cocina":
-            message = `Hola apreciado cliente ,
+            message = `Hola ${order.customer_name},
           Tu pedido con el codigo #${order.order_number} ya está listo pasa a la barra y
           ¡Disfruta!`;
             break;
 
           case "enviado":
             message = `Hola ${order.customer_name},
-          Tu pedido con el codigo #${order.order_number} ya salió en camino.
-          En unos minutos llegará a tu dirección.
-          ¡Gracias por tu compra!`;
+          Tu pedido ya va en camino.  Por favor, prepárate para recibirlo. 
+          Para mayor seguridad, tu código de entrega es #${order.order_number} Por favor, 
+          no olvides marcar 'Recibido' en la App apenas lo tengas en tus manos. ¡Que lo disfrutes!`;
             break;
           default:
             break;
@@ -285,6 +285,33 @@ export default function AdminDashboard() {
     const final = o.total - (o.total * (o.discount_percentage || 0)) / 100;
     return acc + final;
   }, 0);
+
+  const deliveriesByNeighborhood = filteredOrders
+    .filter((o) => o.order_type === "domicilio" && o.status !== "cancelado")
+    .reduce(
+      (acc, order) => {
+        const neighborhood = order.neighborhood || "Sin barrio";
+
+        if (!acc[neighborhood]) {
+          acc[neighborhood] = {
+            count: 0,
+            total: 0,
+          };
+        }
+
+        acc[neighborhood].count += 1;
+        acc[neighborhood].total += Number(order.delivery_fee || 0);
+
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          count: number;
+          total: number;
+        }
+      >,
+    );
 
   const applyDiscount = async (order: Order) => {
     const discount = discounts[order.id];
@@ -505,33 +532,68 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {Object.entries(salesByPaymentMethod).map(([method, total]) => {
-              const isMainMethod =
-                method.toLowerCase().includes("efectivo") ||
-                method.toLowerCase().includes("digital");
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            {/* Columna izquierda */}
+            <div className="flex flex-col gap-4">
+              {Object.entries(salesByPaymentMethod)
+                .filter(([method]) => method.toLowerCase().includes("efectivo"))
+                .map(([method, total]) => (
+                  <div
+                    key={method}
+                    className="bg-surface border border-line rounded-2xl p-4 shadow-md"
+                  >
+                    <span className="text-xs text-fg-muted">{method}</span>
 
-              return (
-                <div
-                  key={method}
-                  className={`bg-surface border border-line rounded-2xl p-4 shadow-md ${
-                    isMainMethod ? "col-span-2" : ""
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs tracking-wide text-fg-muted">
-                      {method}
-                    </span>
-
-                    <span className="h-2 w-2 rounded-full bg-green-500" />
+                    <p className="mt-3 text-2xl font-bold">
+                      ${Number(total).toLocaleString("es-CO")}
+                    </p>
                   </div>
+                ))}
 
-                  <p className="mt-3 text-2xl font-bold text-fg">
-                    ${Number(total).toLocaleString("es-CO")}
-                  </p>
-                </div>
-              );
-            })}
+              {Object.entries(salesByPaymentMethod)
+                .filter(([method]) => method.toLowerCase().includes("digital"))
+                .map(([method, total]) => (
+                  <div
+                    key={method}
+                    className="bg-surface border border-line rounded-2xl p-4 shadow-md"
+                  >
+                    <span className="text-xs text-fg-muted">{method}</span>
+
+                    <p className="mt-3 text-2xl font-bold">
+                      ${Number(total).toLocaleString("es-CO")}
+                    </p>
+                  </div>
+                ))}
+            </div>
+
+            {/* Cuadro grande */}
+            <div className="lg:col-span-2 bg-surface border border-line rounded-2xl p-5 shadow-md">
+              <h2 className="text-lg font-bold mb-4">Domicilios por barrio</h2>
+
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-line">
+                    <th className="text-left py-2">Barrio</th>
+                    <th className="text-center py-2">Pedidos</th>
+                    <th className="text-right py-2">Costo</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {Object.entries(deliveriesByNeighborhood).map(
+                    ([neighborhood, data]) => (
+                      <tr key={neighborhood} className="border-b border-line">
+                        <td className="py-2">{neighborhood}</td>
+                        <td className="text-center">{data.count}</td>
+                        <td className="text-right text-green-600 font-semibold">
+                          ${data.total.toLocaleString("es-CO")}
+                        </td>
+                      </tr>
+                    ),
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}
@@ -621,15 +683,17 @@ export default function AdminDashboard() {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                     <div className="space-y-1 flex-1">
                       {order.order_type === "mesa" && (
-                        <p className="font-bold text-base sm:text-lg">
-                          {order.table_number}
-                        </p>
+                        <>
+                          <p className="font-bold text-base sm:text-lg">
+                            {order.table_number}
+                          </p>
+                          <p className="text-xs sm:text-sm text-fg-muted break-words">
+                            {order.customer_name}
+                          </p>
+                        </>
                       )}
                       {order.order_type !== "mesa" && (
                         <>
-                          <p className="font-bold text-base sm:text-lg break-words">
-                            {order.customer_name}
-                          </p>
                           <p className="text-xs sm:text-sm text-fg-muted break-words">
                             {order.customer_phone}
                           </p>
@@ -698,7 +762,10 @@ export default function AdminDashboard() {
                           "bg-surface-muted text-fg-muted"
                         }`}
                       >
-                        {order.status.replace(/_/g, " ")}
+                        {order.order_type === "mesa" &&
+                        order.status === "entregado"
+                          ? "Liberar"
+                          : order.status.replace(/_/g, " ")}
                       </span>
                     </div>
                   </div>
@@ -848,7 +915,9 @@ export default function AdminDashboard() {
                       >
                         {ORDER_FLOW[order.order_type].map((s) => (
                           <option key={s} value={s}>
-                            {s.replace(/_/g, " ")}
+                            {order.order_type === "mesa" && s === "entregado"
+                              ? "Liberar"
+                              : s.replace(/_/g, " ")}
                           </option>
                         ))}
                       </select>

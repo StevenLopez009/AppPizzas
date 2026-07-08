@@ -26,7 +26,13 @@ export default function CheckoutView(props: any) {
         <PaymentSection {...props} />
       </div>
 
-      <CheckoutFooter total={props.total} subtotal={props.subtotal} domicilio={props.domicilio} onSubmit={props.handleSubmit} />
+      <CheckoutFooter
+        total={props.total}
+        subtotal={props.subtotal}
+        domicilio={props.domicilio}
+        loading={props.loading}
+        onSubmit={props.handleSubmit}
+      />
     </div>
   );
 }

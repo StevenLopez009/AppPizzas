@@ -1,7 +1,7 @@
 import "server-only";
 import { db, parseJSON, query, queryOne, type DbValue } from "@/lib/db";
 import { uuid } from "@/lib/uuid";
-import { addPointsToUser } from "./userPoints";
+import { addPointsToUser, syncOrderPoints } from "./userPoints";
 import type { RowDataPacket } from "mysql2";
 
 export type OrderType = "domicilio" | "mesa" | "recoger";
@@ -415,14 +415,23 @@ export async function deleteOrderItem(orderId: string, itemId: string) {
   );
 
   const order = await getOrder(orderId);
+
+  if (!order) {
+    throw new Error("Pedido no encontrado");
+  }
+
   const subtotal = num(sumRow?.total);
-  const newTotal = subtotal + (order?.delivery_fee ?? 0);
+  const newTotal = subtotal + order.delivery_fee;
 
   await db.execute("UPDATE orders SET subtotal = ?, total = ? WHERE id = ?", [
     subtotal,
     newTotal,
     orderId,
   ]);
+
+  if (order.user_id) {
+    await syncOrderPoints(order.user_id, orderId, order.total, newTotal);
+  }
 }
 
 export async function addOrderItem(
@@ -455,14 +464,23 @@ export async function addOrderItem(
   );
 
   const order = await getOrder(orderId);
+
+  if (!order) {
+    throw new Error("Pedido no encontrado");
+  }
+
   const subtotal = num(sumRow?.total);
-  const newTotal = subtotal + (order?.delivery_fee ?? 0);
+  const newTotal = subtotal + order.delivery_fee;
 
   await db.execute("UPDATE orders SET subtotal = ?, total = ? WHERE id = ?", [
     subtotal,
     newTotal,
     orderId,
   ]);
+
+  if (order.user_id) {
+    await syncOrderPoints(order.user_id, orderId, order.total, newTotal);
+  }
 
   const row = await queryOne<OrderItemRow>(
     "SELECT * FROM order_items WHERE id = ? LIMIT 1",

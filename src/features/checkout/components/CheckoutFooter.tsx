@@ -2,10 +2,17 @@ interface Props {
   total: number;
   subtotal: number;
   domicilio: number;
+  loading: boolean;
   onSubmit: () => void;
 }
 
-export default function CheckoutFooter({ total, subtotal, domicilio, onSubmit }: Props) {
+export default function CheckoutFooter({
+  total,
+  subtotal,
+  domicilio,
+  loading,
+  onSubmit,
+}: Props) {
   return (
     <div className="sticky bottom-0 w-full bg-surface border-t border-line p-4 md:p-5 shadow-lg z-10">
       <div className="flex flex-col gap-3">
@@ -30,9 +37,15 @@ export default function CheckoutFooter({ total, subtotal, domicilio, onSubmit }:
 
         <button
           onClick={onSubmit}
-          className="w-full bg-brand hover:bg-brand-hover active:bg-brand-active text-white py-3 md:py-3.5 rounded-xl md:rounded-2xl font-bold text-base transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
+          disabled={loading}
+          className={`w-full py-3 md:py-3.5 rounded-xl md:rounded-2xl font-bold text-base transition-all duration-200 shadow-sm
+    ${
+      loading
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-brand hover:bg-brand-hover active:bg-brand-active text-white cursor-pointer"
+    }`}
         >
-          Confirmar pedido
+          {loading ? "Enviando..." : "Confirmar pedido"}
         </button>
       </div>
     </div>

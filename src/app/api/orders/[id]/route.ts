@@ -24,7 +24,7 @@ export async function PATCH(
   if (!order) return NextResponse.json({ error: "not found" }, { status: 404 });
 
   if (order.order_type === "mesa") {
-    if (order.status === "entregado") {
+    if (order.status === "entregado" || order.status === "cancelado") {
       await query(
         `
         UPDATE restaurant_zones

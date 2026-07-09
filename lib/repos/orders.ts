@@ -380,7 +380,33 @@ export async function updateOrder(
   if (!updatedOrder) {
     return null;
   }
-
+  if (
+    previousOrder.user_id &&
+    previousOrder.status !== "cancelado" &&
+    updatedOrder.status === "cancelado"
+  ) {
+    await syncOrderPoints(
+      previousOrder.user_id,
+      previousOrder.id,
+      previousOrder.total,
+      0,
+    );
+  }
+  // Liberar mesa al cancelar
+  if (
+    previousOrder.order_type === "mesa" &&
+    previousOrder.status !== "cancelado" &&
+    updatedOrder.status === "cancelado"
+  ) {
+    await db.execute(
+      `
+    UPDATE restaurant_zones
+    SET occupied = 0
+    WHERE label = ?
+    `,
+      [previousOrder.table_number],
+    );
+  }
   if (
     previousOrder.order_type === "domicilio" &&
     previousOrder.status !== "enviado" &&
@@ -393,6 +419,14 @@ export async function updateOrder(
 }
 
 export async function deleteOrder(id: string): Promise<void> {
+  const order = await getOrder(id);
+
+  if (!order) return;
+
+  if (order.user_id) {
+    await syncOrderPoints(order.user_id, order.id, order.total, 0);
+  }
+
   await db.execute("DELETE FROM orders WHERE id = ?", [id]);
 }
 

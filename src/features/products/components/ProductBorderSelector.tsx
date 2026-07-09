@@ -1,9 +1,34 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 interface Props {
   value: string;
   onChange: (value: string) => void;
 }
 
+interface Border {
+  id: string;
+  name: string;
+}
+
 export default function ProductBorderSelector({ value, onChange }: Props) {
+  const [borders, setBorders] = useState<Border[]>([]);
+
+  useEffect(() => {
+    const loadBorders = async () => {
+      try {
+        const response = await fetch("/api/borders");
+        const data = await response.json();
+        setBorders(data.borders);
+      } catch (err) {
+        console.error("Error cargando bordes", err);
+      }
+    };
+
+    loadBorders();
+  }, []);
+
   return (
     <div className="mb-5">
       <h3 className="font-bold text-fg mb-3">Bordes de la Pizza</h3>
@@ -13,20 +38,13 @@ export default function ProductBorderSelector({ value, onChange }: Props) {
         onChange={(e) => onChange(e.target.value)}
         className="w-full border border-line rounded-2xl p-3 bg-surface-muted text-fg outline-none focus:ring-2 focus:ring-brand-ring"
       >
-        <option value="">---</option>
-        <option value="queso">Queso Crema</option>
-        <option value="arequipe">Arequipe</option>
-        <option value="bocadillo">Bocadillo</option>
-        <option value="chocolate">Chocolate</option>
-        <option value="chocolate blanco">Chocolate Blanco</option>
-        <option value="fresa">Fresa</option>
-        <option value="frutos amarillos">Frutos Amarillos</option>
-        <option value="frutos rojos">Frutos Rojos</option>
-        <option value="melocoton">Melocotón</option>
-        <option value="mora">Mora</option>
-        <option value="nucita">Nucita</option>
-        <option value="nutela">Nutella</option>
-        <option value="choco arequipe">Choco Arequipe</option>
+        <option value="">Selecciona un borde</option>
+
+        {borders.map((border) => (
+          <option key={border.id} value={border.name}>
+            {border.name}
+          </option>
+        ))}
       </select>
     </div>
   );

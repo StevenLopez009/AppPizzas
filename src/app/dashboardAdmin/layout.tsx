@@ -20,6 +20,7 @@ import {
   Sun,
   Moon,
   Gift,
+  PizzaIcon,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { usePathname, useRouter } from "next/navigation";
@@ -72,6 +73,13 @@ function AdminMobileMenu({ onLogout }: { onLogout: () => void }) {
       path: "/dashboardAdmin/categories",
       label: "Categorías",
     },
+    {
+      id: "borders",
+      icon: PizzaIcon,
+      path: "/dashboardAdmin/borders",
+      label: "Bordes",
+    },
+
     {
       id: "appearance",
       icon: Palette,
@@ -304,6 +312,12 @@ export default function AdminLayout({
       label: "Adicionales",
       icon: HandPlatter,
       path: "/dashboardAdmin/adittionals",
+    },
+    {
+      id: "borders",
+      label: "Bordes",
+      icon: PizzaIcon,
+      path: "/dashboardAdmin/borders",
     },
     {
       id: "orders",

@@ -134,24 +134,44 @@ export default function PizzaMitadesPage() {
       setError("Debes seleccionar un tamaño para tu pizza.");
       return;
     }
+
     if (saboresSeleccionados.length < 2) {
       setError("Por favor, elige los 2 sabores para las mitades.");
       return;
     }
-    if (!borders[0] || !borders[1]) {
-      setError("Por favor, elige los bordes para tu pizza");
+
+    if (!borders[0] && !borders[1]) {
+      setError("Por favor, selecciona al menos un borde.");
       return;
     }
 
     const precioTotal = calcularPrecioTotal();
 
-    // Crear texto de adicionales para mostrar en el extra
+    // Nombres de las pizzas
+    const nombresSabores = saboresSeleccionados
+      .map((id) => products.find((p) => p.id === id)?.name)
+      .filter(Boolean)
+      .join(" / ");
+
+    // Nombres de los bordes
+    const borde1 = borderOptions.find((b) => b.id === borders[0])?.name;
+    const borde2 = borderOptions.find((b) => b.id === borders[1])?.name;
+
+    const nombresBordes =
+      borde1 && borde2 ? `${borde1} / ${borde2}` : borde1 || borde2 || "";
+
+    // Texto de adicionales
     const adicionalesTexto =
       selectedAdditionals.length > 0
         ? ` | Adicionales: ${selectedAdditionals.map((a) => a.name).join(", ")}`
         : "";
 
-    const id = `mitades-${selectedSize.label}-${saboresSeleccionados.join("-")}-${selectedAdditionals.map((a) => a.name).join("-")}`;
+    const bordeTexto = nombresBordes ? ` | Bordes: ${nombresBordes}` : "";
+
+    const id = `mitades-${selectedSize.label}-${saboresSeleccionados.join(
+      "-",
+    )}-${selectedAdditionals.map((a) => a.name).join("-")}`;
+
     const item = {
       id,
       product_id: id,
@@ -159,7 +179,7 @@ export default function PizzaMitadesPage() {
       price: precioTotal,
       size: selectedSize.label,
       image: ImagePizza.src,
-      extra: `Mitades: ${saboresSeleccionados.join(" / ")} | Bordes: ${borders[0]} / ${borders[1]}${adicionalesTexto}`,
+      extra: `Mitades: ${nombresSabores}${bordeTexto}${adicionalesTexto}`,
       quantity: 1,
       additionals: selectedAdditionals,
     };

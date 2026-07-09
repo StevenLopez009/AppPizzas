@@ -16,6 +16,7 @@ interface OrderItem {
   quantity: number;
   price: number;
   size: string;
+  category?: string;
   extra?: string | null;
   observations?: string | null;
   additionals?: Array<{ name: string; price: number }> | null;
@@ -287,6 +288,15 @@ export const InvoicePDF = ({ order }: { order: Order }) => {
   // Calcular el total final
   const totalWithDiscount = baseParaDescuento - discountValue;
 
+  const sortedItems = [...order.order_items].sort((a, b) => {
+    const aIsDrink = a.category?.toLowerCase() === "bebidas";
+    const bIsDrink = b.category?.toLowerCase() === "bebidas";
+
+    if (aIsDrink === bIsDrink) return 0;
+
+    return aIsDrink ? 1 : -1;
+  });
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -329,7 +339,7 @@ export const InvoicePDF = ({ order }: { order: Order }) => {
             <Text style={[styles.headerText, styles.colTotal]}>Total</Text>
           </View>
 
-          {order.order_items?.map((item, index) => {
+          {sortedItems.map((item, index) => {
             const itemTotal = calculateItemTotal(item);
             return (
               <View key={index} style={styles.productRow}>

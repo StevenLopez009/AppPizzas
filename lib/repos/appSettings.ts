@@ -7,6 +7,7 @@ interface AppSettingsRow extends RowDataPacket {
   theme_primary: string;
   business_name: string;
   store_open: number;
+  payment_key: string;
 }
 
 let schemaEnsured = false;
@@ -55,6 +56,22 @@ async function ensureAppSettingsTable(): Promise<void> {
      AND COLUMN_NAME = 'store_open'`,
   );
 
+  // payment_key
+  const [colsPayment] = await db.execute<RowDataPacket[]>(
+    `SELECT COUNT(*) AS cnt
+   FROM INFORMATION_SCHEMA.COLUMNS
+   WHERE TABLE_SCHEMA = DATABASE()
+   AND TABLE_NAME = 'app_settings'
+   AND COLUMN_NAME = 'payment_key'`,
+  );
+
+  if (colsPayment[0]?.cnt === 0) {
+    await db.execute(`
+    ALTER TABLE app_settings
+    ADD COLUMN payment_key VARCHAR(120) NOT NULL DEFAULT ''
+  `);
+  }
+
   if (colsStore[0]?.cnt === 0) {
     await db.execute(`
       ALTER TABLE app_settings
@@ -76,7 +93,11 @@ export async function getSettings() {
   await ensureAppSettingsTable();
 
   const row = await queryOne<AppSettingsRow>(
-    `SELECT theme_primary, business_name, store_open
+    `SELECT
+  theme_primary,
+  business_name,
+  store_open,
+  payment_key
      FROM app_settings
      WHERE id = 1
      LIMIT 1`,
@@ -85,6 +106,7 @@ export async function getSettings() {
   return {
     themePrimary: row?.theme_primary ?? "#F97316",
     businessName: row?.business_name ?? "Pizzas La Carreta",
+    paymentKey: row?.payment_key ?? "",
     storeOpen: Boolean(row?.store_open ?? 1),
   };
 }
@@ -97,10 +119,12 @@ export async function getThemePrimary(): Promise<string> {
 export async function setSettings(patch: {
   themePrimary?: string;
   businessName?: string;
+  paymentKey?: string;
   storeOpen?: boolean;
 }): Promise<{
   themePrimary: string;
   businessName: string;
+  paymentKey: string;
   storeOpen: boolean;
 }> {
   await ensureAppSettingsTable();
@@ -112,21 +136,33 @@ export async function setSettings(patch: {
   }
   const newHex = hex ?? current.themePrimary;
   const newName = patch.businessName?.trim() || current.businessName;
+  const newPaymentKey =
+    patch.paymentKey !== undefined
+      ? patch.paymentKey.trim()
+      : current.paymentKey;
   const newStoreOpen =
     patch.storeOpen !== undefined ? patch.storeOpen : current.storeOpen;
 
   await db.execute(
-    `INSERT INTO app_settings (id, theme_primary, business_name, store_open)
-     VALUES (1, ?, ?, ?)
+    `INSERT INTO app_settings (
+  id,
+  theme_primary,
+  business_name,
+  payment_key,
+  store_open
+)
+VALUES (1, ?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
        theme_primary = VALUES(theme_primary),
        business_name = VALUES(business_name),
+       payment_key = VALUES(payment_key),
        store_open = VALUES(store_open)`,
-    [newHex, newName, newStoreOpen ? 1 : 0],
+    [newHex, newName, newPaymentKey, newStoreOpen ? 1 : 0],
   );
   return {
     themePrimary: newHex,
     businessName: newName,
+    paymentKey: newPaymentKey,
     storeOpen: newStoreOpen,
   };
 }

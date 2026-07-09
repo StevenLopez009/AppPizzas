@@ -1,4 +1,7 @@
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import toast from "react-hot-toast";
 
 interface Props {
   form: any;
@@ -13,6 +16,49 @@ export default function PaymentSection({
   total,
   orderType,
 }: Props) {
+  const [paymentKey, setPaymentKey] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await api.get<{
+          paymentKey: string;
+        }>("/api/settings");
+        console.log(data);
+        setPaymentKey(data.paymentKey);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, []);
+
+  const copyPaymentKey = async () => {
+    if (!paymentKey) return;
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(paymentKey);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = paymentKey;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+
+        textArea.focus();
+        textArea.select();
+
+        document.execCommand("copy");
+        textArea.remove();
+      }
+
+      toast.success("Llave copiada");
+    } catch (err) {
+      console.error(err);
+      toast.error("No se pudo copiar");
+    }
+  };
+
   const cambio =
     form.pago === "efectivo" && form.montoEfectivo
       ? parseInt(form.montoEfectivo) - total
@@ -74,13 +120,14 @@ export default function PaymentSection({
 
             <div className="flex items-center justify-between gap-3 rounded-xl bg-white dark:bg-neutral-900 border border-line px-4 py-3">
               <span className="font-mono text-lg font-bold tracking-wide text-emerald-600 dark:text-emerald-400">
-                @bfhm651232
+                {JSON.stringify(paymentKey)}
               </span>
 
               <button
                 type="button"
-                onClick={() => navigator.clipboard.writeText("@bfhm651232")}
-                className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition"
+                onClick={copyPaymentKey}
+                disabled={!paymentKey}
+                className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition disabled:opacity-50"
               >
                 Copiar
               </button>

@@ -13,6 +13,7 @@ import imageClose from "../../../../assets/images/apariencia.jpg";
 export default function AppearanceAdminPage() {
   const [hex, setHex] = useState("#F97316");
   const [businessName, setBusinessName] = useState("");
+  const [paymentKey, setPaymentKey] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [storeOpen, setStoreOpen] = useState(true);
@@ -26,6 +27,7 @@ export default function AppearanceAdminPage() {
         const data = await api.get<{
           themePrimary: string;
           businessName: string;
+          paymentKey: string;
           storeOpen: boolean;
         }>("/api/settings");
 
@@ -33,6 +35,7 @@ export default function AppearanceAdminPage() {
         const color = data.themePrimary || "#F97316";
         setHex(color);
         setBusinessName(data.businessName);
+        setPaymentKey(data.paymentKey);
         setBrand(color);
         applyBrandTheme(color);
       } catch {
@@ -49,10 +52,12 @@ export default function AppearanceAdminPage() {
       const data = await api.patch<{
         themePrimary: string;
         businessName: string;
+        paymentKey: string;
         storeOpen: boolean;
       }>("/api/settings", {
         themePrimary: hex,
         businessName,
+        paymentKey,
         storeOpen,
       });
 
@@ -73,6 +78,23 @@ export default function AppearanceAdminPage() {
   if (loading) {
     return <p className="p-4 text-gray-400">Cargando…</p>;
   }
+
+  const savePaymentKey = async () => {
+    try {
+      setSaving(true);
+
+      await api.patch("/api/settings", {
+        paymentKey,
+      });
+
+      toast.success("Llave de pago actualizada");
+    } catch (e) {
+      if (e instanceof ApiError) toast.error(e.message);
+      else toast.error("Error al guardar");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="p-4 md:p-0">
@@ -189,9 +211,9 @@ export default function AppearanceAdminPage() {
             </p>
           </div>
         </div>
-        <div className="hidden lg:block">
+        <div>
           <div className="h-full rounded-3xl overflow-hidden border border-white/10 bg-white/5 flex flex-col">
-            <div className="relative flex-1 min-h-[300px]">
+            <div className="relative flex-1 min-h-[300px] hidden lg:block">
               <Image
                 src={imageClose}
                 alt="Pizzería cerrada"
@@ -201,25 +223,34 @@ export default function AppearanceAdminPage() {
               />
             </div>
 
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-white">
-                Estado de la tienda
-              </h3>
+            <div className="space-y-2 p-5">
+              <label className="text-sm text-gray-300 block">
+                Llave de pago
+              </label>
 
-              <p className="mt-2 text-sm text-gray-400">
-                Cuando la recepción de pedidos esté desactivada, los clientes no
-                podrán realizar nuevas órdenes.
-              </p>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={paymentKey}
+                  onChange={(e) => setPaymentKey(e.target.value)}
+                  placeholder="@bfhm651232"
+                  maxLength={120}
+                  className="flex-1 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-brand-ring"
+                />
 
-              <div
-                className={`mt-4 inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-                  storeOpen
-                    ? "bg-green-500/20 text-green-400"
-                    : "bg-red-500/20 text-red-400"
-                }`}
-              >
-                {storeOpen ? "🟢 Abierta" : "🔴 Cerrada"}
+                <button
+                  type="button"
+                  onClick={savePaymentKey}
+                  disabled={saving}
+                  className="px-5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition disabled:opacity-50 whitespace-nowrap"
+                >
+                  {saving ? "..." : "Guardar"}
+                </button>
               </div>
+
+              <p className="text-xs text-gray-400">
+                Esta llave aparecerá a los clientes al seleccionar pago digital.
+              </p>
             </div>
           </div>
         </div>

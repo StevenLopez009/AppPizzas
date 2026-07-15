@@ -41,7 +41,7 @@ interface Order {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
+    padding: 8,
     backgroundColor: "#ffffff",
     fontFamily: "Helvetica",
   },
@@ -51,24 +51,23 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   logo: {
-    width: 80,
-    height: 80,
-    marginBottom: 10,
+    width: 45,
+    height: 45,
     alignSelf: "center",
   },
   businessName: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "bold",
     marginBottom: 5,
     letterSpacing: 1,
   },
   nit: {
-    fontSize: 9,
+    fontSize: 8,
     marginBottom: 3,
     color: "#444",
   },
   address: {
-    fontSize: 9,
+    fontSize: 8,
     marginBottom: 3,
     color: "#444",
   },
@@ -207,7 +206,6 @@ const styles = StyleSheet.create({
   clientSection: {
     marginVertical: 8,
     padding: 5,
-    backgroundColor: "#f9f9f9",
     borderRadius: 3,
   },
   clientTitle: {
@@ -246,6 +244,39 @@ const styles = StyleSheet.create({
   bankRow: {
     marginBottom: 2,
     fontSize: 7,
+  },
+  productBlock: {
+    marginBottom: 10,
+  },
+
+  productTitle: {
+    fontSize: 9,
+    fontWeight: "bold",
+  },
+
+  productLine: {
+    fontSize: 8,
+    marginLeft: 6,
+    marginTop: 2,
+  },
+
+  productTotal: {
+    fontSize: 9,
+    fontWeight: "bold",
+    textAlign: "right",
+    marginTop: 4,
+  },
+
+  extraTitle: {
+    fontSize: 8,
+    marginLeft: 6,
+    marginTop: 3,
+  },
+
+  separatorItem: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#999",
+    marginTop: 8,
   },
 });
 
@@ -299,7 +330,13 @@ export const InvoicePDF = ({ order }: { order: Order }) => {
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page
+        size={{
+          width: 226.77,
+          height: 1000,
+        }}
+        style={styles.page}
+      >
         {/* HEADER */}
         <View style={styles.mainHeader}>
           <Text style={styles.businessName}>PIZZAS LA CARRETA</Text>
@@ -330,50 +367,48 @@ export const InvoicePDF = ({ order }: { order: Order }) => {
 
         {/* TABLA DE PRODUCTOS */}
         <View>
-          <View style={styles.productsHeader}>
-            <Text style={[styles.headerText, styles.colCant]}>Cant</Text>
-            <Text style={[styles.headerText, styles.colProducto]}>
-              Producto
-            </Text>
-            <Text style={[styles.headerText, styles.colPrecio]}>Precio</Text>
-            <Text style={[styles.headerText, styles.colTotal]}>Total</Text>
-          </View>
-
           {sortedItems.map((item, index) => {
             const itemTotal = calculateItemTotal(item);
+
             return (
-              <View key={index} style={styles.productRow}>
-                <Text style={styles.colCant}>
-                  {item.quantity}
-                  {item.size === "grande" ? "g" : "p"}
+              <View key={index} style={styles.productBlock} wrap={false}>
+                <Text style={styles.productTitle}>
+                  {item.quantity}x {item.product_name}
+                  {item.size && ` (${item.size})`}
                 </Text>
-                <View style={styles.colProducto}>
-                  <Text style={styles.productName}>
-                    {item.product_name}
-                    {item.extra &&
-                      item.extra !== "sin extra" &&
-                      ` (${item.extra})`}
+
+                <Text style={styles.productLine}>
+                  Valor unidad: ${item.price.toLocaleString("es-CO")}
+                </Text>
+
+                {item.extra && item.extra !== "sin extra" && (
+                  <Text style={styles.productLine}>Extra: {item.extra}</Text>
+                )}
+
+                {item.additionals && item.additionals.length > 0 && (
+                  <>
+                    <Text style={styles.extraTitle}>Adicionales:</Text>
+
+                    {item.additionals.map((additional, i) => (
+                      <Text key={i} style={styles.productLine}>
+                        • {additional.name} (+$
+                        {additional.price.toLocaleString("es-CO")})
+                      </Text>
+                    ))}
+                  </>
+                )}
+
+                {item.observations && (
+                  <Text style={styles.productLine}>
+                    Observación: {item.observations}
                   </Text>
-                  {item.observations && (
-                    <Text style={styles.productObs}>
-                      📝 {item.observations}
-                    </Text>
-                  )}
-                  {item.additionals && item.additionals.length > 0 && (
-                    <Text style={styles.productObs}>
-                      + Extras:{" "}
-                      {item.additionals
-                        .map((a) => `${a.name} ($${a.price})`)
-                        .join(", ")}
-                    </Text>
-                  )}
-                </View>
-                <Text style={styles.colPrecio}>
-                  ${item.price.toLocaleString("es-CO")}
+                )}
+
+                <Text style={styles.productTotal}>
+                  Total: ${itemTotal.toLocaleString("es-CO")}
                 </Text>
-                <Text style={styles.colTotal}>
-                  ${itemTotal.toLocaleString("es-CO")}
-                </Text>
+
+                <View style={styles.separatorItem} />
               </View>
             );
           })}

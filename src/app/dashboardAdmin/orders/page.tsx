@@ -855,7 +855,7 @@ export default function AdminDashboard() {
                             <div className="mt-1">
                               {item.additionals.map((additional, index) => (
                                 <p key={index} className="text-brand text-xs">
-                                  Adicional: {additional.name} (+$
+                                  Adic: {additional.name} (+$
                                   {additional.price.toLocaleString("es-CO")})
                                 </p>
                               ))}

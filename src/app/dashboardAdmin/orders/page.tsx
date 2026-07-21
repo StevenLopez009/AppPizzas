@@ -76,6 +76,9 @@ export default function AdminDashboard() {
   const [pendingStatus, setPendingStatus] = useState<Record<string, string>>(
     {},
   );
+  const [pendingPayment, setPendingPayment] = useState<Record<string, string>>(
+    {},
+  );
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
@@ -178,6 +181,32 @@ export default function AdminDashboard() {
       setOrders((prev) => prev.filter((o) => o.id !== event.orderId));
     }
   });
+
+  const changePaymentMethod = async (order: Order) => {
+    const payment_method = pendingPayment[order.id] ?? order.payment_method;
+
+    if (payment_method === order.payment_method) return;
+
+    try {
+      const { order: updated } = await api.patch<{ order: Order }>(
+        `/api/orders/${encodeURIComponent(order.id)}`,
+        { payment_method },
+      );
+
+      setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+
+      setPendingPayment((prev) => {
+        const next = { ...prev };
+        delete next[order.id];
+        return next;
+      });
+
+      toast.success("Tipo de pago actualizado");
+    } catch (error) {
+      console.error(error);
+      toast.error("Error actualizando el tipo de pago");
+    }
+  };
 
   const openInvoice = (orderId: string) => {
     window.open(`/dashboardAdmin/factura/${orderId}`, "_blank");
@@ -682,21 +711,26 @@ export default function AdminDashboard() {
                   {/* Info del pedido */}
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                     <div className="space-y-1 flex-1">
-                      {order.order_type === "mesa" && (
+                      {order.order_type === "mesa" ? (
                         <>
                           <p className="font-bold text-base sm:text-lg">
-                            {order.table_number}
+                            Mesa {order.table_number}
                           </p>
+
                           <p className="text-xs sm:text-sm text-fg-muted break-words">
                             {order.customer_name}
                           </p>
                         </>
-                      )}
-                      {order.order_type !== "mesa" && (
+                      ) : (
                         <>
+                          <p className="font-semibold text-lg">
+                            {order.customer_name}
+                          </p>
+
                           <p className="text-xs sm:text-sm text-fg-muted break-words">
                             {order.customer_phone}
                           </p>
+
                           <p className="text-xs sm:text-sm text-fg-muted break-words">
                             {order.customer_address}
                           </p>
@@ -713,20 +747,45 @@ export default function AdminDashboard() {
                         </a>
                       )}
 
-                      <p className="text-xs sm:text-sm text-fg-muted">
-                        {order.payment_method}
-                      </p>
-                      <p className="text-xs sm:text-sm text-fg-muted">
-                        {order.cash_amount
-                          ? `Paga con $${Number(order.cash_amount).toLocaleString("es-CO")}`
-                          : ""}
-                      </p>
-
                       {order.order_type === "domicilio" && (
                         <p className="text-xs sm:text-sm text-fg-muted break-words">
                           {order.neighborhood}
                         </p>
                       )}
+
+                      <div className="flex gap-2 items-center mt-2">
+                        <select
+                          value={
+                            pendingPayment[order.id] ?? order.payment_method
+                          }
+                          onChange={(e) =>
+                            setPendingPayment((prev) => ({
+                              ...prev,
+                              [order.id]: e.target.value,
+                            }))
+                          }
+                          className="flex-1 rounded-xl border border-line bg-canvas px-2 py-1 text-sm"
+                        >
+                          <option value="efectivo">Efectivo</option>
+                          <option value="digital">Pago digital</option>
+                        </select>
+
+                        <button
+                          onClick={() => changePaymentMethod(order)}
+                          disabled={
+                            (pendingPayment[order.id] ??
+                              order.payment_method) === order.payment_method
+                          }
+                          className="px-3 py-1 rounded-lg bg-green-600 text-white disabled:opacity-50"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <p className="text-xs sm:text-sm text-fg-muted">
+                        {order.cash_amount
+                          ? `Paga con $${Number(order.cash_amount).toLocaleString("es-CO")}`
+                          : ""}
+                      </p>
 
                       {order.lat && order.lng && (
                         <a
@@ -793,13 +852,14 @@ export default function AdminDashboard() {
                             </p>
                           )}
                           {item.additionals && item.additionals.length > 0 && (
-                            <p className="text-brand text-xs mt-1">
-                              Adicional: {item.additionals[0]?.name} (+$
-                              {item.additionals[0]?.price.toLocaleString(
-                                "es-CO",
-                              )}
-                              )
-                            </p>
+                            <div className="mt-1">
+                              {item.additionals.map((additional, index) => (
+                                <p key={index} className="text-brand text-xs">
+                                  Adicional: {additional.name} (+$
+                                  {additional.price.toLocaleString("es-CO")})
+                                </p>
+                              ))}
+                            </div>
                           )}
                         </div>
                         <p className="font-semibold text-right sm:text-left">

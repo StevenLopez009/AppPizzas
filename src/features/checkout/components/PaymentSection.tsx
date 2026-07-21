@@ -110,6 +110,20 @@ export default function PaymentSection({
             className="accent-brand"
           />
         </div>
+
+        {orderType === "domicilio" && (
+          <div className="flex items-center justify-between p-4">
+            <p className="font-semibold text-fg">Link de pago</p>
+            <input
+              type="radio"
+              name="pago"
+              value="link"
+              checked={form.pago === "link"}
+              onChange={handleChange}
+              className="accent-brand"
+            />
+          </div>
+        )}
       </div>
       {requiereComprobante && (
         <div className="pt-2 space-y-5">

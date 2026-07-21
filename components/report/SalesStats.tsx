@@ -21,6 +21,7 @@ interface Order {
   created_at: string;
   payment_method: string;
   order_type: string;
+  status: string;
   order_items: {
     product_name: string;
     quantity: number;
@@ -54,7 +55,10 @@ export default function SalesStats({ orders }: Props) {
   const salesByDayMap: Record<string, number> = {};
 
   orders.forEach((order) => {
+    if (order.status === "cancelado") return;
+
     const day = new Date(order.created_at).toLocaleDateString("es-CO");
+
     salesByDayMap[day] = (salesByDayMap[day] || 0) + finalTotal(order);
   });
 
